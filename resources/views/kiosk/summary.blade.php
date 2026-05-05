@@ -241,6 +241,11 @@
         $latestCheckup && filled($latestCheckup->blood_pressure)
             ? 'Latest BP: ' . $latestCheckup->blood_pressure : null,
     ])->filter()->values();
+
+    $chartData         = $patient->healthCheckups->sortBy('checkup_date')->values();
+    $chartLabels       = $chartData->pluck('checkup_date')->map(fn ($date) => \Carbon\Carbon::parse($date)->format('d M y'))->values();
+    $sugarSeries       = $chartData->pluck('blood_sugar')->values();
+    $cholesterolSeries = $chartData->pluck('cholesterol')->values();
 @endphp
 
 <div class="bg-scene"></div>
@@ -319,6 +324,22 @@
             <div class="stat-label">Active Medications</div>
             <div class="stat-value">{{ $activeMedCount }}</div>
             <span class="badge-pill pill-teal">{{ $activeMedCount > 0 ? 'On prescription' : 'None recorded' }}</span>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <div class="section-head">📈 Health Trends</div>
+        <div class="section-body">
+            @if($chartData->isNotEmpty())
+                <p style="font-size:.82rem; color:var(--muted); margin-bottom:14px;">
+                    This chart shows how blood sugar and cholesterol readings have changed across recorded check-ups.
+                </p>
+                <div style="position:relative; height:320px; width:100%;">
+                    <canvas id="kioskHealthChart"></canvas>
+                </div>
+            @else
+                <p style="color:var(--muted); font-size:.88rem; font-style:italic;">No check-up trend data is available yet.</p>
+            @endif
         </div>
     </div>
 
@@ -450,5 +471,65 @@
     setInterval(update, 1000);
 })();
 </script>
+
+@if($chartData->isNotEmpty())
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const chartCanvas = document.getElementById('kioskHealthChart');
+
+    if (!chartCanvas) return;
+
+    const chartLabels = {!! json_encode($chartLabels) !!};
+    const sugarSeries = {!! json_encode($sugarSeries) !!};
+    const cholesterolSeries = {!! json_encode($cholesterolSeries) !!};
+
+    new Chart(chartCanvas.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: chartLabels,
+            datasets: [
+                {
+                    label: 'Blood Sugar (mmol/L)',
+                    data: sugarSeries,
+                    borderColor: 'rgb(13, 148, 136)',
+                    backgroundColor: 'rgba(13, 148, 136, 0.10)',
+                    borderWidth: 3,
+                    pointBackgroundColor: 'rgb(13, 148, 136)',
+                    pointRadius: 4,
+                    fill: true,
+                    tension: 0.35
+                },
+                {
+                    label: 'Cholesterol (mmol/L)',
+                    data: cholesterolSeries,
+                    borderColor: 'rgb(6, 182, 212)',
+                    backgroundColor: 'rgba(6, 182, 212, 0.06)',
+                    borderWidth: 3,
+                    pointBackgroundColor: 'rgb(6, 182, 212)',
+                    pointRadius: 4,
+                    fill: false,
+                    tension: 0.35
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false
+                }
+            }
+        }
+    });
+});
+</script>
+@endif
 </body>
 </html>
