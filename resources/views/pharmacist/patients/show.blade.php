@@ -33,6 +33,9 @@
                             <span>{{ $patient->age }} years old</span>
                             <span>{{ $patient->user->email }}</span>
                         </div>
+                        <p class="mt-2 text-sm font-bold text-blue-700">
+                            Assigned Pharmacist: {{ $patient->pharmacist?->name ?? 'Unassigned' }}
+                        </p>
                     </div>
 
                     <div class="mt-4 md:mt-0 flex flex-col items-end">

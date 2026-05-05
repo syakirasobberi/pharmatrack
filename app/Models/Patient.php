@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class Patient extends Model
 {
@@ -12,6 +13,7 @@ class Patient extends Model
     // 2. Senaraikan kolum yang dibenarkan untuk diisi (Mass Assignment)
     protected $fillable = [
         'user_id',
+        'pharmacist_id',
         'age',
         'gender',
         'weight',
@@ -27,6 +29,18 @@ class Patient extends Model
             'name' => 'Unnamed Patient',
             'email' => 'No email recorded',
         ]);
+    }
+
+    public function pharmacist()
+    {
+        return $this->belongsTo(User::class, 'pharmacist_id', 'id');
+    }
+
+    public function scopeAssignedTo(Builder $query, User|int $pharmacist): Builder
+    {
+        $pharmacistId = $pharmacist instanceof User ? $pharmacist->id : $pharmacist;
+
+        return $query->where('pharmacist_id', $pharmacistId);
     }
 
     // Tambah ini di bawah fungsi user() yang sedia ada

@@ -11,7 +11,7 @@ class MedicationController extends Controller
 {
     public function index($id)
     {
-        $patient = Patient::with('user')->findOrFail($id);
+        $patient = Patient::assignedTo(request()->user())->with('user')->findOrFail($id);
         $medications = $patient->medications()->latest()->get();
 
         return view('medications.index', compact('patient', 'medications'));
@@ -19,7 +19,7 @@ class MedicationController extends Controller
 
     public function store(Request $request, $id)
     {
-        $patient = Patient::findOrFail($id);
+        $patient = Patient::assignedTo($request->user())->findOrFail($id);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -34,6 +34,7 @@ class MedicationController extends Controller
             'patient_id' => $patient->id,
             'name' => $validated['name'],
             'dosage' => $validated['dosage'],
+            'frequency' => $validated['dosage'],
             'notes' => $validated['notes'] ?? null,
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],

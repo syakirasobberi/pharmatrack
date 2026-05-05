@@ -6,6 +6,7 @@
         $bmi = (float) $patient->bmi;
         $patientName = $patient->user->name ?: ('Patient #' . $patient->id);
         $patientEmail = $patient->user->email ?: 'No email recorded';
+        $assignedPharmacistName = $patient->pharmacist?->name ?? 'Unassigned';
 
         if ($bmi >= 30) {
             $bmiStatus = ['Obese', 'bg-red-100 text-red-700'];
@@ -49,6 +50,7 @@
                                 <div class="flex flex-wrap gap-3 text-sm mt-2" style="color: #eff6ff;">
                                     <span>{{ $patient->gender }}</span>
                                     <span>{{ $patient->age }} years</span>
+                                    <span>Assigned Pharmacist: {{ $assignedPharmacistName }}</span>
                                 </div>
                             </div>
                         </div>

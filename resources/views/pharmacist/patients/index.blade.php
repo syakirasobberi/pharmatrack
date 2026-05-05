@@ -64,6 +64,9 @@
                             <p class="text-xs text-gray-400">
                                 ID: {{ $pt->id }}
                             </p>
+                            <p class="text-xs text-blue-600 font-semibold">
+                                Assigned Pharmacist: {{ $pt->pharmacist?->name ?? 'Unassigned' }}
+                            </p>
                         </div>
                     </td>
 

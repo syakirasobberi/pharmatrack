@@ -14,7 +14,7 @@ class PatientController extends Controller
     // 1. Display all patients (Index Page)
     public function index()
     {
-        $patients = Patient::with('user')->latest()->get();
+        $patients = Patient::assignedTo(request()->user())->with(['user', 'pharmacist'])->latest()->get();
         return view('pharmacist.patients.index', compact('patients'));
     }
     
@@ -54,6 +54,7 @@ class PatientController extends Controller
         // Save health profile and face descriptor in 'patients' table
         Patient::create([
             'user_id' => $user->user_id ?? $user->id, 
+            'pharmacist_id' => $request->user()->id,
             'age' => $request->age,
             'gender' => $request->gender,
             'weight' => $request->weight,
@@ -70,7 +71,7 @@ class PatientController extends Controller
     // 4. Display full patient profile
     public function show($id)
     {
-        $patient = Patient::with(['user', 'healthCheckups'])->findOrFail($id);
+        $patient = Patient::assignedTo(request()->user())->with(['user', 'pharmacist', 'healthCheckups'])->findOrFail($id);
         return view('pharmacist.patients.show', compact('patient'));
     }
 
@@ -94,8 +95,9 @@ class PatientController extends Controller
 
     protected function buildSummaryPatient($id)
     {
-        return Patient::with([
+        return Patient::assignedTo(request()->user())->with([
             'user',
+            'pharmacist',
             'healthCheckups' => fn ($query) => $query->latest('checkup_date'),
             'medicalHistory',
             'medications',
@@ -105,14 +107,14 @@ class PatientController extends Controller
     // 5. Open Medical Record form
     public function editMedical($id)
     {
-        $patient = Patient::with('medicalHistory')->findOrFail($id);
+        $patient = Patient::assignedTo(request()->user())->with(['medicalHistory', 'pharmacist'])->findOrFail($id);
         return view('pharmacist.patients.medical', compact('patient'));
     }
 
     // 6. Update Medical records to database
     public function updateMedical(Request $request, $id)
     {
-        $patient = Patient::findOrFail($id);
+        $patient = Patient::assignedTo($request->user())->findOrFail($id);
 
         // Update or Create Medical History
         MedicalHistory::updateOrCreate(
@@ -145,7 +147,7 @@ class PatientController extends Controller
         $patientId = $request->input('patient_id');
         $descriptor = $request->input('descriptor');
 
-        $patient = Patient::find($patientId);
+        $patient = Patient::assignedTo($request->user())->find($patientId);
 
         if (!$patient) {
             return response()->json(['status' => 'error', 'message' => 'Patient not found.'], 404);
@@ -161,7 +163,7 @@ class PatientController extends Controller
 public function quickScan()
 {
     // Ambil hanya pesakit yang benar-benar mempunyai data wajah yang boleh digunakan
-    $patients = Patient::with('user')
+    $patients = Patient::assignedTo(request()->user())->with('user')
         ->whereNotNull('face_descriptor')
         ->where('face_descriptor', '!=', '')
         ->get(['id', 'user_id', 'face_descriptor']);

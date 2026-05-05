@@ -82,9 +82,9 @@ Route::middleware(['auth', 'force_password_change', 'role:admin'])->group(functi
 Route::middleware(['auth', 'force_password_change', 'role:pharmacist'])->group(function () {
     Route::get('/pharmacist/dashboard', function () {
         $search = request('search');
-        $totalPatients = Patient::count();
+        $totalPatients = Patient::assignedTo(request()->user())->count();
 
-        $patients = Patient::with('user')
+        $patients = Patient::assignedTo(request()->user())->with(['user', 'pharmacist'])
             ->when($search, function ($query, $searchTerm) {
                 $query->whereHas('user', function ($userQuery) use ($searchTerm) {
                     $userQuery->where('name', 'like', "%{$searchTerm}%")

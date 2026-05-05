@@ -12,7 +12,7 @@ class HealthCheckupController extends Controller
     // Paparkan borang Health Check-up untuk pesakit yang dipilih
     public function create($id)
     {
-        $patient = Patient::with('user')->findOrFail($id);
+        $patient = Patient::assignedTo(Auth::user())->with('user')->findOrFail($id);
         return view('pharmacist.checkups.create', compact('patient'));
     }
 
@@ -26,8 +26,10 @@ class HealthCheckupController extends Controller
             'checkup_date' => 'required|date',
         ]);
 
+        $patient = Patient::assignedTo($request->user())->findOrFail($id);
+
         HealthCheckup::create([
-            'patient_id' => $id,
+            'patient_id' => $patient->id,
             'pharmacist_id' => Auth::id(), // ID ahli farmasi yang sedang login
             'blood_pressure' => $request->blood_pressure,
             'blood_sugar' => $request->blood_sugar,

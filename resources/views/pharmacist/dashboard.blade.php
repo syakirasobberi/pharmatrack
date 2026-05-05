@@ -5,16 +5,22 @@
 
     @php
         // Kira jumlah pesakit & checkup hari ini
-        $totalPatients = \App\Models\Patient::count();
-        $todayCheckups = \App\Models\HealthCheckup::whereDate('created_at', today())->count();
+        $assignedPatientIds = \App\Models\Patient::assignedTo(auth()->user())->pluck('id');
+        $totalPatients = $assignedPatientIds->count();
+        $todayCheckups = \App\Models\HealthCheckup::whereIn('patient_id', $assignedPatientIds)
+            ->whereDate('created_at', today())
+            ->count();
         
         // Tarik 5 pesakit yang baru didaftarkan
-        $recentPatients = \App\Models\Patient::with('user')->latest()->take(5)->get();
+        $recentPatients = \App\Models\Patient::assignedTo(auth()->user())->with(['user', 'pharmacist'])->latest()->take(5)->get();
         
         // Tarik rekod pesakit yang berisiko (Gula Tinggi atau Kolesterol Tinggi) untuk panel Alert
         $healthAlerts = \App\Models\HealthCheckup::with('patient.user')
-                            ->where('blood_sugar', '>=', 5.6)
-                            ->orWhere('cholesterol', '>=', 5.2)
+                            ->whereIn('patient_id', $assignedPatientIds)
+                            ->where(function ($query) {
+                                $query->where('blood_sugar', '>=', 5.6)
+                                    ->orWhere('cholesterol', '>=', 5.2);
+                            })
                             ->latest()
                             ->take(4)
                             ->get();
@@ -115,7 +121,10 @@
                                 <tr class="hover:bg-gray-50/50 transition-colors">
                                     <td class="py-4 px-4 font-bold text-gray-800 flex items-center gap-3">
                                         <img src="https://ui-avatars.com/api/?name={{ urlencode($pt->user->name) }}&background=eff6ff&color=1d4ed8" class="w-8 h-8 rounded-full">
-                                        {{ $pt->user->name }}
+                                        <span>
+                                            <span class="block">{{ $pt->user->name }}</span>
+                                            <span class="block text-xs text-gray-400 font-semibold">Assigned Pharmacist: {{ $pt->pharmacist?->name ?? 'Unassigned' }}</span>
+                                        </span>
                                     </td>
                                     <td class="py-4 px-4 text-gray-600">{{ $pt->gender }}, {{ $pt->age }}y</td>
                                     <td class="py-4 px-4">
