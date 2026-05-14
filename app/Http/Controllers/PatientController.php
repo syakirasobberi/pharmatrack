@@ -78,8 +78,9 @@ class PatientController extends Controller
     public function summary($id)
     {
         $patient = $this->buildSummaryPatient($id);
+        $prediction = app(HealthRiskPredictionController::class)->predictForPatient($patient);
 
-        return view('pharmacist.patients.summary', compact('patient'));
+        return view('pharmacist.patients.summary', compact('patient', 'prediction'));
     }
 
     public function downloadSummary($id)

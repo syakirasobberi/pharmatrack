@@ -334,8 +334,13 @@
                                             </div>
 
                                             <div>
-                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">How should the patient take it?</label>
+                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">Dosage</label>
                                                 <input type="text" name="dosage" value="{{ old('dosage') }}" placeholder="500mg twice daily after meals" required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 transition-colors">
+                                            </div>
+
+                                            <div>
+                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">Frequency</label>
+                                                <input type="text" name="frequency" value="{{ old('frequency') }}" placeholder="Twice daily, once at night, every 8 hours..." class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 transition-colors">
                                             </div>
 
                                             <div>

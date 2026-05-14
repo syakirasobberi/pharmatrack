@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AiController;
+use App\Http\Controllers\HealthRiskPredictionController;
 use App\Http\Controllers\HealthCheckupController;
 use App\Http\Controllers\MedicationController;
 use App\Http\Controllers\PatientController;
@@ -57,11 +58,18 @@ Route::get('/kiosk/summary/{id}', function ($id) {
         'medications',
     ])->findOrFail($id);
 
-    return view('kiosk.summary', compact('patient'));
+    $prediction = app(HealthRiskPredictionController::class)->predictForPatient($patient);
+
+    return view('kiosk.summary', compact('patient', 'prediction'));
 })->name('kiosk.summary');
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    return match (request()->user()->role) {
+        'admin' => redirect()->route('admin.dashboard'),
+        'pharmacist' => redirect()->route('pharmacist.dashboard'),
+        'patient' => redirect()->route('patient.dashboard'),
+        default => view('dashboard'),
+    };
 })->middleware(['auth', 'force_password_change', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'force_password_change'])->group(function () {
@@ -77,6 +85,13 @@ require __DIR__ . '/auth.php';
 
 Route::middleware(['auth', 'force_password_change', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/admin/pharmacists', [AdminController::class, 'pharmacists'])->name('admin.pharmacists.index');
+    Route::post('/admin/pharmacists', [AdminController::class, 'storePharmacist'])->name('admin.pharmacists.store');
+    Route::patch('/admin/pharmacists/{user}/require-password-change', [AdminController::class, 'requirePasswordChange'])->name('admin.pharmacists.requirePasswordChange');
+    Route::get('/admin/patients', [AdminController::class, 'patients'])->name('admin.patients.index');
+    Route::get('/admin/reports', [AdminController::class, 'reports'])->name('admin.reports.index');
+    Route::get('/admin/settings', [AdminController::class, 'settings'])->name('admin.settings.index');
+    Route::patch('/admin/settings/app-name', [AdminController::class, 'updateAppName'])->name('admin.settings.updateAppName');
 });
 
 Route::middleware(['auth', 'force_password_change', 'role:pharmacist'])->group(function () {
@@ -102,6 +117,7 @@ Route::middleware(['auth', 'force_password_change', 'role:pharmacist'])->group(f
     Route::post('/pharmacist/patients', [PatientController::class, 'store'])->name('pharmacist.patients.store');
     Route::get('/pharmacist/patients/{id}', [PatientController::class, 'show'])->name('pharmacist.patients.show');
     Route::get('/pharmacist/patients/{id}/summary', [PatientController::class, 'summary'])->name('pharmacist.patients.summary');
+    Route::get('/pharmacist/patients/{id}/risk-prediction', [HealthRiskPredictionController::class, 'show'])->name('pharmacist.patients.riskPrediction');
     Route::get('/pharmacist/patients/{id}/summary/download', [PatientController::class, 'downloadSummary'])->name('pharmacist.patients.summary.download');
     Route::get('/pharmacist/patients/{id}/medical', [PatientController::class, 'editMedical'])->name('pharmacist.patients.medical.edit');
     Route::post('/pharmacist/patients/{id}/medical', [PatientController::class, 'updateMedical'])->name('pharmacist.patients.medical.update');
@@ -129,5 +145,6 @@ Route::middleware(['auth', 'force_password_change', 'role:patient'])->group(func
     })->name('patient.dashboard');
 
     Route::get('/patient/medications', [PatientPortalController::class, 'medications'])->name('patient.medications');
+    Route::get('/patient/checkups', [PatientPortalController::class, 'checkups'])->name('patient.checkups');
     Route::get('/patient/download-summary', [PatientPortalController::class, 'downloadSummary'])->name('patient.summary.download');
 });

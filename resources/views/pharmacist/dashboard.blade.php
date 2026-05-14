@@ -24,6 +24,29 @@
                             ->latest()
                             ->take(4)
                             ->get();
+
+        $medicationAlerts = \App\Models\Medication::with('patient.user')
+                            ->whereIn('patient_id', $assignedPatientIds)
+                            ->where(function ($query) {
+                                $query->whereNull('last_taken')
+                                    ->orWhereDate('last_taken', '<', today()->subDays(7))
+                                    ->orWhereBetween('end_date', [today(), today()->addDays(7)]);
+                            })
+                            ->latest()
+                            ->take(5)
+                            ->get();
+
+        $patientsNeedingCheckup = \App\Models\Patient::assignedTo(auth()->user())
+                            ->with(['user', 'healthCheckups' => fn ($query) => $query->latest('checkup_date')])
+                            ->get()
+                            ->filter(function ($patient) {
+                                $latest = $patient->healthCheckups->first();
+
+                                return ! $latest || \Carbon\Carbon::parse($latest->checkup_date)->lt(today()->subDays(90));
+                            })
+                            ->take(5);
+
+        $workflowAlerts = $healthAlerts->count() + $medicationAlerts->count() + $patientsNeedingCheckup->count();
     @endphp
 
     <div class="py-8 bg-gray-50 min-h-screen">
@@ -34,7 +57,7 @@
                 <div class="absolute bottom-0 right-20 w-32 h-32 bg-blue-400 opacity-20 rounded-full blur-xl"></div>
                 
                 <div class="relative z-10">
-                    <h1 class="text-3xl font-extrabold mb-1">Welcome back, Pharmacist! 👋</h1>
+                    <h1 class="text-3xl font-extrabold mb-1">Welcome back, Pharmacist</h1>
                     <p class="text-blue-100 text-sm">Here is the latest health summary for your community patients today.</p>
                 </div>
                 <div class="relative z-10 flex gap-3">
@@ -48,7 +71,12 @@
             <div class="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
     <div>
         <h3 class="text-xl font-extrabold text-blue-900 flex items-center gap-2 mb-1">
-            ⚡ Quick Recognition System
+            <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-700 border border-blue-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+            </span>
+            Quick Recognition System
         </h3>
         <p class="text-sm text-blue-700 font-medium">
             Scan existing patient's face at the counter to automatically open their medical records.
@@ -66,8 +94,10 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 flex items-center gap-4">
-                    <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl border border-blue-100 shadow-inner">
-                        👥
+                    <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100 shadow-inner">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m6-6a4 4 0 11-8 0 4 4 0 018 0zm6 2a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 font-bold">Total Patients</p>
@@ -76,8 +106,10 @@
                 </div>
 
                 <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 flex items-center gap-4">
-                    <div class="w-14 h-14 bg-green-50 text-green-600 rounded-xl flex items-center justify-center text-2xl border border-green-100 shadow-inner">
-                        🩺
+                    <div class="w-14 h-14 bg-green-50 text-green-600 rounded-xl flex items-center justify-center border border-green-100 shadow-inner">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-3-3v6m8-3a8 8 0 11-16 0 8 8 0 0116 0z"></path>
+                        </svg>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 font-bold">Check-ups Today</p>
@@ -86,12 +118,14 @@
                 </div>
 
                 <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 flex items-center gap-4">
-                    <div class="w-14 h-14 bg-red-50 text-red-600 rounded-xl flex items-center justify-center text-2xl border border-red-100 shadow-inner">
-                        ⚠️
+                    <div class="w-14 h-14 bg-red-50 text-red-600 rounded-xl flex items-center justify-center border border-red-100 shadow-inner">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path>
+                        </svg>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500 font-bold">Health Alerts</p>
-                        <h3 class="text-2xl font-extrabold text-gray-800">{{ $healthAlerts->count() }}</h3>
+                        <p class="text-sm text-gray-500 font-bold">Workflow Alerts</p>
+                        <h3 class="text-2xl font-extrabold text-gray-800">{{ $workflowAlerts }}</h3>
                     </div>
                 </div>
             </div>
@@ -101,9 +135,14 @@
                 <div class="lg:col-span-2 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="font-extrabold text-lg text-gray-800 flex items-center gap-2">
-                            📂 Recently Added Patients
+                            <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"></path>
+                                </svg>
+                            </span>
+                            Recently Added Patients
                         </h3>
-                        <a href="#" class="text-sm text-blue-600 hover:text-blue-800 font-bold">View All &rarr;</a>
+                        <a href="{{ route('pharmacist.patients.index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-bold">View All &rarr;</a>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -150,7 +189,12 @@
 
                 <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                     <h3 class="font-extrabold text-lg text-gray-800 mb-6 flex items-center gap-2">
-                        🚨 Recent Health Alerts
+                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-600 border border-red-100">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path>
+                            </svg>
+                        </span>
+                        Alerts & Reminders
                     </h3>
                     
                     <div class="space-y-4">
@@ -174,12 +218,49 @@
                             <a href="{{ route('pharmacist.patients.show', $alert->patient_id) }}" class="mt-3 text-xs font-bold text-blue-600 hover:text-blue-800 inline-block">Review Case &rarr;</a>
                         </div>
                         @empty
+                        @if($workflowAlerts === 0)
                         <div class="p-6 border border-green-100 bg-green-50 rounded-xl text-center">
-                            <div class="text-2xl mb-2">🌿</div>
                             <p class="text-sm font-bold text-green-800">All Clear!</p>
                             <p class="text-xs text-green-600 mt-1">No critical health alerts detected recently.</p>
                         </div>
+                        @endif
                         @endforelse
+
+                        @foreach($medicationAlerts as $medication)
+                            @php
+                                $lastTaken = $medication->last_taken ? \Carbon\Carbon::parse($medication->last_taken) : null;
+                                $endDate = $medication->end_date ? \Carbon\Carbon::parse($medication->end_date) : null;
+                                $isEndingSoon = $endDate && $endDate->isFuture() && today()->diffInDays($endDate) <= 7;
+                            @endphp
+                            <div class="p-4 border border-amber-100 bg-amber-50/50 rounded-xl relative overflow-hidden">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-amber-500"></div>
+                                <h4 class="font-bold text-sm text-gray-800">{{ $medication->patient->user->name ?? 'Unknown' }}</h4>
+                                <p class="text-xs text-amber-700 mt-2">
+                                    {{ $medication->name }}:
+                                    @if($isEndingSoon)
+                                        treatment ends on {{ $endDate->format('d M Y') }}.
+                                    @elseif($lastTaken)
+                                        last dose was {{ $lastTaken->diffInDays(today()) }} days ago.
+                                    @else
+                                        latest dose date is missing.
+                                    @endif
+                                </p>
+                                <a href="{{ route('pharmacist.medication.index', $medication->patient_id) }}" class="mt-3 text-xs font-bold text-blue-600 hover:text-blue-800 inline-block">Review Medication &rarr;</a>
+                            </div>
+                        @endforeach
+
+                        @foreach($patientsNeedingCheckup as $patientDue)
+                            <div class="p-4 border border-blue-100 bg-blue-50/40 rounded-xl relative overflow-hidden">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
+                                <h4 class="font-bold text-sm text-gray-800">{{ $patientDue->user->name ?? 'Unknown' }}</h4>
+                                <p class="text-xs text-blue-700 mt-2">
+                                    {{ $patientDue->healthCheckups->first()
+                                        ? 'Last check-up was on ' . \Carbon\Carbon::parse($patientDue->healthCheckups->first()->checkup_date)->format('d M Y') . '.'
+                                        : 'No health check-up has been recorded yet.' }}
+                                </p>
+                                <a href="{{ route('pharmacist.checkups.create', $patientDue->id) }}" class="mt-3 text-xs font-bold text-blue-600 hover:text-blue-800 inline-block">Schedule Check-up &rarr;</a>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
 

@@ -204,6 +204,52 @@
             color: #16a34a; font-size: .85rem; font-weight: 600;
         }
 
+        .intelligence-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 18px; margin-bottom: 24px; }
+        @media (max-width: 760px) { .intelligence-grid { grid-template-columns: 1fr; } }
+        .ai-card {
+            border-radius: 20px; background: var(--surface); border: 1px solid var(--border);
+            box-shadow: var(--shadow); overflow: hidden;
+        }
+        .ai-card-head {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 18px 22px; border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, rgba(13,148,136,.08), rgba(6,182,212,.07));
+        }
+        .ai-title { font-size: 1rem; font-weight: 800; color: var(--text); }
+        .ai-subtitle { margin-top: 3px; font-size: .78rem; color: var(--muted); font-weight: 500; }
+        .risk-chip {
+            display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 999px;
+            font-size: .75rem; font-weight: 800; white-space: nowrap;
+        }
+        .risk-low { background: rgba(34,197,94,.12); color: #15803d; }
+        .risk-moderate { background: rgba(245,158,11,.14); color: #b45309; }
+        .risk-high { background: rgba(239,68,68,.12); color: #dc2626; }
+        .ai-card-body { padding: 22px; }
+        .risk-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+        @media (max-width: 560px) { .risk-metrics { grid-template-columns: 1fr; } }
+        .risk-metric {
+            border: 1px solid var(--border); border-radius: 14px; padding: 14px;
+            background: var(--surface2);
+        }
+        .risk-metric-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted2); font-weight: 800; }
+        .risk-metric-value { margin-top: 6px; font-size: 1.55rem; font-weight: 800; color: var(--text); letter-spacing: -.03em; }
+        .summary-box {
+            padding: 15px 16px; border-radius: 14px; background: rgba(13,148,136,.07);
+            border: 1px solid rgba(13,148,136,.16); color: #115e59; font-size: .88rem; line-height: 1.55;
+        }
+        .factor-list { display: grid; gap: 10px; margin-top: 16px; }
+        .factor-item {
+            display: flex; align-items: center; gap: 9px; padding: 11px 12px;
+            border-radius: 12px; background: var(--surface2); border: 1px solid var(--border);
+            color: var(--text); font-size: .84rem; font-weight: 700;
+        }
+        .factor-check {
+            width: 20px; height: 20px; border-radius: 50%; display: inline-flex;
+            align-items: center; justify-content: center; background: rgba(13,148,136,.12);
+            color: var(--teal-d); font-size: .78rem; font-weight: 900; flex-shrink: 0;
+        }
+        .chart-box { position: relative; height: 300px; width: 100%; }
+
         /* Session timer */
         #session-timer {
             position: fixed; bottom: 20px; right: 24px; z-index: 50;
@@ -246,6 +292,21 @@
     $chartLabels       = $chartData->pluck('checkup_date')->map(fn ($date) => \Carbon\Carbon::parse($date)->format('d M y'))->values();
     $sugarSeries       = $chartData->pluck('blood_sugar')->values();
     $cholesterolSeries = $chartData->pluck('cholesterol')->values();
+    $prediction = $prediction ?? [
+        'success' => false,
+        'risk' => 'Not Available',
+        'risk_label' => 'Not Available',
+        'confidence' => '0%',
+        'risk_score' => 0,
+        'factors' => [],
+        'summary' => 'Prediction data is not available.',
+        'inputs' => ['bmi' => 0, 'blood_sugar' => 0, 'blood_pressure' => 0, 'cholesterol' => 0, 'lifestyle_score' => 0],
+    ];
+    $riskClass = match ($prediction['risk']) {
+        'High' => 'risk-high',
+        'Moderate' => 'risk-moderate',
+        default => 'risk-low',
+    };
 @endphp
 
 <div class="bg-scene"></div>
@@ -324,6 +385,58 @@
             <div class="stat-label">Active Medications</div>
             <div class="stat-value">{{ $activeMedCount }}</div>
             <span class="badge-pill pill-teal">{{ $activeMedCount > 0 ? 'On prescription' : 'None recorded' }}</span>
+        </div>
+    </div>
+
+    <div class="intelligence-grid">
+        <div class="ai-card">
+            <div class="ai-card-head">
+                <div>
+                    <div class="ai-title">AI Health Intelligence</div>
+                    <div class="ai-subtitle">Decision Tree prediction generated after face recognition</div>
+                </div>
+                <span class="risk-chip {{ $riskClass }}">{{ $prediction['risk_label'] }}</span>
+            </div>
+            <div class="ai-card-body">
+                <div class="risk-metrics">
+                    <div class="risk-metric">
+                        <div class="risk-metric-label">Risk Level</div>
+                        <div class="risk-metric-value" style="font-size:1.25rem;">{{ $prediction['risk_label'] }}</div>
+                    </div>
+                    <div class="risk-metric">
+                        <div class="risk-metric-label">Confidence</div>
+                        <div class="risk-metric-value">{{ $prediction['confidence'] }}</div>
+                    </div>
+                    <div class="risk-metric">
+                        <div class="risk-metric-label">Risk Score</div>
+                        <div class="risk-metric-value">{{ $prediction['risk_score'] }}/100</div>
+                    </div>
+                </div>
+
+                <div class="summary-box">{{ $prediction['summary'] }}</div>
+
+                <div class="factor-list">
+                    @forelse($prediction['factors'] as $factor)
+                        <div class="factor-item"><span class="factor-check">&check;</span>{{ $factor }}</div>
+                    @empty
+                        <div class="factor-item"><span class="factor-check">&check;</span>No risk factors detected yet</div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        <div class="ai-card">
+            <div class="ai-card-head">
+                <div>
+                    <div class="ai-title">Health Radar</div>
+                    <div class="ai-subtitle">BMI, sugar, pressure, cholesterol, and lifestyle score</div>
+                </div>
+            </div>
+            <div class="ai-card-body">
+                <div class="chart-box">
+                    <canvas id="kioskRiskRadar"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -444,6 +557,7 @@
     Session expires in <span id="timer-count">10:00</span>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 // Session countdown — 10 minutes (600s)
 (function () {
@@ -472,10 +586,49 @@
 })();
 </script>
 
-@if($chartData->isNotEmpty())
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const radarCanvas = document.getElementById('kioskRiskRadar');
+
+    if (radarCanvas) {
+        const radarInputs = {!! json_encode($prediction['inputs']) !!};
+
+        new Chart(radarCanvas.getContext('2d'), {
+            type: 'radar',
+            data: {
+                labels: ['BMI', 'Blood Sugar', 'Blood Pressure', 'Cholesterol', 'Lifestyle Score'],
+                datasets: [{
+                    label: 'Patient Health Profile',
+                    data: [
+                        Math.min((radarInputs.bmi / 40) * 100, 100),
+                        Math.min((radarInputs.blood_sugar / 10) * 100, 100),
+                        Math.min((radarInputs.blood_pressure / 180) * 100, 100),
+                        Math.min((radarInputs.cholesterol / 8) * 100, 100),
+                        radarInputs.lifestyle_score
+                    ],
+                    borderColor: 'rgb(13, 148, 136)',
+                    backgroundColor: 'rgba(13, 148, 136, 0.16)',
+                    pointBackgroundColor: 'rgb(6, 182, 212)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { display: false },
+                        grid: { color: 'rgba(100, 116, 139, 0.18)' },
+                        angleLines: { color: 'rgba(100, 116, 139, 0.18)' }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
     const chartCanvas = document.getElementById('kioskHealthChart');
 
     if (!chartCanvas) return;
@@ -530,6 +683,5 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-@endif
 </body>
 </html>

@@ -41,4 +41,13 @@ class PatientPortalController extends Controller
         return view('patient.medications', compact('patient'));
     }
 
+    public function checkups(Request $request)
+    {
+        $patient = Patient::with([
+            'healthCheckups' => fn ($query) => $query->latest('checkup_date'),
+        ])->where('user_id', $request->user()->id)->firstOrFail();
+
+        return view('patient.checkups', compact('patient'));
+    }
+
 }

@@ -48,4 +48,9 @@ class User extends Authenticatable
             'requires_password_change' => 'boolean',
         ];
     }
+
+    public function assignedPatients()
+    {
+        return $this->hasMany(Patient::class, 'pharmacist_id');
+    }
 }

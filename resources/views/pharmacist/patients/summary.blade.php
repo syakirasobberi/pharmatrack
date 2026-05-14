@@ -7,6 +7,25 @@
         $patientName = $patient->user->name ?: ('Patient #' . $patient->id);
         $patientEmail = $patient->user->email ?: 'No email recorded';
         $assignedPharmacistName = $patient->pharmacist?->name ?? 'Unassigned';
+        $chartData = $patient->healthCheckups->sortBy('checkup_date')->values();
+        $chartLabels = $chartData->pluck('checkup_date')->map(fn ($date) => \Carbon\Carbon::parse($date)->format('d M y'))->values();
+        $sugarSeries = $chartData->pluck('blood_sugar')->values();
+        $cholesterolSeries = $chartData->pluck('cholesterol')->values();
+        $prediction = $prediction ?? [
+            'success' => false,
+            'risk' => 'Not Available',
+            'risk_label' => 'Not Available',
+            'confidence' => '0%',
+            'risk_score' => 0,
+            'factors' => [],
+            'summary' => 'Prediction data is not available.',
+            'inputs' => ['bmi' => 0, 'blood_sugar' => 0, 'blood_pressure' => 0, 'cholesterol' => 0, 'lifestyle_score' => 0],
+        ];
+        $riskStyle = match ($prediction['risk']) {
+            'High' => 'bg-red-100 text-red-700 border-red-200',
+            'Moderate' => 'bg-amber-100 text-amber-700 border-amber-200',
+            default => 'bg-emerald-100 text-emerald-700 border-emerald-200',
+        };
 
         if ($bmi >= 30) {
             $bmiStatus = ['Obese', 'bg-red-100 text-red-700'];
@@ -96,6 +115,81 @@
                         </div>
                     </div>
 
+                    <div class="grid grid-cols-1 xl:grid-cols-5 gap-6">
+                        <div class="xl:col-span-3 rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                            <div class="px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-cyan-50 to-blue-50 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                <div>
+                                    <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-cyan-700">AI Health Intelligence</p>
+                                    <h2 class="text-xl font-extrabold text-slate-900 mt-1">Decision Tree Risk Prediction</h2>
+                                </div>
+                                <span class="inline-flex w-fit rounded-full border px-4 py-2 text-sm font-extrabold {{ $riskStyle }}">
+                                    {{ $prediction['risk_label'] }}
+                                </span>
+                            </div>
+
+                            <div class="p-6">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                                        <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Risk Level</p>
+                                        <p class="mt-2 text-2xl font-extrabold text-slate-900">{{ $prediction['risk_label'] }}</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                                        <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Confidence</p>
+                                        <p class="mt-2 text-2xl font-extrabold text-slate-900">{{ $prediction['confidence'] }}</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                                        <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Risk Score</p>
+                                        <p class="mt-2 text-2xl font-extrabold text-slate-900">{{ $prediction['risk_score'] }}/100</p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-5 rounded-2xl border border-cyan-100 bg-cyan-50 px-5 py-4 text-sm font-medium leading-6 text-cyan-950">
+                                    {{ $prediction['summary'] }}
+                                </div>
+
+                                <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    @forelse($prediction['factors'] as $factor)
+                                        <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700">
+                                            <span class="mr-2 text-emerald-600">&check;</span>{{ $factor }}
+                                        </div>
+                                    @empty
+                                        <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700">
+                                            <span class="mr-2 text-emerald-600">&check;</span>No risk factors detected yet
+                                        </div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="xl:col-span-2 rounded-3xl border border-slate-200 bg-white shadow-sm">
+                            <div class="px-6 py-5 border-b border-slate-100">
+                                <h2 class="text-lg font-extrabold text-slate-800">Health Radar</h2>
+                                <p class="text-sm text-slate-500 mt-1">Normalized view of the latest health readings.</p>
+                            </div>
+                            <div class="p-6">
+                                <div class="relative h-80">
+                                    <canvas id="summaryRiskRadar"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rounded-3xl border border-slate-200 bg-white shadow-sm">
+                        <div class="px-6 py-5 border-b border-slate-100">
+                            <h2 class="text-lg font-extrabold text-slate-800">Health Trend Analytics</h2>
+                            <p class="text-sm text-slate-500 mt-1">Blood sugar and cholesterol trends from recorded check-ups.</p>
+                        </div>
+                        <div class="p-6">
+                            @if($chartData->isNotEmpty())
+                                <div class="relative h-80">
+                                    <canvas id="summaryHealthTrend"></canvas>
+                                </div>
+                            @else
+                                <p class="text-sm text-slate-500 italic">No check-up trend data is available yet.</p>
+                            @endif
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div class="lg:col-span-2 rounded-3xl border border-slate-200 bg-white shadow-sm">
                             <div class="px-6 py-5 border-b border-slate-100">
@@ -177,4 +271,87 @@
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const radarCanvas = document.getElementById('summaryRiskRadar');
+            const trendCanvas = document.getElementById('summaryHealthTrend');
+            const radarInputs = {!! json_encode($prediction['inputs']) !!};
+
+            if (radarCanvas) {
+                new Chart(radarCanvas.getContext('2d'), {
+                    type: 'radar',
+                    data: {
+                        labels: ['BMI', 'Blood Sugar', 'Blood Pressure', 'Cholesterol', 'Lifestyle Score'],
+                        datasets: [{
+                            label: 'Patient Health Profile',
+                            data: [
+                                Math.min((radarInputs.bmi / 40) * 100, 100),
+                                Math.min((radarInputs.blood_sugar / 10) * 100, 100),
+                                Math.min((radarInputs.blood_pressure / 180) * 100, 100),
+                                Math.min((radarInputs.cholesterol / 8) * 100, 100),
+                                radarInputs.lifestyle_score
+                            ],
+                            borderColor: 'rgb(8, 145, 178)',
+                            backgroundColor: 'rgba(8, 145, 178, 0.16)',
+                            pointBackgroundColor: 'rgb(37, 99, 235)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: { display: false },
+                                grid: { color: 'rgba(100, 116, 139, 0.18)' },
+                                angleLines: { color: 'rgba(100, 116, 139, 0.18)' }
+                            }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            if (trendCanvas) {
+                new Chart(trendCanvas.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: {!! json_encode($chartLabels) !!},
+                        datasets: [
+                            {
+                                label: 'Blood Sugar (mmol/L)',
+                                data: {!! json_encode($sugarSeries) !!},
+                                borderColor: 'rgb(37, 99, 235)',
+                                backgroundColor: 'rgba(37, 99, 235, 0.10)',
+                                borderWidth: 3,
+                                pointBackgroundColor: 'rgb(37, 99, 235)',
+                                fill: true,
+                                tension: 0.35
+                            },
+                            {
+                                label: 'Cholesterol (mmol/L)',
+                                data: {!! json_encode($cholesterolSeries) !!},
+                                borderColor: 'rgb(20, 184, 166)',
+                                backgroundColor: 'transparent',
+                                borderWidth: 3,
+                                pointBackgroundColor: 'rgb(20, 184, 166)',
+                                fill: false,
+                                tension: 0.35
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'top' } },
+                        scales: { y: { beginAtZero: false } }
+                    }
+                });
+            }
+        });
+    </script>
 </x-app-layout>

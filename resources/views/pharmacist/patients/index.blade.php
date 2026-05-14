@@ -84,15 +84,15 @@
                     <td class="py-4 px-6">
                         @if($pt->bmi >= 25)
                             <span class="px-3 py-1 bg-orange-100 text-orange-600 text-xs rounded-full font-semibold">
-                                ⚠️ {{ number_format($pt->bmi,1) }}
+                                {{ number_format($pt->bmi,1) }}
                             </span>
                         @elseif($pt->bmi < 18.5)
                             <span class="px-3 py-1 bg-yellow-100 text-yellow-600 text-xs rounded-full font-semibold">
-                                ⚠️ {{ number_format($pt->bmi,1) }}
+                                {{ number_format($pt->bmi,1) }}
                             </span>
                         @else
                             <span class="px-3 py-1 bg-green-100 text-green-600 text-xs rounded-full font-semibold">
-                                ✅ {{ number_format($pt->bmi,1) }}
+                                {{ number_format($pt->bmi,1) }}
                             </span>
                         @endif
                     </td>

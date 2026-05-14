@@ -9,6 +9,27 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
             
             @if($patient)
+                @php
+                    $latestCheckup = $patient->healthCheckups->first();
+                    $today = \Carbon\Carbon::today();
+                    $medicationAlerts = $patient->medications->filter(function ($medication) use ($today) {
+                        if (! $medication->last_taken) {
+                            return true;
+                        }
+
+                        return \Carbon\Carbon::parse($medication->last_taken)->diffInDays($today) > 7;
+                    });
+                    $endingSoonMedications = $patient->medications->filter(function ($medication) use ($today) {
+                        if (! $medication->end_date) {
+                            return false;
+                        }
+
+                        $endDate = \Carbon\Carbon::parse($medication->end_date);
+
+                        return $endDate->isFuture() && $today->diffInDays($endDate) <= 7;
+                    });
+                @endphp
+
                 <!-- Hero Section -->
                 <div class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-8 shadow-2xl text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
                     <!-- Decorative background elements -->
@@ -27,6 +48,37 @@
                         </div>
                     </div>
                 </div>
+
+                @if($medicationAlerts->isNotEmpty() || $endingSoonMedications->isNotEmpty())
+                    <div class="bg-amber-50 border border-amber-200 rounded-3xl p-6 shadow-sm">
+                        <h3 class="font-extrabold text-lg text-amber-900 mb-4">Medication Reminders</h3>
+                        <div class="space-y-3">
+                            @foreach($medicationAlerts as $medication)
+                                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 bg-white border border-amber-100 rounded-2xl p-4">
+                                    <div>
+                                        <p class="font-bold text-gray-900">{{ $medication->name }}</p>
+                                        <p class="text-sm text-amber-800">
+                                            {{ $medication->last_taken
+                                                ? 'Last taken ' . \Carbon\Carbon::parse($medication->last_taken)->diffInDays($today) . ' days ago.'
+                                                : 'No latest dose date has been recorded.' }}
+                                        </p>
+                                    </div>
+                                    <span class="text-xs font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full">Follow up</span>
+                                </div>
+                            @endforeach
+
+                            @foreach($endingSoonMedications as $medication)
+                                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 bg-white border border-blue-100 rounded-2xl p-4">
+                                    <div>
+                                        <p class="font-bold text-gray-900">{{ $medication->name }}</p>
+                                        <p class="text-sm text-blue-800">Treatment ends on {{ \Carbon\Carbon::parse($medication->end_date)->format('d M Y') }}.</p>
+                                    </div>
+                                    <span class="text-xs font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">Ending soon</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
 
                 <!-- Health Vitals Quick Stats -->
                 <h3 class="text-xl font-extrabold text-gray-800 flex items-center gap-2">
@@ -123,7 +175,7 @@
                                             <p class="text-sm text-gray-500 font-medium mt-1">Dosage: <span class="text-gray-800">{{ $med->dosage }}</span></p>
                                             <div class="mt-3 bg-gray-50 rounded-lg p-3 text-sm text-gray-700 border border-gray-100">
                                                 <span class="font-bold text-gray-800 flex items-center gap-1"><svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Instructions:</span> 
-                                                {{ $med->instructions }}
+                                                {{ $med->frequency ?: ($med->notes ?: 'Follow the dosage recorded by your pharmacist.') }}
                                             </div>
                                         </div>
                                     </div>
@@ -150,11 +202,14 @@
                                     </div>
                                     <div class="bg-white/80 backdrop-blur rounded-2xl p-4 border border-teal-100 shadow-sm">
                                         <p class="text-xs text-teal-700 font-bold uppercase mb-1">Chronic Illnesses</p>
-                                        <p class="text-sm font-semibold text-gray-800">{{ $patient->medicalHistory->chronic_illnesses ?: 'None reported' }}</p>
+                                        <p class="text-sm font-semibold text-gray-800">
+                                            Hypertension: {{ $patient->medicalHistory->hypertension ?: 'None' }}<br>
+                                            Diabetes: {{ $patient->medicalHistory->diabetes ?: 'None' }}
+                                        </p>
                                     </div>
                                     <div class="sm:col-span-2 bg-white/80 backdrop-blur rounded-2xl p-4 border border-teal-100 shadow-sm">
-                                        <p class="text-xs text-teal-700 font-bold uppercase mb-1">Past Surgeries / Notes</p>
-                                        <p class="text-sm font-semibold text-gray-800">{{ $patient->medicalHistory->past_surgeries ?: 'None reported' }}</p>
+                                        <p class="text-xs text-teal-700 font-bold uppercase mb-1">Drug Allergies / Notes</p>
+                                        <p class="text-sm font-semibold text-gray-800">{{ $patient->medicalHistory->drug_allergies ?: 'None reported' }}</p>
                                     </div>
                                 </div>
                             @else
@@ -181,8 +236,11 @@
                                         <div class="bg-gray-50 rounded-xl p-4 mt-2 border border-gray-100 space-y-2">
                                             <div class="flex justify-between items-center text-sm">
                                                 <span class="text-gray-500">Blood Pressure</span>
-                                                <span class="font-bold {{ $checkup->blood_pressure_systolic > 130 ? 'text-red-600' : 'text-gray-800' }}">
-                                                    {{ $checkup->blood_pressure_systolic }}/{{ $checkup->blood_pressure_diastolic }}
+                                                @php
+                                                    $systolic = (float) preg_replace('/[^0-9.].*/', '', $checkup->blood_pressure);
+                                                @endphp
+                                                <span class="font-bold {{ $systolic > 130 ? 'text-red-600' : 'text-gray-800' }}">
+                                                    {{ $checkup->blood_pressure ?: 'N/A' }}
                                                 </span>
                                             </div>
                                             <div class="flex justify-between items-center text-sm">
@@ -208,7 +266,7 @@
                             
                             @if($patient->healthCheckups->count() > 3)
                                 <div class="mt-6 text-center">
-                                    <span class="text-sm font-bold text-indigo-600 hover:text-indigo-800 cursor-not-allowed">View All Checkups &rarr;</span>
+                                    <a href="{{ route('patient.checkups') }}" class="text-sm font-bold text-indigo-600 hover:text-indigo-800">View All Checkups &rarr;</a>
                                 </div>
                             @endif
                         </div>

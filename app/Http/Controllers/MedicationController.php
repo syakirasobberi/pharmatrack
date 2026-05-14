@@ -24,6 +24,7 @@ class MedicationController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'dosage' => 'required|string|max:255',
+            'frequency' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:255',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
@@ -34,7 +35,7 @@ class MedicationController extends Controller
             'patient_id' => $patient->id,
             'name' => $validated['name'],
             'dosage' => $validated['dosage'],
-            'frequency' => $validated['dosage'],
+            'frequency' => ($validated['frequency'] ?? null) ?: $validated['dosage'],
             'notes' => $validated['notes'] ?? null,
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],
