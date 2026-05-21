@@ -12,6 +12,15 @@
                 @php
                     $latestCheckup = $patient->healthCheckups->first();
                     $today = \Carbon\Carbon::today();
+                    $checkupAlertMessage = null;
+
+                    if (! $latestCheckup) {
+                        $checkupAlertMessage = 'You have not completed any health checkup yet. Please visit the pharmacy counter for your first checkup.';
+                    } elseif (\Carbon\Carbon::parse($latestCheckup->checkup_date)->lt($today->copy()->subDays(90))) {
+                        $lastCheckupDate = \Carbon\Carbon::parse($latestCheckup->checkup_date)->format('d M Y');
+                        $checkupAlertMessage = "Your last health checkup was on {$lastCheckupDate}. Please schedule a follow-up checkup soon.";
+                    }
+
                     $medicationAlerts = $patient->medications->filter(function ($medication) use ($today) {
                         if (! $medication->last_taken) {
                             return true;
@@ -48,6 +57,27 @@
                         </div>
                     </div>
                 </div>
+
+                @if($checkupAlertMessage)
+                    <div class="bg-red-50 border border-red-200 rounded-3xl p-6 shadow-sm">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <div class="flex items-start gap-4">
+                                <span class="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-600">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path>
+                                    </svg>
+                                </span>
+                                <div>
+                                    <h3 class="font-extrabold text-lg text-red-900">Checkup Reminder</h3>
+                                    <p class="text-sm text-red-800 mt-1">{{ $checkupAlertMessage }}</p>
+                                </div>
+                            </div>
+                            <a href="{{ route('patient.checkups') }}" class="inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700">
+                                View Checkup Records
+                            </a>
+                        </div>
+                    </div>
+                @endif
 
                 @if($medicationAlerts->isNotEmpty() || $endingSoonMedications->isNotEmpty())
                     <div class="bg-amber-50 border border-amber-200 rounded-3xl p-6 shadow-sm">

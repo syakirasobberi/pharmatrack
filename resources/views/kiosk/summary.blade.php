@@ -7,6 +7,12 @@
     <meta name="robots" content="noindex, nofollow">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    @php
+        $summaryBgVersion = file_exists(storage_path('app/public/bg.png'))
+            ? filemtime(storage_path('app/public/bg.png'))
+            : time();
+        $summaryBgUrl = asset('storage/bg.png') . '?v=' . $summaryBgVersion;
+    @endphp
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -34,7 +40,7 @@
         html { scroll-behavior: smooth; }
         body {
             font-family: 'Inter', sans-serif;
-            background: var(--bg);
+            background: #eef7f8;
             color: var(--text);
             min-height: 100vh;
         }
@@ -43,15 +49,39 @@
         .bg-scene {
             position: fixed; inset: 0; z-index: 0; pointer-events: none;
             background:
-                radial-gradient(ellipse 70% 50% at 10% 0%,  rgba(13,148,136,.07) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 45% at 90% 100%, rgba(6,182,212,.06) 0%, transparent 55%),
-                linear-gradient(160deg, #f0f4f8 0%, #e8f0fe 100%);
+                linear-gradient(120deg, rgba(255,255,255,.30), rgba(238,247,248,.66)),
+                url("{{ $summaryBgUrl }}"),
+                radial-gradient(ellipse 70% 50% at 10% 0%,  rgba(13,148,136,.12) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 45% at 90% 100%, rgba(6,182,212,.10) 0%, transparent 55%),
+                linear-gradient(160deg, #f4fbfb 0%, #e7f3fb 100%);
+            background-position: center;
+            background-size: cover;
+        }
+        .bg-scene::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,.68), rgba(255,255,255,.50));
+            opacity: .88;
+        }
+        .bg-scene::after {
+            content: "";
+            position: absolute;
+            inset: auto 0 0 0;
+            height: 260px;
+            background:
+                linear-gradient(180deg, transparent, rgba(255,255,255,.72)),
+                repeating-linear-gradient(90deg, rgba(13,148,136,.08) 0 1px, transparent 1px 72px);
+            opacity: .55;
         }
         .bg-dots {
             position: fixed; inset: 0; z-index: 0; pointer-events: none;
-            background-image: radial-gradient(circle, rgba(13,148,136,.12) 1px, transparent 1px);
-            background-size: 36px 36px;
-            opacity: .55;
+            background-image:
+                linear-gradient(rgba(13,148,136,.055) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(13,148,136,.055) 1px, transparent 1px);
+            background-size: 44px 44px;
+            mask-image: linear-gradient(180deg, rgba(0,0,0,.85), rgba(0,0,0,.18));
+            opacity: .75;
         }
 
         /* Layout */
@@ -66,8 +96,9 @@
         .logo-icon {
             width: 38px; height: 38px; border-radius: 10px;
             background: linear-gradient(135deg, var(--teal), var(--cyan));
-            display: flex; align-items: center; justify-content: center; font-size: 17px;
+            display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 12px rgba(13,148,136,.3);
+            color: #fff;
         }
         .logo-text { font-size: 1.1rem; font-weight: 800; color: var(--text); letter-spacing: -.02em; }
 
@@ -91,12 +122,25 @@
 
         /* Hero card */
         .hero-card {
+            position: relative;
             border-radius: 22px; overflow: hidden; margin-bottom: 24px;
-            background: linear-gradient(120deg, var(--teal-d) 0%, #0891b2 100%);
+            background:
+                linear-gradient(120deg, rgba(6,78,59,.82) 0%, rgba(8,145,178,.68) 58%, rgba(15,23,42,.42) 100%),
+                url("{{ $summaryBgUrl }}");
+            background-position: center;
+            background-size: cover;
             border: 1px solid rgba(13,148,136,.2);
             box-shadow: var(--shadow-lg), 0 0 0 1px rgba(13,148,136,.08);
         }
+        .hero-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(15,118,110,.24), rgba(255,255,255,.04));
+            pointer-events: none;
+        }
         .hero-inner {
+            position: relative; z-index: 1;
             display: flex; align-items: center; gap: 24px;
             padding: 28px 32px;
         }
@@ -317,7 +361,11 @@
     <!-- Top bar -->
     <div class="top-bar">
         <a href="{{ route('welcome') }}" class="logo">
-            <div class="logo-icon">💊</div>
+            <div class="logo-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+                    <path d="M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6V4z" stroke-linejoin="round"/>
+                </svg>
+            </div>
             <span class="logo-text">PharmaTrack</span>
         </a>
         <div class="top-bar-actions">

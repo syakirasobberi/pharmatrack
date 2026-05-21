@@ -68,7 +68,7 @@
                 </div>
             </div>
 
-            <div class="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+            <!--<div class="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
     <div>
         <h3 class="text-xl font-extrabold text-blue-900 flex items-center gap-2 mb-1">
             <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-700 border border-blue-200">
@@ -76,7 +76,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                 </svg>
             </span>
-            Quick Recognition System
+            Quick Patient Scan
         </h3>
         <p class="text-sm text-blue-700 font-medium">
             Scan existing patient's face at the counter to automatically open their medical records.
@@ -90,7 +90,7 @@
         </svg>
         Open Counter Camera
     </a>
-</div>
+</div>-->
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 flex items-center gap-4">

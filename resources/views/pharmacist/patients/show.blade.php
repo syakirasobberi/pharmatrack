@@ -81,7 +81,7 @@
                 </div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+            <div id="face-registration" class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                 <h3 class="font-extrabold text-lg text-gray-800 mb-4 flex items-center gap-2">
                     Facial Biometrics Status
                 </h3>

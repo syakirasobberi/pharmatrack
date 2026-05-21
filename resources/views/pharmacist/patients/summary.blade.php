@@ -49,8 +49,8 @@
     <div class="py-8 bg-slate-50 min-h-screen">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <div>
-                <a href="{{ route('pharmacist.quickScan') }}" class="inline-flex items-center text-slate-500 hover:text-blue-700 font-bold transition-colors">
-                    &larr; Back to Quick Scan
+                <a href="{{ route('pharmacist.patients.index') }}" class="inline-flex items-center text-slate-500 hover:text-blue-700 font-bold transition-colors">
+                    &larr; Back to patient list
                 </a>
             </div>
 

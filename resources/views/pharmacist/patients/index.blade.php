@@ -123,9 +123,9 @@
                             Med
                         </a>
 
-                        <a href="/register-face/{{ $pt->id }}"
+                        <a href="{{ route('pharmacist.patients.show', $pt->id) }}#face-registration"
                            class="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs rounded-lg shadow">
-                            Face
+                            {{ $pt->face_descriptor ? 'Face' : 'Add Face' }}
                         </a>
 
                     </td>
