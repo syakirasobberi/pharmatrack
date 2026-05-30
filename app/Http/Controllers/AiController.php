@@ -31,19 +31,20 @@ class AiController extends Controller
             $sugar = $validated['sugar'] ?? '5.0';
             $cholesterol = $validated['cholesterol'] ?? '4.0';
 
-            $prompt = "You are an expert clinical pharmacist. A patient has the following health metrics: 
+            $prompt = "You are an expert clinical pharmacist supporting a community pharmacy health screening workflow. A patient has the following health metrics:
                        - BMI: {$bmi}
                        - Blood Pressure: {$bp} mmHg
                        - Blood Sugar: {$sugar} mmol/L
                        - Cholesterol: {$cholesterol} mmol/L
                        
-                       Based on these metrics, provide a short, professional health suggestion. 
-                       You MUST strictly format your response into exactly 3 bullet points based on these specific categories:
-                       1. Food: (Give one specific food/dietary advice)
-                       2. Drinks: (Give one specific beverage advice)
-                       3. Sports: (Give one specific exercise/lifestyle advice)
+                       Based on these metrics, provide short, practical recommendations for pharmacist review.
+                       You MUST strictly format your response into exactly 4 numbered points:
+                       1. Food: (Give one specific dietary recommendation)
+                       2. Exercise: (Give one suitable physical activity or lifestyle recommendation)
+                       3. Follow-up: (Give one monitoring or referral recommendation)
+                       4. Medication review: (Give one pharmacist review consideration, but do not prescribe or name a medicine unless the patient is already prescribed it)
                        
-                       Do not use bold text or markdown, just simple sentences.";
+                       Keep each point one sentence. Do not use markdown symbols or bold text. Do not claim to diagnose disease.";
 
             $httpClient = Http::timeout(15)->acceptJson();
 

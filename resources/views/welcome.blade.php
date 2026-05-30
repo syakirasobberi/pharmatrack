@@ -38,12 +38,15 @@
 
         /* ── Animated background ── */
         .bg-scene {
-            position: fixed; inset: 0; z-index: 0;
-            background:
-                radial-gradient(ellipse 70% 50% at 10% 0%,  rgba(13,148,136,.07) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 45% at 90% 100%, rgba(6,182,212,.06) 0%, transparent 55%),
-                linear-gradient(160deg, #f0f4f8 0%, #e8f0fe 100%);
-        }
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: linear-gradient(rgba(255,255,255,0.78), rgba(255,255,255,0.78)),
+            url("{{ asset('storage/bgkiosk.png') }}");            
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+}
         .bg-dots {
             position: fixed; inset: 0; z-index: 0;
             background-image: radial-gradient(circle, rgba(13,148,136,.12) 1px, transparent 1px);
