@@ -11,6 +11,18 @@
                 </a>
             </div>
 
+            @if(session('success'))
+                <div class="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             <div class="flex flex-col md:flex-row items-start md:items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-200 gap-6">
                 <div class="flex-shrink-0 relative">
                     <img
@@ -21,9 +33,9 @@
                     <div class="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></div>
                 </div>
 
-                <div class="flex-1 w-full flex flex-col md:flex-row justify-between items-start md:items-center">
-                    <div>
-                        <div class="flex items-center gap-3">
+                <div class="flex-1 w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-3">
                             <h2 class="text-2xl font-extrabold text-gray-800">{{ $patient->user->name }}</h2>
                             <span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded font-bold">Normal</span>
                         </div>
@@ -38,15 +50,15 @@
                         </p>
                     </div>
 
-                    <div class="mt-4 md:mt-0 flex flex-col items-end">
-                        <div class="flex gap-2">
-                            <a href="{{ route('pharmacist.patients.summary', $patient->id) }}" class="px-5 py-2 border border-blue-200 text-blue-700 font-bold text-sm rounded-full hover:bg-blue-50 transition-colors">
+                    <div class="w-full md:mt-0 md:w-auto flex flex-col items-stretch md:items-end">
+                        <div class="grid grid-cols-1 gap-2 sm:grid-cols-3 md:flex">
+                            <a href="{{ route('pharmacist.patients.summary', $patient->id) }}" class="inline-flex justify-center px-5 py-2 border border-blue-200 text-blue-700 font-bold text-sm rounded-full hover:bg-blue-50 transition-colors">
                                 Summary
                             </a>
-                            <button class="px-5 py-2 border border-gray-300 text-gray-700 font-bold text-sm rounded-full hover:bg-gray-100 transition-colors">
+                            <a href="{{ route('pharmacist.patients.edit', $patient->id) }}" class="inline-flex justify-center px-5 py-2 border border-gray-300 text-gray-700 font-bold text-sm rounded-full hover:bg-gray-100 transition-colors">
                                 Edit
-                            </button>
-                            <a href="{{ route('pharmacist.checkups.create', $patient->id) }}" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-full shadow-md transition-colors">
+                            </a>
+                            <a href="{{ route('pharmacist.checkups.create', $patient->id) }}" class="inline-flex justify-center px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-full shadow-md transition-colors">
                                 + Add Check-up
                             </a>
                         </div>
@@ -59,7 +71,7 @@
                 $latestCheckup = $patient->healthCheckups()->first();
             @endphp
 
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col items-center justify-center">
                     <span class="text-gray-500 text-sm font-bold mb-1">BMI</span>
                     <span class="text-3xl font-extrabold text-gray-800">{{ number_format($patient->bmi, 1) }}</span>
@@ -98,8 +110,8 @@
                     <div class="flex flex-col items-center bg-gray-50 p-4 rounded-xl border border-dashed border-gray-300">
                         <p id="status" class="text-sm text-gray-500 font-bold mb-2">Loading AI models...</p>
 
-                        <div id="video-container" class="relative inline-block overflow-hidden rounded-lg shadow-sm">
-                            <video id="video" width="320" height="240" autoplay muted class="bg-black"></video>
+                        <div id="video-container" class="relative inline-block w-full max-w-sm overflow-hidden rounded-lg shadow-sm bg-black">
+                            <video id="video" width="320" height="240" autoplay muted class="w-full bg-black"></video>
                         </div>
 
                         <button type="button" id="btn-update-face" class="mt-4 px-6 py-2 bg-indigo-600 text-white font-bold rounded-full shadow hover:bg-indigo-700 transition-colors">
@@ -143,13 +155,13 @@
                     </div>
 
                     <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-                        <div class="flex justify-between items-center mb-4">
+                        <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                             <h3 class="font-extrabold text-lg text-gray-800 flex items-center gap-2">Medication</h3>
-                            <div class="flex gap-2">
-                                <a href="{{ route('pharmacist.medication.index', $patient->id) }}" class="text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-bold">
+                            <div class="flex flex-wrap gap-2">
+                                <a href="{{ route('pharmacist.medication.index', $patient->id) }}" class="inline-flex justify-center text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-bold">
                                     View All
                                 </a>
-                                <a href="{{ route('pharmacist.medication.index', $patient->id) }}" class="text-xs bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-3 py-1.5 rounded-lg font-bold">
+                                <a href="{{ route('pharmacist.medication.index', $patient->id) }}" class="inline-flex justify-center text-xs bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-3 py-1.5 rounded-lg font-bold">
                                     + Add Medication
                                 </a>
                             </div>
@@ -183,13 +195,13 @@
 
                 <div class="space-y-6">
                     <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-                        <div class="flex justify-between items-center mb-4">
+                        <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                             <h3 class="font-extrabold text-lg text-gray-800 flex items-center gap-2">Medical History</h3>
-                            <a href="{{ route('pharmacist.patients.medical.edit', $patient->id) }}" class="text-xs bg-purple-100 text-purple-700 hover:bg-purple-200 px-3 py-1.5 rounded-lg font-bold">
+                            <a href="{{ route('pharmacist.patients.medical.edit', $patient->id) }}" class="inline-flex justify-center text-xs bg-purple-100 text-purple-700 hover:bg-purple-200 px-3 py-1.5 rounded-lg font-bold">
                                 + Update Records
                             </a>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="border border-gray-200 rounded-xl p-4">
                                 <p class="text-xs text-gray-500 font-bold mb-1">Hypertension</p>
                                 @if(optional($patient->medicalHistory)->hypertension == 'High Risk')
@@ -217,26 +229,6 @@
                         </div>
                     </div>
 
-                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-100 to-blue-100 rounded-bl-full opacity-50 -z-10"></div>
-
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-extrabold text-lg text-slate-800 flex items-center gap-2">
-                                AI Clinical Suggestions
-                            </h3>
-                            <button id="btnAiSuggestion" onclick="getAiSuggestion()" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-sm font-bold rounded-xl shadow-md transition-all">
-                                <span>Generate New Advice</span>
-                            </button>
-                        </div>
-
-                        <div id="aiResponseArea" class="p-4 bg-slate-50 border border-slate-100 rounded-xl min-h-[100px]">
-                            <p class="text-sm text-slate-500 italic text-center mt-6">Click the button above to generate personalized health advice for this patient using Gemini AI.</p>
-                        </div>
-
-                        <div class="mt-4 pt-3 border-t border-slate-100 text-right">
-                            <span class="text-[10px] font-bold text-slate-400">AI-generated content. Please verify clinically.</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -383,56 +375,5 @@
             }
         });
 
-        function getAiSuggestion() {
-            const btn = document.getElementById('btnAiSuggestion');
-            const responseArea = document.getElementById('aiResponseArea');
-
-            btn.innerHTML = 'Thinking...';
-            btn.disabled = true;
-            btn.classList.add('opacity-70', 'cursor-not-allowed');
-
-            responseArea.innerHTML = '<div class="flex justify-center py-6"><div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div></div>';
-
-            const patientData = {
-                bmi: '{{ number_format($patient->bmi, 1) }}',
-                bp: '{{ $latestCheckup ? $latestCheckup->blood_pressure : "120/80" }}',
-                sugar: '{{ $latestCheckup ? $latestCheckup->blood_sugar : "5.5" }}',
-                cholesterol: '{{ $latestCheckup ? $latestCheckup->cholesterol : "4.0" }}',
-                _token: '{{ csrf_token() }}'
-            };
-
-            fetch('{{ route("api.ai.suggestion") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(patientData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const formattedText = data.suggestion
-                        .replace(/\*/g, '')
-                        .split('\n')
-                        .filter(line => line.trim() !== '')
-                        .map(line => `<li class="mb-2 text-slate-700 text-sm">${line}</li>`)
-                        .join('');
-
-                    responseArea.innerHTML = `<ul class="p-2">${formattedText}</ul>`;
-                } else {
-                    responseArea.innerHTML = `<p class="text-sm text-red-500 font-bold">Error: ${data.message}</p>`;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                responseArea.innerHTML = '<p class="text-sm text-red-500 font-bold">Failed to connect to the server.</p>';
-            })
-            .finally(() => {
-                btn.innerHTML = 'Generate New Advice';
-                btn.disabled = false;
-                btn.classList.remove('opacity-70', 'cursor-not-allowed');
-            });
-        }
     </script>
 </x-app-layout>

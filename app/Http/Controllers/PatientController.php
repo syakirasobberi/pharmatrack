@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Patient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use App\Models\MedicalHistory; 
 use App\Models\Medication;
 
@@ -24,7 +25,7 @@ class PatientController extends Controller
         return view('pharmacist.patients.create');
     }
 
-    // 3. Save new patient data AND Face Biometric to the database
+    // 3. Save new patient data, with optional face biometric data
     public function store(Request $request)
     {
         // Validate form data
@@ -60,12 +61,12 @@ class PatientController extends Controller
             'weight' => $request->weight,
             'height' => $request->height,
             'bmi' => $bmi,
-            'face_descriptor' => $request->face_descriptor, // <--- Data dari hidden input kamera
+            'face_descriptor' => $request->filled('face_descriptor') ? $request->face_descriptor : null,
         ]);
 
         // Redirect directly to dashboard with success message
         return redirect()->route('pharmacist.dashboard')
-                         ->with('success', 'Patient and Biometric Data registered successfully!');
+                         ->with('success', 'Patient registered successfully!');
     }
 
     // 4. Display full patient profile
@@ -75,13 +76,51 @@ class PatientController extends Controller
         return view('pharmacist.patients.show', compact('patient'));
     }
 
-    public function summary($id)
+    public function edit($id)
     {
-        $patient = $this->buildSummaryPatient($id);
-        $prediction = app(HealthRiskPredictionController::class)->predictForPatient($patient);
+        $patient = Patient::assignedTo(request()->user())->with(['user', 'pharmacist'])->findOrFail($id);
 
-        return view('pharmacist.patients.summary', compact('patient', 'prediction'));
+        return view('pharmacist.patients.edit', compact('patient'));
     }
+
+    public function update(Request $request, $id)
+    {
+        $patient = Patient::assignedTo($request->user())->with('user')->findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($patient->user_id)],
+            'age' => ['required', 'integer', 'min:0', 'max:130'],
+            'gender' => ['required', 'string', Rule::in(['Male', 'Female'])],
+            'height' => ['required', 'numeric', 'min:1'],
+            'weight' => ['required', 'numeric', 'min:1'],
+        ]);
+
+        $patient->user->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+        ]);
+
+        $heightInMeters = $validated['height'] / 100;
+
+        $patient->update([
+            'age' => $validated['age'],
+            'gender' => $validated['gender'],
+            'height' => $validated['height'],
+            'weight' => $validated['weight'],
+            'bmi' => $validated['weight'] / ($heightInMeters * $heightInMeters),
+        ]);
+
+        return redirect()->route('pharmacist.patients.show', $patient->id)
+            ->with('success', 'Patient profile updated successfully!');
+    }
+
+    public function summary($id)
+{
+    $patient = $this->buildSummaryPatient($id);
+
+    return view('pharmacist.patients.summary', compact('patient'));
+}
 
     public function downloadSummary($id)
     {

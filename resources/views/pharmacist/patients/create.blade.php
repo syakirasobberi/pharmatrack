@@ -5,15 +5,15 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+    <div class="py-8 sm:py-12">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm rounded-2xl sm:rounded-lg p-4 sm:p-6">
                 
                 <form id="patient-form" action="{{ route('pharmacist.patients.store') }}" method="POST">
                     @csrf
                     
                     <h3 class="text-lg font-bold mb-4 border-b pb-2">Patient Details</h3>
-                    <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Full Name</label>
                             <input type="text" name="name" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
@@ -53,14 +53,14 @@
 
 
                     <div class="camera-section" style="margin-top: 20px; border: 1px solid #ccc; padding: 15px; border-radius: 8px;">
-                        <h4 class="font-bold mb-2">Facial Biometric Registration</h4>
-                        <p id="status" class="text-sm text-gray-600 mb-2">Loading AI models...</p>
+                        <h4 class="font-bold mb-2">Facial Biometric Registration <span class="text-sm font-normal text-gray-500">(Optional)</span></h4>
+                        <p id="status" class="text-sm text-gray-600 mb-2">Loading AI models... You can save the patient without face data.</p>
                         
-                        <div id="video-container" style="position: relative; display: inline-block;">
-                            <video id="video" width="320" height="240" autoplay muted playsinline style="border-radius: 5px;"></video>
+                        <div id="video-container" class="relative inline-block w-full max-w-sm overflow-hidden rounded-lg bg-black">
+                            <video id="video" width="320" height="240" autoplay muted playsinline class="w-full rounded-lg"></video>
                         </div>
 
-                        <div class="mt-3 flex gap-2">
+                        <div class="mt-3 flex flex-col gap-2 sm:flex-row">
                             <button type="button" id="btn-start-camera" class="px-4 py-2 bg-blue-600 text-white font-bold rounded shadow hover:bg-blue-700 transition-colors opacity-50 cursor-not-allowed" disabled>
                                 Loading Models...
                             </button>
@@ -72,13 +72,13 @@
                         <input type="hidden" name="face_descriptor" id="hidden_face_descriptor">
                         
                         <p id="scan-success-msg" style="color: green; font-weight: bold; display: none; margin-top: 10px;">
-                            ✅ Face successfully captured! You can now save the patient.
+                            Face successfully captured. You can now save the patient.
                         </p>
                     </div>
 
-                    <div class="flex justify-end gap-4 mt-6">
-                        <a href="{{ route('pharmacist.dashboard') }}" class="px-6 py-2 bg-gray-300 text-gray-800 font-bold rounded-lg hover:bg-gray-400 transition-colors">Cancel</a>
-                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-md">Save Patient</button>
+                    <div class="flex flex-col-reverse justify-end gap-3 mt-6 sm:flex-row sm:gap-4">
+                        <a href="{{ route('pharmacist.dashboard') }}" class="inline-flex justify-center px-6 py-2 bg-gray-300 text-gray-800 font-bold rounded-lg hover:bg-gray-400 transition-colors">Cancel</a>
+                        <button type="submit" class="inline-flex justify-center px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-md">Save Patient</button>
                     </div>
                 </form>
 
@@ -123,7 +123,6 @@
             const hiddenInput = document.getElementById('hidden_face_descriptor');
             const successMsg = document.getElementById('scan-success-msg');
             const btnScanFace = document.getElementById('btn-scan-face');
-            const patientForm = document.getElementById('patient-form');
             let previewCanvas = null;
             let previewInterval = null;
 
@@ -149,7 +148,7 @@
                 faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
                 faceapi.nets.faceRecognitionNet.loadFromUri('/models')
             ]).then(() => {
-                statusText.innerText = "AI Models ready. Click 'Start Camera' when you are ready to capture the face.";
+                statusText.innerText = "AI Models ready. Face capture is optional. Click 'Start Camera' if you want to add face data.";
                 btnStartCamera.disabled = false;
                 btnStartCamera.innerText = "Start Camera";
                 btnStartCamera.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -231,14 +230,6 @@
                     alert("Face not detected. Please look clearly at the camera.");
                 }
             });
-
-            patientForm.addEventListener('submit', (event) => {
-                if (!hiddenInput.value) {
-                    event.preventDefault();
-                    alert("Please scan and capture the face before saving the patient.");
-                }
-            });
-
         });
     </script>
 </x-app-layout>

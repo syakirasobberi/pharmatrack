@@ -19,24 +19,46 @@ class HealthCheckupController extends Controller
     // Simpan data Health Check-up ke dalam database
     public function store(Request $request, $id)
     {
-        $request->validate([
-            'blood_pressure' => 'required|string',
-            'blood_sugar' => 'required|numeric',
-            'cholesterol' => 'required|numeric',
-            'checkup_date' => 'required|date',
+        $validated = $request->validate([
+            'checkup_date'   => 'required|date',
+            'blood_pressure' => 'nullable|string',
+            'heart_rate'     => 'nullable|integer|min:30|max:250',
+            'spo2'           => 'nullable|integer|min:50|max:100',
+            'weight'         => 'nullable|numeric|min:10|max:300',
+            'height'         => 'nullable|numeric|min:50|max:250',
+            'bmi'            => 'nullable|numeric|min:5|max:80',
+            'blood_sugar'    => 'nullable|numeric|min:0|max:50',
+            'hba1c'          => 'nullable|numeric|min:3|max:20',
+            'cholesterol'    => 'nullable|numeric|min:0|max:30',
+            'ldl'            => 'nullable|numeric|min:0|max:20',
+            'hdl'            => 'nullable|numeric|min:0|max:10',
+            'triglycerides'  => 'nullable|numeric|min:0|max:20',
+            'report_source'  => 'nullable|string',
+            'notes'          => 'nullable|string|max:2000',
         ]);
 
         $patient = Patient::assignedTo($request->user())->findOrFail($id);
 
-        HealthCheckup::create([
-            'patient_id' => $patient->id,
-            'pharmacist_id' => Auth::id(), // ID ahli farmasi yang sedang login
-            'blood_pressure' => $request->blood_pressure,
-            'blood_sugar' => $request->blood_sugar,
-            'cholesterol' => $request->cholesterol,
-            'checkup_date' => $request->checkup_date,
-        ]);
+        try {
+            HealthCheckup::create(array_merge($validated, [
+                'patient_id'    => $patient->id,
+                'pharmacist_id' => Auth::id(),
+            ]));
 
-        return redirect()->route('pharmacist.dashboard')->with('success', 'Data pemeriksaan kesihatan berjaya direkodkan!');
+            $patient->update(array_filter([
+                'weight' => $validated['weight'] ?? null,
+                'height' => $validated['height'] ?? null,
+                'bmi' => $validated['bmi'] ?? null,
+            ], fn ($value) => $value !== null));
+
+            return redirect()
+                ->route('pharmacist.patients.show', $patient->id)
+                ->with('success', 'Health checkup record saved successfully!');
+
+        } catch (\Exception $e) {
+            return back()
+                ->with('error', 'Failed to save: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 }

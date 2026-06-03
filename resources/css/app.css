@@ -1,3 +1,54 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    [x-cloak] {
+        display: none !important;
+    }
+
+    html,
+    body {
+        overflow-x: hidden;
+    }
+
+    img,
+    video,
+    canvas {
+        max-width: 100%;
+        height: auto;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+        max-width: 100%;
+    }
+
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    td,
+    th,
+    a,
+    span {
+        overflow-wrap: anywhere;
+    }
+}
+
+@layer components {
+    .overflow-x-auto {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    @media (max-width: 767px) {
+        table {
+            min-width: 44rem;
+        }
+    }
+}

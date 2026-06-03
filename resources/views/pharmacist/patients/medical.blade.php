@@ -54,38 +54,7 @@
                         </div>
                     </div>
 
-                    <h3 class="text-lg font-extrabold text-gray-800 mb-4 border-b pb-2 flex justify-between items-center">
-                        <span class="inline-flex items-center gap-2">
-                            <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19.428 15.428a4 4 0 01-5.656 0m0 0l-5.657-5.657a4 4 0 015.657-5.657l5.656 5.657a4 4 0 010 5.657zm-5.656 0L8.115 9.771"></path>
-                                </svg>
-                            </span>
-                            Prescribe New Medication
-                        </span>
-                        <span class="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded">Optional</span>
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 bg-blue-50/30 p-4 rounded-xl border border-blue-100">
-                        
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Medication Name</label>
-                            <input type="text" name="med_name" placeholder="e.g. Metformin" 
-                                class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Dosage</label>
-                            <input type="text" name="med_dosage" placeholder="e.g. 500mg" 
-                                class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Frequency</label>
-                            <input type="text" name="med_frequency" placeholder="e.g. Twice daily" 
-                                class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-                        <p class="md:col-span-3 text-xs text-blue-600 mt-[-10px]">Filling this section will add a new medication to the patient's active list.</p>
-                    </div>
+                   
 
                     <div class="pt-6 border-t border-gray-100 flex justify-end gap-3">
                         <a href="{{ route('pharmacist.patients.show', $patient->id) }}" 

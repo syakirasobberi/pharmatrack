@@ -21,6 +21,8 @@
                         $checkupAlertMessage = "Your last health checkup was on {$lastCheckupDate}. Please schedule a follow-up checkup soon.";
                     }
 
+                    $needsFaceRegistration = blank($patient->face_descriptor);
+
                     $medicationAlerts = $patient->medications->filter(function ($medication) use ($today) {
                         if (! $medication->last_taken) {
                             return true;
@@ -57,6 +59,27 @@
                         </div>
                     </div>
                 </div>
+
+                @if($needsFaceRegistration)
+                    <div class="bg-amber-50 border border-amber-200 rounded-3xl p-6 shadow-sm">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <div class="flex items-start gap-4">
+                                <span class="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 10l4.55-2.28A1 1 0 0121 8.62v6.76a1 1 0 01-1.45.9L15 14M4 6h8a3 3 0 013 3v6a3 3 0 01-3 3H4a2 2 0 01-2-2V8a2 2 0 012-2z"></path>
+                                    </svg>
+                                </span>
+                                <div>
+                                    <h3 class="font-extrabold text-lg text-amber-900">Face Registration Needed</h3>
+                                    <p class="text-sm text-amber-800 mt-1">Your face has not been registered for Quick Scan. Please ask your pharmacist to register your face at the pharmacy counter.</p>
+                                </div>
+                            </div>
+                            <span class="inline-flex items-center justify-center rounded-xl bg-amber-100 px-4 py-2.5 text-sm font-bold text-amber-800">
+                                Ask pharmacist
+                            </span>
+                        </div>
+                    </div>
+                @endif
 
                 @if($checkupAlertMessage)
                     <div class="bg-red-50 border border-red-200 rounded-3xl p-6 shadow-sm">
@@ -313,4 +336,17 @@
 
         </div>
     </div>
+
+    @if(isset($needsFaceRegistration) && $needsFaceRegistration)
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const alertKey = 'face-registration-alert-{{ $patient->id }}';
+
+                if (!sessionStorage.getItem(alertKey)) {
+                    alert('Your face has not been registered yet. Please ask your pharmacist to register your face for Quick Scan.');
+                    sessionStorage.setItem(alertKey, 'shown');
+                }
+            });
+        </script>
+    @endif
 </x-app-layout>

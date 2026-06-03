@@ -49,137 +49,139 @@
         $workflowAlerts = $healthAlerts->count() + $medicationAlerts->count() + $patientsNeedingCheckup->count();
     @endphp
 
-    <div class="py-8 bg-gray-50 min-h-screen">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+    <!-- Main Container with Ambient Background to prevent "kosong" look -->
+    <div class="relative min-h-screen bg-slate-50 py-8 overflow-hidden font-sans">
+        
+        <!-- Decorative Ambient Background Blobs -->
+        <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+            <div class="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-blue-300/20 blur-[100px] mix-blend-multiply"></div>
+            <div class="absolute bottom-[-10%] right-[-5%] w-[50vw] h-[50vw] rounded-full bg-indigo-300/20 blur-[120px] mix-blend-multiply"></div>
+            <div class="absolute top-[20%] right-[15%] w-[30vw] h-[30vw] rounded-full bg-cyan-200/20 blur-[90px] mix-blend-multiply"></div>
+        </div>
 
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 shadow-lg text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
-                <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
-                <div class="absolute bottom-0 right-20 w-32 h-32 bg-blue-400 opacity-20 rounded-full blur-xl"></div>
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+
+            <!-- Hero Section -->
+            <div class="bg-gradient-to-br from-blue-700 via-indigo-600 to-blue-800 rounded-[2rem] p-8 shadow-2xl text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden border border-white/10">
                 
-                <div class="relative z-10">
-                    <h1 class="text-3xl font-extrabold mb-1">Welcome back, Pharmacist</h1>
-                    <p class="text-blue-100 text-sm">Here is the latest health summary for your community patients today.</p>
+                <!-- Background Image -->
+                <div class="absolute inset-0 mix-blend-overlay">
+                    <img src="{{ asset('storage/login.png') }}" class="w-full h-full object-cover opacity-30">
                 </div>
+                
+                <!-- Inner glow/gradient -->
+                <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+
+                <div class="relative z-10">
+                    <h1 class="text-3xl md:text-4xl font-extrabold mb-2 tracking-tight text-white drop-shadow-md">Welcome back, Pharmacist</h1>
+                    <p class="text-blue-100/90 text-sm md:text-base font-medium max-w-xl">
+                        Here is the latest health summary and clinical decision alerts for your community patients today.
+                    </p>
+                </div>
+
                 <div class="relative z-10 flex gap-3">
-                    <div class="bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20 text-center">
-                        <span class="block text-xs text-blue-100 font-bold uppercase tracking-wider">Date</span>
-                        <span class="block text-sm font-extrabold">{{ now()->format('d M Y') }}</span>
+                    <div class="bg-white/10 backdrop-blur-xl px-5 py-3 rounded-2xl border border-white/20 text-center shadow-lg">
+                        <span class="block text-[10px] text-blue-200 font-bold uppercase tracking-widest mb-1">Today's Date</span>
+                        <span class="block text-lg font-extrabold text-white">{{ now()->format('d M Y') }}</span>
                     </div>
                 </div>
             </div>
 
-            <!--<div class="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
-    <div>
-        <h3 class="text-xl font-extrabold text-blue-900 flex items-center gap-2 mb-1">
-            <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-700 border border-blue-200">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                </svg>
-            </span>
-            Quick Patient Scan
-        </h3>
-        <p class="text-sm text-blue-700 font-medium">
-            Scan existing patient's face at the counter to automatically open their medical records.
-        </p>
-    </div>
-    
-    <a href="{{ route('pharmacist.quickScan') }}" class="flex-shrink-0 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg flex items-center gap-2 transition-transform transform hover:scale-105">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-        </svg>
-        Open Counter Camera
-    </a>
-</div>-->
-
+            <!-- Stats Overview -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 flex items-center gap-4">
-                    <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100 shadow-inner">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <!-- Stat Card 1 -->
+                <div class="bg-white/80 backdrop-blur-lg rounded-[1.5rem] p-6 shadow-sm hover:shadow-md border border-slate-200/60 transition-all duration-300 flex items-center gap-5 group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600 rounded-2xl flex items-center justify-center border border-blue-200/50 shadow-inner group-hover:scale-105 transition-transform">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m6-6a4 4 0 11-8 0 4 4 0 018 0zm6 2a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500 font-bold">Total Patients</p>
-                        <h3 class="text-2xl font-extrabold text-gray-800">{{ $totalPatients }}</h3>
+                        <p class="text-sm text-slate-500 font-bold uppercase tracking-wider">Total Patients</p>
+                        <h3 class="text-3xl font-extrabold text-slate-800">{{ $totalPatients }}</h3>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 flex items-center gap-4">
-                    <div class="w-14 h-14 bg-green-50 text-green-600 rounded-xl flex items-center justify-center border border-green-100 shadow-inner">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <!-- Stat Card 2 -->
+                <div class="bg-white/80 backdrop-blur-lg rounded-[1.5rem] p-6 shadow-sm hover:shadow-md border border-slate-200/60 transition-all duration-300 flex items-center gap-5 group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center border border-emerald-200/50 shadow-inner group-hover:scale-105 transition-transform">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-3-3v6m8-3a8 8 0 11-16 0 8 8 0 0116 0z"></path>
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500 font-bold">Check-ups Today</p>
-                        <h3 class="text-2xl font-extrabold text-gray-800">{{ $todayCheckups }}</h3>
+                        <p class="text-sm text-slate-500 font-bold uppercase tracking-wider">Check-ups Today</p>
+                        <h3 class="text-3xl font-extrabold text-slate-800">{{ $todayCheckups }}</h3>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 flex items-center gap-4">
-                    <div class="w-14 h-14 bg-red-50 text-red-600 rounded-xl flex items-center justify-center border border-red-100 shadow-inner">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path>
+                <!-- Stat Card 3 -->
+                <div class="bg-white/80 backdrop-blur-lg rounded-[1.5rem] p-6 shadow-sm hover:shadow-md border border-slate-200/60 transition-all duration-300 flex items-center gap-5 group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-rose-50 to-rose-100 text-rose-600 rounded-2xl flex items-center justify-center border border-rose-200/50 shadow-inner group-hover:scale-105 transition-transform">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500 font-bold">Workflow Alerts</p>
-                        <h3 class="text-2xl font-extrabold text-gray-800">{{ $workflowAlerts }}</h3>
+                        <p class="text-sm text-slate-500 font-bold uppercase tracking-wider">Active Alerts</p>
+                        <h3 class="text-3xl font-extrabold text-slate-800">{{ $workflowAlerts }}</h3>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Main Content Area -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
-                <div class="lg:col-span-2 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                <!-- Left Column: Patient Table -->
+                <div class="lg:col-span-2 bg-white/90 backdrop-blur-xl border border-slate-200/60 rounded-[2rem] p-7 shadow-sm">
                     <div class="flex justify-between items-center mb-6">
-                        <h3 class="font-extrabold text-lg text-gray-800 flex items-center gap-2">
-                            <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"></path>
+                        <h3 class="font-extrabold text-xl text-slate-800 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"></path>
                                 </svg>
-                            </span>
+                            </div>
                             Recently Added Patients
                         </h3>
-                        <a href="{{ route('pharmacist.patients.index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-bold">View All &rarr;</a>
+                        <a href="{{ route('pharmacist.patients.index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-bold px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">View All Directory</a>
                     </div>
 
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left">
-                            <thead class="bg-gray-50 text-gray-600 font-bold border-b border-gray-200">
+                        <table class="w-full text-sm text-left border-separate border-spacing-y-2">
+                            <thead class="text-slate-500 font-bold uppercase tracking-wider text-xs">
                                 <tr>
-                                    <th class="py-3 px-4 rounded-tl-lg">Patient Name</th>
-                                    <th class="py-3 px-4">Gender / Age</th>
-                                    <th class="py-3 px-4">BMI</th>
-                                    <th class="py-3 px-4 rounded-tr-lg text-right">Action</th>
+                                    <th class="py-3 px-4">Patient Profile</th>
+                                    <th class="py-3 px-4">Demographics</th>
+                                    <th class="py-3 px-4">BMI Status</th>
+                                    <th class="py-3 px-4 text-right">Action</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-100">
+                            <tbody>
                                 @forelse($recentPatients as $pt)
-                                <tr class="hover:bg-gray-50/50 transition-colors">
-                                    <td class="py-4 px-4 font-bold text-gray-800 flex items-center gap-3">
-                                        <img src="https://ui-avatars.com/api/?name={{ urlencode($pt->user->name) }}&background=eff6ff&color=1d4ed8" class="w-8 h-8 rounded-full">
+                                <tr class="bg-slate-50 hover:bg-blue-50/50 transition-colors group rounded-2xl shadow-sm">
+                                    <td class="py-4 px-4 font-bold text-slate-800 flex items-center gap-4 rounded-l-2xl border-y border-l border-slate-100">
+                                        <img src="https://ui-avatars.com/api/?name={{ urlencode($pt->user->name) }}&background=e0e7ff&color=3730a3&bold=true" class="w-10 h-10 rounded-full shadow-sm group-hover:ring-2 ring-blue-200 transition-all">
                                         <span>
-                                            <span class="block">{{ $pt->user->name }}</span>
-                                            <span class="block text-xs text-gray-400 font-semibold">Assigned Pharmacist: {{ $pt->pharmacist?->name ?? 'Unassigned' }}</span>
+                                            <span class="block text-base">{{ $pt->user->name }}</span>
+                                            <span class="block text-xs text-slate-400 font-medium mt-0.5">Pharmacist: {{ $pt->pharmacist?->name ?? 'Unassigned' }}</span>
                                         </span>
                                     </td>
-                                    <td class="py-4 px-4 text-gray-600">{{ $pt->gender }}, {{ $pt->age }}y</td>
-                                    <td class="py-4 px-4">
-                                        <span class="px-2.5 py-1 rounded-full text-xs font-bold {{ $pt->bmi >= 25 ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700' }}">
+                                    <td class="py-4 px-4 text-slate-600 border-y border-slate-100 font-medium">{{ $pt->gender }}, {{ $pt->age }}y</td>
+                                    <td class="py-4 px-4 border-y border-slate-100">
+                                        <span class="px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm inline-flex items-center gap-1.5 {{ $pt->bmi >= 25 ? 'bg-orange-100 text-orange-700' : 'bg-emerald-100 text-emerald-700' }}">
+                                            <span class="w-1.5 h-1.5 rounded-full {{ $pt->bmi >= 25 ? 'bg-orange-500' : 'bg-emerald-500' }}"></span>
                                             {{ number_format($pt->bmi, 1) }}
                                         </span>
                                     </td>
-                                    <td class="py-4 px-4 text-right">
-                                        <a href="{{ route('pharmacist.patients.show', $pt->id) }}" class="inline-flex items-center justify-center px-4 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white font-bold rounded-lg transition-colors text-xs border border-blue-100 shadow-sm">
-                                            View Profile
+                                    <td class="py-4 px-4 text-right rounded-r-2xl border-y border-r border-slate-100">
+                                        <a href="{{ route('pharmacist.patients.show', $pt->id) }}" class="inline-flex items-center justify-center px-4 py-2 bg-white text-slate-700 hover:text-blue-700 font-bold rounded-xl transition-all text-xs border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200">
+                                            View Record
                                         </a>
                                     </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="4" class="py-8 text-center text-gray-500 italic">No patients registered yet.</td>
+                                    <td colspan="4" class="py-12 text-center text-slate-400 font-medium bg-slate-50 rounded-2xl border border-dashed border-slate-200">No patients registered yet.</td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -187,78 +189,103 @@
                     </div>
                 </div>
 
-                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-                    <h3 class="font-extrabold text-lg text-gray-800 mb-6 flex items-center gap-2">
-                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-600 border border-red-100">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path>
+                <!-- Right Column: CDSS Alerts -->
+                <div class="bg-white/90 backdrop-blur-xl border border-slate-200/60 rounded-[2rem] p-7 shadow-sm flex flex-col">
+                    <h3 class="font-extrabold text-xl text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 relative">
+                            <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                            </span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                             </svg>
-                        </span>
-                        Alerts & Reminders
+                        </div>
+                        Clinical Alerts
                     </h3>
                     
-                    <div class="space-y-4">
+                    <div class="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                        
+                        <!-- Health Alerts -->
                         @forelse($healthAlerts as $alert)
-                        <div class="p-4 border border-red-100 bg-red-50/30 rounded-xl relative overflow-hidden group hover:bg-red-50 transition-colors">
-                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-red-500"></div>
-                            <div class="flex justify-between items-start mb-1">
-                                <h4 class="font-bold text-sm text-gray-800">{{ $alert->patient->user->name ?? 'Unknown' }}</h4>
-                                <span class="text-[10px] font-bold text-gray-400">{{ \Carbon\Carbon::parse($alert->checkup_date)->format('d M') }}</span>
+                        <div class="p-4 border border-rose-100 bg-rose-50/50 rounded-2xl relative group hover:bg-rose-50 transition-colors shadow-sm">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-bold text-sm text-slate-800">{{ $alert->patient->user->name ?? 'Unknown' }}</h4>
+                                <span class="px-2 py-1 bg-white rounded-md text-[10px] font-bold text-rose-500 shadow-sm border border-rose-100">{{ \Carbon\Carbon::parse($alert->checkup_date)->format('d M') }}</span>
                             </div>
                             
-                            <div class="text-xs text-gray-600 mt-2 space-y-1">
+                            <div class="text-xs text-slate-600 space-y-1.5 bg-white/50 p-2.5 rounded-xl border border-rose-100/50">
                                 @if($alert->blood_sugar >= 5.6)
-                                    <p><span class="text-red-600 font-bold">↑ High Sugar:</span> {{ $alert->blood_sugar }} mmol/L</p>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                        <span class="text-rose-700 font-bold">High Sugar:</span> {{ $alert->blood_sugar }} mmol/L
+                                    </div>
                                 @endif
                                 @if($alert->cholesterol >= 5.2)
-                                    <p><span class="text-orange-600 font-bold">↑ High Cholesterol:</span> {{ $alert->cholesterol }} mmol/L</p>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                                        <span class="text-orange-700 font-bold">High Cholesterol:</span> {{ $alert->cholesterol }} mmol/L
+                                    </div>
                                 @endif
                             </div>
                             
-                            <a href="{{ route('pharmacist.patients.show', $alert->patient_id) }}" class="mt-3 text-xs font-bold text-blue-600 hover:text-blue-800 inline-block">Review Case &rarr;</a>
+                            <a href="{{ route('pharmacist.patients.show', $alert->patient_id) }}" class="mt-3 text-xs font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1 group-hover:gap-2 transition-all">
+                                Review Case <span aria-hidden="true">&rarr;</span>
+                            </a>
                         </div>
                         @empty
                         @if($workflowAlerts === 0)
-                        <div class="p-6 border border-green-100 bg-green-50 rounded-xl text-center">
-                            <p class="text-sm font-bold text-green-800">All Clear!</p>
-                            <p class="text-xs text-green-600 mt-1">No critical health alerts detected recently.</p>
+                        <div class="p-8 border border-emerald-100 bg-emerald-50/50 rounded-2xl text-center shadow-sm">
+                            <div class="w-12 h-12 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <p class="text-sm font-bold text-emerald-800">All Clear!</p>
+                            <p class="text-xs text-emerald-600 mt-1 font-medium">No critical health alerts detected.</p>
                         </div>
                         @endif
                         @endforelse
 
+                        <!-- Medication Alerts -->
                         @foreach($medicationAlerts as $medication)
                             @php
                                 $lastTaken = $medication->last_taken ? \Carbon\Carbon::parse($medication->last_taken) : null;
                                 $endDate = $medication->end_date ? \Carbon\Carbon::parse($medication->end_date) : null;
                                 $isEndingSoon = $endDate && $endDate->isFuture() && today()->diffInDays($endDate) <= 7;
                             @endphp
-                            <div class="p-4 border border-amber-100 bg-amber-50/50 rounded-xl relative overflow-hidden">
-                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-amber-500"></div>
-                                <h4 class="font-bold text-sm text-gray-800">{{ $medication->patient->user->name ?? 'Unknown' }}</h4>
-                                <p class="text-xs text-amber-700 mt-2">
-                                    {{ $medication->name }}:
+                            <div class="p-4 border border-amber-200/60 bg-amber-50/50 rounded-2xl group shadow-sm">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002 2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                                    <h4 class="font-bold text-sm text-slate-800">{{ $medication->patient->user->name ?? 'Unknown' }}</h4>
+                                </div>
+                                
+                                <p class="text-xs text-amber-800 font-medium bg-white/60 p-2.5 rounded-xl border border-amber-100/50">
+                                    <span class="font-bold">{{ $medication->name }}:</span>
                                     @if($isEndingSoon)
-                                        treatment ends on {{ $endDate->format('d M Y') }}.
+                                        Treatment ends on {{ $endDate->format('d M Y') }}.
                                     @elseif($lastTaken)
-                                        last dose was {{ $lastTaken->diffInDays(today()) }} days ago.
+                                        Last dose was {{ $lastTaken->diffInDays(today()) }} days ago.
                                     @else
-                                        latest dose date is missing.
+                                        Latest dose date is missing.
                                     @endif
                                 </p>
-                                <a href="{{ route('pharmacist.medication.index', $medication->patient_id) }}" class="mt-3 text-xs font-bold text-blue-600 hover:text-blue-800 inline-block">Review Medication &rarr;</a>
+                                <a href="{{ route('pharmacist.medication.index', $medication->patient_id) }}" class="mt-3 text-xs font-bold text-amber-600 hover:text-amber-800 flex items-center gap-1 group-hover:gap-2 transition-all">
+                                    Manage Medication <span aria-hidden="true">&rarr;</span>
+                                </a>
                             </div>
                         @endforeach
 
+                        <!-- Check-up Reminders -->
                         @foreach($patientsNeedingCheckup as $patientDue)
-                            <div class="p-4 border border-blue-100 bg-blue-50/40 rounded-xl relative overflow-hidden">
-                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
-                                <h4 class="font-bold text-sm text-gray-800">{{ $patientDue->user->name ?? 'Unknown' }}</h4>
-                                <p class="text-xs text-blue-700 mt-2">
+                            <div class="p-4 border border-blue-200/60 bg-blue-50/50 rounded-2xl group shadow-sm">
+                                <h4 class="font-bold text-sm text-slate-800 mb-2">{{ $patientDue->user->name ?? 'Unknown' }}</h4>
+                                <p class="text-xs text-blue-800 font-medium bg-white/60 p-2.5 rounded-xl border border-blue-100/50">
                                     {{ $patientDue->healthCheckups->first()
-                                        ? 'Last check-up was on ' . \Carbon\Carbon::parse($patientDue->healthCheckups->first()->checkup_date)->format('d M Y') . '.'
-                                        : 'No health check-up has been recorded yet.' }}
+                                        ? 'Last check-up: ' . \Carbon\Carbon::parse($patientDue->healthCheckups->first()->checkup_date)->format('d M Y') . '.'
+                                        : 'No health check-up on record.' }}
                                 </p>
-                                <a href="{{ route('pharmacist.checkups.create', $patientDue->id) }}" class="mt-3 text-xs font-bold text-blue-600 hover:text-blue-800 inline-block">Schedule Check-up &rarr;</a>
+                                <a href="{{ route('pharmacist.checkups.create', $patientDue->id) }}" class="mt-3 text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 group-hover:gap-2 transition-all">
+                                    Schedule Check-up <span aria-hidden="true">&rarr;</span>
+                                </a>
                             </div>
                         @endforeach
                     </div>
@@ -267,4 +294,11 @@
             </div>
         </div>
     </div>
+
+    <!-- Optional: Add this style to your layout file for cleaner scrollbars in the alert panel -->
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+    </style>
 </x-app-layout>

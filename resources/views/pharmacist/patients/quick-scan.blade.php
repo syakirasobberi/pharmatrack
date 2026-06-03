@@ -1,9 +1,9 @@
 <x-app-layout>
-    <div class="py-12 bg-gray-50 min-h-screen">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8 text-center">
-            <h2 class="text-2xl font-extrabold text-gray-800 mb-6">Quick Patient Recognition</h2>
+    <div class="py-8 sm:py-12 bg-gray-50 min-h-screen">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 mb-6">Quick Patient Recognition</h2>
 
-            <div class="bg-white p-8 rounded-3xl shadow-lg border border-gray-200">
+            <div class="bg-white p-4 sm:p-8 rounded-3xl shadow-lg border border-gray-200">
                 <p id="status" class="mb-4 text-blue-600 font-bold animate-pulse">Initializing AI system...</p>
 
                 <div class="mb-4">
@@ -16,8 +16,8 @@
                     </select>
                 </div>
 
-                <div id="video-container" class="relative inline-block rounded-2xl overflow-hidden border-4 border-blue-100 shadow-inner">
-                    <video id="video" width="480" height="360" autoplay muted playsinline class="bg-black"></video>
+                <div id="video-container" class="relative inline-block w-full max-w-xl rounded-2xl overflow-hidden border-4 border-blue-100 shadow-inner bg-black">
+                    <video id="video" width="480" height="360" autoplay muted playsinline class="w-full bg-black"></video>
                 </div>
 
                 <div class="mt-6">

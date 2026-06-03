@@ -115,6 +115,8 @@ Route::middleware(['auth', 'force_password_change', 'role:pharmacist'])->group(f
     Route::get('/pharmacist/patients', [PatientController::class, 'index'])->name('pharmacist.patients.index');
     Route::get('/pharmacist/patients/create', [PatientController::class, 'create'])->name('pharmacist.patients.create');
     Route::post('/pharmacist/patients', [PatientController::class, 'store'])->name('pharmacist.patients.store');
+    Route::get('/pharmacist/patients/{id}/edit', [PatientController::class, 'edit'])->name('pharmacist.patients.edit');
+    Route::patch('/pharmacist/patients/{id}', [PatientController::class, 'update'])->name('pharmacist.patients.update');
     Route::get('/pharmacist/patients/{id}', [PatientController::class, 'show'])->name('pharmacist.patients.show');
     Route::get('/pharmacist/patients/{id}/summary', [PatientController::class, 'summary'])->name('pharmacist.patients.summary');
     Route::get('/pharmacist/patients/{id}/risk-prediction', [HealthRiskPredictionController::class, 'show'])->name('pharmacist.patients.riskPrediction');
