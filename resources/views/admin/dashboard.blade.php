@@ -90,10 +90,11 @@
                         <p class="text-sm text-slate-500 mt-2">Admins can create staff accounts and force first-login password changes for access control.</p>
                     </div>
 
-                    <form method="POST" action="{{ route('admin.pharmacists.store') }}" class="grid grid-cols-1 md:grid-cols-4 gap-3 flex-1">
+                    <form method="POST" action="{{ route('admin.pharmacists.store') }}" class="grid grid-cols-1 md:grid-cols-5 gap-3 flex-1">
                         @csrf
                         <input type="text" name="name" value="{{ old('name') }}" placeholder="Staff name" required class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
                         <input type="email" name="email" value="{{ old('email') }}" placeholder="Email address" required class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
+                        <input type="tel" name="phone_number" value="{{ old('phone_number') }}" placeholder="WhatsApp phone" required class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
                         <input type="password" name="password" placeholder="Temporary password" required class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
                         <button type="submit" class="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-4 py-2.5">
                             Add Staff
@@ -121,6 +122,7 @@
                             <tr>
                                 <th class="py-4 px-6">Staff Name</th>
                                 <th class="py-4 px-6">Email Address</th>
+                                <th class="py-4 px-6">WhatsApp Phone</th>
                                 <th class="py-4 px-6">Joined Date</th>
                                 <th class="py-4 px-6">Account Status</th>
                                 <th class="py-4 px-6 text-right">Action</th>
@@ -134,6 +136,9 @@
                                     {{ $staff->name }}
                                 </td>
                                 <td class="py-4 px-6 text-slate-600">{{ $staff->email }}</td>
+                                <td class="py-4 px-6 text-slate-600">
+                                    {{ $staff->phone_number ?: 'Needs update' }}
+                                </td>
                                 <td class="py-4 px-6 text-slate-600">{{ $staff->created_at->format('d M Y') }}</td>
                                 <td class="py-4 px-6">
                                     @if($staff->requires_password_change)
@@ -154,7 +159,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="5" class="py-8 text-center text-slate-500 italic">No pharmacist staff registered yet.</td>
+                                <td colspan="6" class="py-8 text-center text-slate-500 italic">No pharmacist staff registered yet.</td>
                             </tr>
                             @endforelse
                         </tbody>

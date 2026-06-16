@@ -62,7 +62,7 @@
                                     <tr>
                                         <td class="py-3 px-4 font-bold text-slate-800">{{ $checkup->patient->user->name ?? 'Unknown' }}</td>
                                         <td class="py-3 px-4 text-slate-600">{{ \Carbon\Carbon::parse($checkup->checkup_date)->format('d M Y') }}</td>
-                                        <td class="py-3 px-4 {{ $checkup->blood_sugar >= 5.6 ? 'text-red-700 font-bold' : 'text-slate-600' }}">{{ $checkup->blood_sugar ?? '-' }}</td>
+                                        <td class="py-3 px-4 {{ is_numeric($checkup->blood_sugar) && ($checkup->blood_sugar < 3.9 || $checkup->blood_sugar > 6.0) ? 'text-red-700 font-bold' : 'text-slate-600' }}">{{ $checkup->blood_sugar ?? '-' }}</td>
                                         <td class="py-3 px-4 {{ $checkup->cholesterol >= 5.2 ? 'text-amber-700 font-bold' : 'text-slate-600' }}">{{ $checkup->cholesterol ?? '-' }}</td>
                                     </tr>
                                 @empty

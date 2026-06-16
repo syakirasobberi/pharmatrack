@@ -6,6 +6,7 @@ use App\Models\Patient;
 use App\Models\HealthCheckup;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class HealthCheckupController extends Controller
 {
@@ -21,35 +22,50 @@ class HealthCheckupController extends Controller
     {
         $validated = $request->validate([
             'checkup_date'   => 'required|date',
+            'patient_weight' => 'nullable|required_with:patient_height|numeric|min:1|max:300',
+            'patient_height' => 'nullable|required_with:patient_weight|numeric|min:1|max:250',
             'blood_pressure' => 'nullable|string',
             'heart_rate'     => 'nullable|integer|min:30|max:250',
-            'spo2'           => 'nullable|integer|min:50|max:100',
-            'weight'         => 'nullable|numeric|min:10|max:300',
-            'height'         => 'nullable|numeric|min:50|max:250',
-            'bmi'            => 'nullable|numeric|min:5|max:80',
+            'haemoglobin'    => 'nullable|numeric|min:0|max:30',
             'blood_sugar'    => 'nullable|numeric|min:0|max:50',
             'hba1c'          => 'nullable|numeric|min:3|max:20',
+            'albumin_globulin_ratio'      => 'nullable|numeric|min:0|max:10',
+            'alkaline_phosphatase'        => 'nullable|numeric|min:0|max:2000',
+            'aspartate_transaminase'      => 'nullable|numeric|min:0|max:2000',
+            'alanine_transaminase'        => 'nullable|numeric|min:0|max:2000',
+            'gamma_glutamyl_transferase'  => 'nullable|numeric|min:0|max:2000',
+            'sodium'         => 'nullable|numeric|min:80|max:200',
+            'renal_glucose'  => 'nullable|numeric|min:0|max:50',
             'cholesterol'    => 'nullable|numeric|min:0|max:30',
             'ldl'            => 'nullable|numeric|min:0|max:20',
             'hdl'            => 'nullable|numeric|min:0|max:10',
-            'triglycerides'  => 'nullable|numeric|min:0|max:20',
             'report_source'  => 'nullable|string',
             'notes'          => 'nullable|string|max:2000',
+            'ai_suggestion'  => 'nullable|string|max:5000',
         ]);
 
         $patient = Patient::assignedTo($request->user())->findOrFail($id);
 
         try {
-            HealthCheckup::create(array_merge($validated, [
-                'patient_id'    => $patient->id,
-                'pharmacist_id' => Auth::id(),
-            ]));
+            $checkupData = $validated;
+            unset($checkupData['patient_weight'], $checkupData['patient_height']);
 
-            $patient->update(array_filter([
-                'weight' => $validated['weight'] ?? null,
-                'height' => $validated['height'] ?? null,
-                'bmi' => $validated['bmi'] ?? null,
-            ], fn ($value) => $value !== null));
+            DB::transaction(function () use ($patient, $validated, $checkupData) {
+                if (isset($validated['patient_weight'], $validated['patient_height'])) {
+                    $heightInMeters = (float) $validated['patient_height'] / 100;
+
+                    $patient->update([
+                        'weight' => $validated['patient_weight'],
+                        'height' => $validated['patient_height'],
+                        'bmi' => $validated['patient_weight'] / ($heightInMeters * $heightInMeters),
+                    ]);
+                }
+
+                HealthCheckup::create(array_merge($checkupData, [
+                    'patient_id'    => $patient->id,
+                    'pharmacist_id' => Auth::id(),
+                ]));
+            });
 
             return redirect()
                 ->route('pharmacist.patients.show', $patient->id)

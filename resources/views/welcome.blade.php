@@ -155,11 +155,21 @@
         }
 
         .welcome-hero {
+            position: relative; overflow: hidden;
             display: flex; align-items: stretch; justify-content: center; gap: 32px;
-            width: 100%; max-width: 1000px;
+            width: 100%; max-width: 1100px; min-height: 430px;
+            padding: 34px;
+            border: 1px solid rgba(255, 255, 255, 0.72); border-radius: 30px;
+            background-image:
+                linear-gradient(90deg, rgba(248, 250, 252, 0.96), rgba(240, 249, 255, 0.82) 46%, rgba(14, 165, 233, 0.16)),
+                url('{{ asset('storage/bg3.png') }}');
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 22px 54px rgba(14, 165, 233, 0.16);
         }
 
         .glass-card {
+            min-width: 0;
             background: var(--surface); backdrop-filter: var(--glass-blur);
             border: 1px solid var(--border); border-radius: 28px;
             padding: 40px; box-shadow: var(--shadow-lg);
@@ -167,10 +177,10 @@
             animation: floatUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
-        .welcome-card { flex: 1.2; background: var(--surface-solid); min-width: 300px; }
+        .welcome-card { flex: 1.2; background: rgba(255, 255, 255, 0.93); min-width: 280px; }
         .about-card { 
-            flex: 1; min-width: 300px;
-            background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(240,249,255,0.8));
+            flex: 1; min-width: 280px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(240,249,255,0.82));
         }
 
         @keyframes floatUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -241,7 +251,7 @@
         .section-header span { color: var(--primary); }
 
         .steps-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
             gap: 24px; width: 100%;
         }
 
@@ -265,7 +275,7 @@
 
         /* ── "Why PharmaTrack?" Visual Section ── */
         .features-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
             gap: 24px; width: 100%;
         }
 
@@ -354,6 +364,29 @@
         }
         .btn-back:hover { background: var(--bg); color: var(--primary); border-color: var(--border-hover); }
         
+        .contact-float {
+            position: fixed; right: 24px; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 30;
+            display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+            min-height: 72px; padding: 8px 16px 8px 8px; border-radius: 999px;
+            background: var(--secondary); color: #fff; text-decoration: none;
+            font-size: 0.92rem; font-weight: 800; box-shadow: 0 12px 28px rgba(5, 150, 105, 0.28);
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+        .contact-float:hover { transform: translateY(-2px); background: #047857; box-shadow: 0 16px 34px rgba(5, 150, 105, 0.34); }
+        .contact-float svg { flex-shrink: 0; }
+        .contact-float span { white-space: nowrap; }
+        .contact-pharmacist {
+            width: 58px; height: 58px; flex: 0 0 58px;
+            object-fit: cover; object-position: center top;
+            border-radius: 999px; background: #ecfeff;
+            border: 2px solid rgba(255, 255, 255, 0.78);
+            box-shadow: 0 8px 18px rgba(4, 120, 87, 0.24);
+        }
+        .contact-copy { display: flex; flex-direction: column; line-height: 1.1; }
+        .contact-title { font-size: 0.94rem; }
+        .contact-subtitle { margin-top: 4px; font-size: 0.68rem; font-weight: 700; opacity: 0.82; }
+
         .footer { text-align: center; font-size: 0.8rem; color: var(--muted); padding: 24px 0 16px 0; z-index: 10; font-weight: 500; }
 
         /* ── Success Overlay ── */
@@ -374,7 +407,12 @@
 
         /* ── Mobile Responsiveness ── */
         @media (max-width: 900px) {
-            .welcome-hero { flex-direction: column; }
+            .welcome-hero {
+                flex-direction: column;
+                min-height: auto;
+                padding: 24px;
+                background-position: center right;
+            }
             .about-card, .welcome-card { max-width: 100%; flex: auto; }
             .main { flex-direction: column; gap: 32px; }
             .welcome-main { gap: 48px; padding: 24px 0 40px 0; }
@@ -384,11 +422,38 @@
             .kiosk, #welcome-screen { padding: 20px 16px; }
             .header { flex-direction: column; align-items: flex-start; gap: 12px; }
             #clock { width: 100%; text-align: center; }
+            .welcome-main { gap: 36px; }
+            .welcome-hero { gap: 18px; padding: 16px; border-radius: 22px; background-position: center; }
+            .content-section { gap: 24px; }
+            .section-header h2 { font-size: 1.45rem; }
             .glass-card, .step-card { padding: 24px; border-radius: 20px; }
             .login-grid, .steps-grid, .features-grid { grid-template-columns: 1fr; }
             .cam-frame { border-radius: 20px; }
             .cam-frame::after { inset: 10px; border-radius: 12px; }
             .privacy-banner { flex-direction: column; text-align: center; padding: 24px; }
+            .contact-float {
+                right: 14px; bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+                width: 62px; height: 62px; min-height: 0;
+                gap: 0; padding: 4px;
+            }
+            .contact-pharmacist {
+                display: block;
+                width: 52px; height: 52px; flex-basis: 52px;
+                border-width: 2px;
+            }
+            .contact-float svg, .contact-copy { display: none; }
+        }
+
+        @media (max-width: 380px) {
+            .kiosk, #welcome-screen { padding: 16px 10px; }
+            .welcome-hero { padding: 12px; border-radius: 18px; }
+            .glass-card, .step-card, .registration-banner, .privacy-banner { padding: 18px; }
+            .btn-start { padding: 14px 16px; font-size: 0.95rem; }
+            .contact-float {
+                right: 10px; bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+                width: 56px; height: 56px; padding: 4px;
+            }
+            .contact-pharmacist { width: 46px; height: 46px; flex-basis: 46px; }
         }
     </style>
 </head>
@@ -563,7 +628,19 @@
 
         </div>
 
-        <footer class="footer">&copy; {{ date('Y') }} PharmaTrack &mdash; Smart Pharmacy System.</footer>
+        <a class="contact-float" href="https://wa.me/60125764231" target="_blank" rel="noopener" aria-label="Contact pharmacist on WhatsApp">
+            <img class="contact-pharmacist" src="{{ asset('storage/pharmacist-helper.png') }}" alt="" aria-hidden="true">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 11.5a8.4 8.4 0 0 1-8.7 8.4 9 9 0 0 1-3.8-.8L3 21l1.8-5.2a8.2 8.2 0 0 1-1-4A8.4 8.4 0 0 1 12.3 3 8.4 8.4 0 0 1 21 11.5z"></path>
+                <path d="M8.5 10.1c.5 2 2 3.6 4 4.4l1.2-1.2c.2-.2.5-.3.8-.2 1 .3 1.7.4 2.3.4"></path>
+            </svg>
+            <span class="contact-copy">
+                <span class="contact-title">Contact Us</span>
+                <span class="contact-subtitle">Pharmacist support</span>
+            </span>
+        </a>
+
+        <x-footer />
     </div>
 
     <!-- ── Kiosk Scanning Screen ── -->
@@ -624,7 +701,7 @@
                 </button>
             </div>
         </main>
-        <footer class="footer">Facial recognition data is used strictly for localized patient identification.</footer>
+        <x-footer>Facial recognition data is used strictly for localized patient identification.</x-footer>
     </div>
 
     <!-- Script dependencies exactly as original -->

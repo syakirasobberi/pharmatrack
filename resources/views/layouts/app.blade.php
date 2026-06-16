@@ -20,6 +20,8 @@
                 $sidebarBg = 'bg-blue-900';
                 $borderClass = 'border-blue-800';
                 $brandColor = 'text-blue-300';
+                $patientContact = null;
+                $patientUnreadNotificationsCount = 0;
                 
                 if(Auth::user()->role == 'admin') {
                     $sidebarBg = 'bg-slate-900 border-r border-slate-800';
@@ -29,7 +31,21 @@
                     $sidebarBg = 'bg-indigo-900 border-r border-indigo-800';
                     $borderClass = 'border-indigo-800';
                     $brandColor = 'text-indigo-400';
+                    $patientUnreadNotificationsCount = Auth::user()->unreadNotifications()->count();
+                    $patientContact = \App\Models\Patient::with('pharmacist')
+                        ->where('user_id', Auth::id())
+                        ->first();
                 }
+
+                $assignedPharmacist = $patientContact?->pharmacist;
+                $pharmacistPhone = $assignedPharmacist?->phone_number;
+                $whatsappNumber = $pharmacistPhone ? preg_replace('/\D+/', '', $pharmacistPhone) : null;
+
+                if($whatsappNumber && str_starts_with($whatsappNumber, '0')) {
+                    $whatsappNumber = '60' . substr($whatsappNumber, 1);
+                }
+
+                $whatsappLink = $whatsappNumber ? 'https://wa.me/' . $whatsappNumber : null;
             @endphp
 
             <div
@@ -117,12 +133,24 @@
                             My Checkups
                         </a>
 
-                        {{-- Download Summary --}}
+                        <a href="{{ route('patient.notifications.index') }}"
+                           class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium"
+                           style="background:{{ request()->routeIs('patient.notifications.*') ? '#4338ca' : 'transparent' }};color:{{ request()->routeIs('patient.notifications.*') ? '#fff' : '#c7d2fe' }};border-left:{{ request()->routeIs('patient.notifications.*') ? '4px solid #a5b4fc' : '4px solid transparent' }};">
+                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 01-6 0m6 0H9"></path></svg>
+                            <span class="min-w-0 flex-1">Notifications</span>
+                            @if($patientUnreadNotificationsCount > 0)
+                                <span class="inline-flex min-w-6 items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-extrabold text-white">
+                                    {{ $patientUnreadNotificationsCount }}
+                                </span>
+                            @endif
+                        </a>
+
+                        {{-- Download PDF Summary --}}
                         <a href="{{ route('patient.summary.download') }}"
                            class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium"
                            style="color:#c7d2fe;border-left:4px solid transparent;">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            Download Summary
+                            Download PDF
                         </a>
 
                     @else
@@ -194,9 +222,53 @@
 
                 <main class="min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-gray-50/50">
                     {{ $slot }}
+                    <footer class="text-center text-xs text-gray-400 font-medium py-4 border-t border-gray-100 mt-auto">
+                        &copy; {{ date('Y') }} PharmaTrack &mdash; Smart Pharmacy System.
+                    </footer>
                 </main>
 
             </div>
+
+            @if(Auth::user()->role == 'patient')
+                <details class="fixed bottom-5 right-5 z-50 w-[calc(100vw-2.5rem)] max-w-sm group">
+                    <summary class="ml-auto flex w-fit cursor-pointer list-none items-center gap-2 rounded-full bg-emerald-600 px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-emerald-700/20 transition hover:-translate-y-0.5 hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 11.5a8.4 8.4 0 01-8.7 8.4 9 9 0 01-3.8-.8L3 21l1.8-5.2a8.2 8.2 0 01-1-4A8.4 8.4 0 0112.3 3 8.4 8.4 0 0121 11.5z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.5 10.1c.5 2 2 3.6 4 4.4l1.2-1.2c.2-.2.5-.3.8-.2 1 .3 1.7.4 2.3.4"></path>
+                        </svg>
+                        Contact Us
+                    </summary>
+
+                    <div class="mt-3 rounded-2xl border border-emerald-100 bg-white p-5 text-sm shadow-2xl">
+                        <p class="text-xs font-extrabold uppercase tracking-wide text-emerald-700">Need help?</p>
+                        <h3 class="mt-1 text-lg font-extrabold text-gray-900">Contact Pharmacy Support</h3>
+                        <p class="mt-2 text-gray-600">For urgent health questions, please visit the pharmacy counter.</p>
+
+                        <div class="mt-4 rounded-xl bg-emerald-50 p-4">
+                            <p class="text-xs font-bold uppercase text-emerald-700">Assigned Pharmacist</p>
+                            <p class="mt-1 font-extrabold text-gray-900">{{ $assignedPharmacist?->name ?? 'Pharmacy Counter' }}</p>
+
+                            @if($whatsappLink)
+                                <a href="{{ $whatsappLink }}" target="_blank" rel="noopener" class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-extrabold text-white hover:bg-emerald-700">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 11.5a8.4 8.4 0 01-8.7 8.4 9 9 0 01-3.8-.8L3 21l1.8-5.2a8.2 8.2 0 01-1-4A8.4 8.4 0 0112.3 3 8.4 8.4 0 0121 11.5z"></path>
+                                    </svg>
+                                    WhatsApp Pharmacist
+                                </a>
+                                <p class="mt-2 text-xs font-semibold text-emerald-700">{{ $pharmacistPhone }}</p>
+                            @else
+                                <p class="mt-2 text-sm font-semibold text-gray-600">WhatsApp is not available yet because the pharmacist has not added a phone number.</p>
+                            @endif
+
+                            @if($assignedPharmacist?->email)
+                                <a href="mailto:{{ $assignedPharmacist->email }}" class="mt-3 inline-flex items-center text-sm font-bold text-emerald-700 hover:text-emerald-900">
+                                    {{ $assignedPharmacist->email }}
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                </details>
+            @endif
 
         </div>
     </body>

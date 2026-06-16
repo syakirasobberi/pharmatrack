@@ -43,10 +43,11 @@
             </div>
 
             <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                <form method="POST" action="{{ route('admin.pharmacists.store') }}" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <form method="POST" action="{{ route('admin.pharmacists.store') }}" class="grid grid-cols-1 md:grid-cols-5 gap-3">
                     @csrf
                     <input type="text" name="name" value="{{ old('name') }}" placeholder="Staff name" required class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
                     <input type="email" name="email" value="{{ old('email') }}" placeholder="Email address" required class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
+                    <input type="tel" name="phone_number" value="{{ old('phone_number') }}" placeholder="WhatsApp phone" required class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
                     <input type="password" name="password" placeholder="Temporary password" required class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
                     <button type="submit" class="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-4 py-2.5">Add Pharmacist</button>
                 </form>
@@ -66,6 +67,7 @@
                         <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
                             <tr>
                                 <th class="py-4 px-6">Staff</th>
+                                <th class="py-4 px-6">WhatsApp Phone</th>
                                 <th class="py-4 px-6">Assigned Patients</th>
                                 <th class="py-4 px-6">Joined</th>
                                 <th class="py-4 px-6">Status</th>
@@ -78,6 +80,13 @@
                                     <td class="py-4 px-6">
                                         <p class="font-bold text-slate-800">{{ $staff->name }}</p>
                                         <p class="text-xs text-slate-500 mt-1">{{ $staff->email }}</p>
+                                    </td>
+                                    <td class="py-4 px-6 text-slate-600">
+                                        @if($staff->phone_number)
+                                            <span class="font-bold">{{ $staff->phone_number }}</span>
+                                        @else
+                                            <span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold">Needs Update</span>
+                                        @endif
                                     </td>
                                     <td class="py-4 px-6 font-bold text-slate-700">{{ $staff->assigned_patients_count }}</td>
                                     <td class="py-4 px-6 text-slate-600">{{ $staff->created_at->format('d M Y') }}</td>
@@ -98,7 +107,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="py-10 text-center text-slate-500">No pharmacist accounts found.</td>
+                                    <td colspan="6" class="py-10 text-center text-slate-500">No pharmacist accounts found.</td>
                                 </tr>
                             @endforelse
                         </tbody>

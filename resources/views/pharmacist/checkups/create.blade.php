@@ -29,6 +29,7 @@
 
                 <form action="{{ route('pharmacist.checkups.store', $patient->id) }}" method="POST" class="p-6 md:p-8">
                     @csrf
+                    <input type="hidden" name="ai_suggestion" id="ai-suggestion-input" value="{{ old('ai_suggestion') }}">
 
                     @if(session('error'))
                         <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
@@ -46,6 +47,41 @@
                             </ul>
                         </div>
                     @endif
+
+                    {{-- Patient table measurements --}}
+                    <div class="mb-8 rounded-2xl border border-blue-100 bg-blue-50/60 p-5">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h3 class="font-extrabold text-blue-950">Patient Measurements</h3>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">Weight (kg)</label>
+                                <input type="number" step="0.1" min="1" max="300" name="patient_weight" id="patient-weight"
+                                    value="{{ old('patient_weight', $patient->weight) }}"
+                                    oninput="updatePatientBmi(); generateAiAuto();"
+                                    class="w-full rounded-xl border-blue-200 bg-white shadow-sm text-gray-700 font-bold focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">Height (cm)</label>
+                                <input type="number" step="0.1" min="1" max="250" name="patient_height" id="patient-height"
+                                    value="{{ old('patient_height', $patient->height) }}"
+                                    oninput="updatePatientBmi(); generateAiAuto();"
+                                    class="w-full rounded-xl border-blue-200 bg-white shadow-sm text-gray-700 font-bold focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">BMI</label>
+                                <input type="text" id="patient-bmi-display"
+                                    value="{{ is_numeric(old('patient_weight', $patient->weight)) && is_numeric(old('patient_height', $patient->height)) && (float) old('patient_height', $patient->height) > 0 ? number_format((float) old('patient_weight', $patient->weight) / (((float) old('patient_height', $patient->height) / 100) ** 2), 1) : 'N/A' }}"
+                                    readonly
+                                    class="w-full rounded-xl border-blue-100 bg-white/80 shadow-sm text-gray-700 font-bold cursor-not-allowed">
+                            </div>
+                        </div>
+                    </div>
 
                     {{-- Steps --}}
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
@@ -137,20 +173,20 @@
                                 <p id="detected-heart-rate" class="mt-0.5 text-base font-extrabold text-slate-900">-</p>
                             </div>
                             <div class="rounded-xl bg-white border border-cyan-100 p-3">
-                                <p class="text-xs font-bold uppercase text-cyan-700">Weight</p>
-                                <p id="detected-weight" class="mt-0.5 text-base font-extrabold text-slate-900">-</p>
+                                <p class="text-xs font-bold uppercase text-cyan-700">Haemoglobin</p>
+                                <p id="detected-haemoglobin" class="mt-0.5 text-base font-extrabold text-slate-900">-</p>
                             </div>
                             <div class="rounded-xl bg-white border border-cyan-100 p-3">
                                 <p class="text-xs font-bold uppercase text-cyan-700">HbA1c</p>
                                 <p id="detected-hba1c" class="mt-0.5 text-base font-extrabold text-slate-900">-</p>
                             </div>
                             <div class="rounded-xl bg-white border border-cyan-100 p-3">
-                                <p class="text-xs font-bold uppercase text-cyan-700">LDL</p>
-                                <p id="detected-ldl" class="mt-0.5 text-base font-extrabold text-slate-900">-</p>
+                                <p class="text-xs font-bold uppercase text-cyan-700">Sodium</p>
+                                <p id="detected-sodium" class="mt-0.5 text-base font-extrabold text-slate-900">-</p>
                             </div>
                             <div class="rounded-xl bg-white border border-cyan-100 p-3">
-                                <p class="text-xs font-bold uppercase text-cyan-700">HDL</p>
-                                <p id="detected-hdl" class="mt-0.5 text-base font-extrabold text-slate-900">-</p>
+                                <p class="text-xs font-bold uppercase text-cyan-700">GGT</p>
+                                <p id="detected-ggt" class="mt-0.5 text-base font-extrabold text-slate-900">-</p>
                             </div>
                         </div>
 
@@ -162,11 +198,11 @@
                         </details>
                     </div>
 
-                    {{-- Section: Vitals --}}
+                    {{-- Section: Core Readings --}}
                     <div class="mb-8">
                         <div class="flex items-center gap-2 mb-4">
                             <div class="w-1 h-5 bg-blue-500 rounded-full"></div>
-                            <h3 class="font-extrabold text-gray-800 text-base">Vitals</h3>
+                            <h3 class="font-extrabold text-gray-800 text-base">Core Readings</h3>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
@@ -196,40 +232,16 @@
 
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
-                                    SpO₂ (%)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: ≥95%</span>
+                                    Haemoglobin (g/dL)
+                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: 12.0-16.0</span>
                                 </label>
-                                <input type="number" name="spo2" id="spo2-input" min="50" max="100"
-                                    oninput="updateBadge('spo2-input','spo2-badge')"
-                                    placeholder="e.g. 98"
+                                <input type="number" step="0.01" name="haemoglobin" id="haemoglobin-input"
+                                    oninput="updateBadge('haemoglobin-input','haemoglobin-badge')" onblur="generateAiAuto()"
+                                    placeholder="e.g. 13.5"
                                     class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <p id="spo2-badge" class="mt-1 text-xs font-bold"></p>
+                                <p id="haemoglobin-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-1">Weight (kg)</label>
-                                <input type="number" step="0.1" name="weight" id="weight-input"
-                                    oninput="recalcBmi()" placeholder="e.g. 65.0"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-1">Height (cm)</label>
-                                <input type="number" step="0.1" name="height" id="height-input"
-                                    oninput="recalcBmi()" placeholder="e.g. 165"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-1">
-                                    BMI (auto-calculated)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: 18.5–24.9</span>
-                                </label>
-                                <input type="number" step="0.01" name="bmi" id="bmi-input" readonly
-                                    placeholder="Auto from weight & height"
-                                    class="w-full rounded-xl border-gray-200 bg-gray-100 shadow-sm text-gray-500 cursor-not-allowed">
-                                <p id="bmi-badge" class="mt-1 text-xs font-bold"></p>
-                            </div>
 
                         </div>
                     </div>
@@ -245,7 +257,7 @@
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
                                     Fasting Blood Sugar (mmol/L)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: 4.0–6.0</span>
+                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: 3.9-6.0</span>
                                 </label>
                                 <input type="number" step="0.01" name="blood_sugar" id="sugar-input"
                                     oninput="updateBadge('sugar-input','sugar-badge')" onblur="generateAiAuto()"
@@ -269,13 +281,115 @@
                         </div>
                     </div>
 
+                    {{-- Section: Liver Function Test --}}
+                    <div class="mb-8">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-1 h-5 bg-emerald-500 rounded-full"></div>
+                            <h3 class="font-extrabold text-gray-800 text-base">Liver Function Test</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">
+                                    Albumin-Globulin Ratio
+                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: 1.1-2.5</span>
+                                </label>
+                                <input type="number" step="0.01" name="albumin_globulin_ratio" id="ag-ratio-input"
+                                    oninput="updateBadge('ag-ratio-input','ag-ratio-badge')" onblur="generateAiAuto()"
+                                    placeholder="e.g. 1.4"
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <p id="ag-ratio-badge" class="mt-1 text-xs font-bold"></p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">
+                                    Alkaline Phosphatase (U/L)
+                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: 38-124</span>
+                                </label>
+                                <input type="number" step="0.01" name="alkaline_phosphatase" id="alp-input"
+                                    oninput="updateBadge('alp-input','alp-badge')" onblur="generateAiAuto()"
+                                    placeholder="e.g. 85"
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <p id="alp-badge" class="mt-1 text-xs font-bold"></p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">
+                                    Aspartate Transaminase (U/L)
+                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: &lt;34</span>
+                                </label>
+                                <input type="number" step="0.01" name="aspartate_transaminase" id="ast-input"
+                                    oninput="updateBadge('ast-input','ast-badge')" onblur="generateAiAuto()"
+                                    placeholder="e.g. 25"
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <p id="ast-badge" class="mt-1 text-xs font-bold"></p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">
+                                    Alanine Transaminase (U/L)
+                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: 10-49</span>
+                                </label>
+                                <input type="number" step="0.01" name="alanine_transaminase" id="alt-input"
+                                    oninput="updateBadge('alt-input','alt-badge')" onblur="generateAiAuto()"
+                                    placeholder="e.g. 28"
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <p id="alt-badge" class="mt-1 text-xs font-bold"></p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">
+                                    Gamma Glutamyl Transferase (U/L)
+                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: &lt;38</span>
+                                </label>
+                                <input type="number" step="0.01" name="gamma_glutamyl_transferase" id="ggt-input"
+                                    oninput="updateBadge('ggt-input','ggt-badge')" onblur="generateAiAuto()"
+                                    placeholder="e.g. 35"
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <p id="ggt-badge" class="mt-1 text-xs font-bold"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Section: Renal Function Profile --}}
+                    <div class="mb-8">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-1 h-5 bg-pink-500 rounded-full"></div>
+                            <h3 class="font-extrabold text-gray-800 text-base">Renal Function Profile</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">
+                                    Sodium (mmol/L)
+                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: 135-145</span>
+                                </label>
+                                <input type="number" step="0.01" name="sodium" id="sodium-input"
+                                    oninput="updateBadge('sodium-input','sodium-badge')" onblur="generateAiAuto()"
+                                    placeholder="e.g. 140"
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <p id="sodium-badge" class="mt-1 text-xs font-bold"></p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">
+                                    Glucose (mmol/L)
+                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: 3.9-6.0</span>
+                                </label>
+                                <input type="number" step="0.01" name="renal_glucose" id="renal-glucose-input"
+                                    oninput="updateBadge('renal-glucose-input','renal-glucose-badge')" onblur="generateAiAuto()"
+                                    placeholder="e.g. 5.1"
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <p id="renal-glucose-badge" class="mt-1 text-xs font-bold"></p>
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- Section: Lipid Panel --}}
                     <div class="mb-8">
                         <div class="flex items-center gap-2 mb-4">
                             <div class="w-1 h-5 bg-purple-500 rounded-full"></div>
                             <h3 class="font-extrabold text-gray-800 text-base">Lipid Panel</h3>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
@@ -292,7 +406,7 @@
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
                                     LDL (mmol/L)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: &lt;3.4</span>
+                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: &lt;2.6</span>
                                 </label>
                                 <input type="number" step="0.01" name="ldl" id="ldl-input"
                                     oninput="updateBadge('ldl-input','ldl-badge')" onblur="generateAiAuto()"
@@ -304,25 +418,13 @@
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
                                     HDL (mmol/L)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: &gt;1.0</span>
+                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: &gt;1.3</span>
                                 </label>
                                 <input type="number" step="0.01" name="hdl" id="hdl-input"
                                     oninput="updateBadge('hdl-input','hdl-badge')" onblur="generateAiAuto()"
                                     placeholder="e.g. 1.3"
                                     class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <p id="hdl-badge" class="mt-1 text-xs font-bold"></p>
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-1">
-                                    Triglycerides (mmol/L)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: &lt;1.7</span>
-                                </label>
-                                <input type="number" step="0.01" name="triglycerides" id="triglycerides-input"
-                                    oninput="updateBadge('triglycerides-input','trig-badge')" onblur="generateAiAuto()"
-                                    placeholder="e.g. 1.2"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <p id="trig-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
                         </div>
@@ -409,15 +511,20 @@
     // Defines normal/borderline/high thresholds for each field.
     // Each entry: { low?, highBorder?, high?, lowBorder? }
     const THRESHOLDS = {
-        'sugar-input':         { highBorder: 6.0,  high: 7.0  },
+        'sugar-input':         { lowBorder: 3.9,  low: 3.0,  highBorder: 6.0, high: 7.0 },
+        'haemoglobin-input':   { lowBorder: 12.0, low: 10.0, highBorder: 16.0, high: 18.0 },
         'hba1c-input':         { highBorder: 5.7,  high: 6.5  },
         'cholesterol-input':   { highBorder: 5.2,  high: 6.2  },
-        'ldl-input':           { highBorder: 3.4,  high: 4.1  },
-        'hdl-input':           { lowBorder: 1.0,   low: 0.9, reversed: true }, // higher = better
-        'triglycerides-input': { highBorder: 1.7,  high: 2.3  },
+        'ldl-input':           { highBorder: 2.6,  high: 3.4  },
+        'hdl-input':           { lowBorder: 1.3,   low: 1.0, reversed: true }, // higher = better
         'heart-rate-input':    { lowBorder: 60,    low: 50,   highBorder: 100, high: 110 },
-        'spo2-input':          { lowBorder: 95,    low: 90,   reversed: true },
-        'bmi-input':           { lowBorder: 18.5,  low: 16,   highBorder: 25.0, high: 30.0 },
+        'ag-ratio-input':      { lowBorder: 1.1,   low: 0.8,  highBorder: 2.5,  high: 3.0 },
+        'alp-input':           { lowBorder: 38,    low: 30,   highBorder: 124, high: 200 },
+        'ast-input':           { highBorder: 34,   high: 80 },
+        'alt-input':           { lowBorder: 10,    low: 5,    highBorder: 49,  high: 90 },
+        'ggt-input':           { highBorder: 38,   high: 100 },
+        'sodium-input':        { lowBorder: 135,   low: 130,  highBorder: 145,  high: 150 },
+        'renal-glucose-input': { lowBorder: 3.9,   low: 3.0,  highBorder: 6.0, high: 7.0 },
     };
 
     function updateBadge(inputId, badgeId) {
@@ -438,7 +545,7 @@
         let label, color;
 
         if (t.reversed) {
-            // For HDL and SpO2: lower = worse
+            // For HDL: lower = worse
             if (val < (t.low ?? -Infinity))           { label = '⚠ Low';        color = 'text-red-600'; }
             else if (val < (t.lowBorder ?? -Infinity)) { label = '↓ Borderline'; color = 'text-amber-600'; }
             else                                       { label = '✓ Normal';      color = 'text-emerald-600'; }
@@ -471,22 +578,25 @@
     }
 
     // ─── BMI auto-calculator ─────────────────────────────────────────────────────
-    function recalcBmi() {
-        const weight = parseFloat(document.getElementById('weight-input').value);
-        const height = parseFloat(document.getElementById('height-input').value);
-        const bmiInput = document.getElementById('bmi-input');
+    // ─── OCR text normalization ──────────────────────────────────────────────────
+    function updatePatientBmi() {
+        const weight = parseFloat(document.getElementById('patient-weight')?.value);
+        const height = parseFloat(document.getElementById('patient-height')?.value);
+        const bmiDisplay = document.getElementById('patient-bmi-display');
+        const bmiHeader = document.getElementById('patient-bmi');
 
         if (weight > 0 && height > 0) {
             const bmi = weight / Math.pow(height / 100, 2);
-            bmiInput.value = bmi.toFixed(2);
-            updateBadge('bmi-input', 'bmi-badge');
-        } else {
-            bmiInput.value = '';
-            document.getElementById('bmi-badge').textContent = '';
+            const display = bmi.toFixed(1);
+            if (bmiDisplay) bmiDisplay.value = display;
+            if (bmiHeader) bmiHeader.textContent = display;
+        } else if (bmiDisplay) {
+            bmiDisplay.value = 'N/A';
         }
     }
 
-    // ─── OCR text normalization ──────────────────────────────────────────────────
+    updatePatientBmi();
+
     function normalizeOcrText(text) {
         return text
             .replace(/\r\n/g, '\n')
@@ -549,6 +659,10 @@
             ['hba1c','hb a1c','glycated haemoglobin','glycated hemoglobin','a1c'],
             4, 15);
 
+        const haemoglobin = findNumberNearLabels(text,
+            ['haemoglobin','hemoglobin','hb'],
+            5, 25);
+
         const cholesterol = findNumberNearLabels(text,
             ['total cholesterol','cholesterol total','serum cholesterol','cholesterol','chol','tc'],
             2, 20)
@@ -562,34 +676,55 @@
             ['hdl cholesterol','hdl-c','hdl','high density lipoprotein','high-density lipoprotein'],
             0.3, 5);
 
-        const triglycerides = findNumberNearLabels(text,
-            ['triglycerides','triglyceride','trig','trigs','tg'],
-            0.2, 10);
+        const albuminGlobulinRatio = findNumberNearLabels(text,
+            ['albumin globulin ratio','albumin-globulin ratio','a/g ratio','ag ratio'],
+            0.2, 5);
+
+        const alkalinePhosphatase = findNumberNearLabels(text,
+            ['alkaline phosphatase','alk phosphatase','alp'],
+            10, 1000);
+
+        const aspartateTransaminase = findNumberNearLabels(text,
+            ['aspartate transaminase','aspartate aminotransferase','ast','sgot'],
+            1, 1000);
+
+        const alanineTransaminase = findNumberNearLabels(text,
+            ['alanine transaminase','alanine aminotransferase','alt','sgpt'],
+            1, 1000);
+
+        const gammaGlutamylTransferase = findNumberNearLabels(text,
+            ['gamma glutamyl transferase','gamma-glutamyl transferase','gamma glutamyl','ggt'],
+            1, 1000);
+
+        const sodium = findNumberNearLabels(text,
+            ['sodium','natrium','na'],
+            80, 200);
+
+        const renalGlucose = findNumberNearLabels(text,
+            ['renal glucose','urine glucose','glucose'],
+            0, 50);
 
         const heartRate = findNumberNearLabels(text,
             ['heart rate','pulse rate','pulse','hr','bpm'],
             30, 200);
-
-        const weight = findNumberNearLabels(text,
-            ['weight','berat badan','berat','wt'],
-            20, 300);
-
-        const height = findNumberNearLabels(text,
-            ['height','tinggi badan','tinggi','ht'],
-            100, 250);
 
         // Fill fields & update badges
         const fills = {
             'bp-input':             { val: bp,           detected: 'detected-bp',          badge: 'bp-badge' },
             'sugar-input':          { val: sugar,        detected: 'detected-sugar',        badge: 'sugar-badge' },
             'hba1c-input':          { val: hba1c,        detected: 'detected-hba1c',        badge: 'hba1c-badge' },
+            'haemoglobin-input':    { val: haemoglobin,  detected: 'detected-haemoglobin',  badge: 'haemoglobin-badge' },
             'cholesterol-input':    { val: cholesterol,  detected: 'detected-cholesterol',  badge: 'chol-badge' },
             'ldl-input':            { val: ldl,          detected: 'detected-ldl',          badge: 'ldl-badge' },
             'hdl-input':            { val: hdl,          detected: 'detected-hdl',          badge: 'hdl-badge' },
-            'triglycerides-input':  { val: triglycerides,detected: null,                    badge: 'trig-badge' },
+            'ag-ratio-input':       { val: albuminGlobulinRatio, detected: null,             badge: 'ag-ratio-badge' },
+            'alp-input':            { val: alkalinePhosphatase, detected: null,              badge: 'alp-badge' },
+            'ast-input':            { val: aspartateTransaminase, detected: null,             badge: 'ast-badge' },
+            'alt-input':            { val: alanineTransaminase, detected: null,               badge: 'alt-badge' },
+            'ggt-input':            { val: gammaGlutamylTransferase, detected: 'detected-ggt', badge: 'ggt-badge' },
+            'sodium-input':         { val: sodium,       detected: 'detected-sodium',        badge: 'sodium-badge' },
+            'renal-glucose-input':  { val: renalGlucose, detected: null,                     badge: 'renal-glucose-badge' },
             'heart-rate-input':     { val: heartRate,    detected: 'detected-heart-rate',   badge: 'hr-badge' },
-            'weight-input':         { val: weight,       detected: 'detected-weight',       badge: null },
-            'height-input':         { val: height,       detected: null,                    badge: null },
         };
 
         const found = [];
@@ -608,9 +743,6 @@
                 if (el) el.textContent = '-';
             }
         }
-
-        // Recalculate BMI if weight + height both found
-        if (weight && height) recalcBmi();
 
         // Timestamp
         const ts = document.getElementById('ocr-timestamp');
@@ -709,6 +841,8 @@
     // ─── AI recommendation ────────────────────────────────────────────────────────
     function generateAiAuto() {
         const bmi          = document.getElementById('patient-bmi').innerText;
+        const weight       = document.getElementById('patient-weight')?.value;
+        const height       = document.getElementById('patient-height')?.value;
         const bp           = document.getElementById('bp-input').value;
         const sugar        = document.getElementById('sugar-input').value;
         const cholesterol  = document.getElementById('cholesterol-input').value;
@@ -716,15 +850,25 @@
         const ldl          = document.getElementById('ldl-input').value;
         const hdl          = document.getElementById('hdl-input').value;
         const heartRate    = document.getElementById('heart-rate-input').value;
+        const haemoglobin  = document.getElementById('haemoglobin-input').value;
+        const sodium       = document.getElementById('sodium-input').value;
+        const ggt          = document.getElementById('ggt-input').value;
 
         const responseArea = document.getElementById('aiResponseArea');
+        const suggestionInput = document.getElementById('ai-suggestion-input');
 
-        if (!bp && !sugar && !cholesterol && !hba1c && !ldl && !hdl && !heartRate) return;
+        if (!bp && !sugar && !cholesterol && !hba1c && !ldl && !hdl && !heartRate && !haemoglobin && !sodium && !ggt) return;
+
+        if (suggestionInput) {
+            suggestionInput.value = '';
+        }
 
         responseArea.innerHTML = '<span class="animate-pulse text-indigo-600 font-bold">Analyzing health metrics...</span>';
 
         const patientData = {
             bmi:          bmi          || 'Not specified',
+            weight:       weight       || 'Not specified',
+            height:       height       || 'Not specified',
             bp:           bp           || 'Not specified',
             sugar:        sugar        || 'Not specified',
             cholesterol:  cholesterol  || 'Not specified',
@@ -732,6 +876,9 @@
             ldl:          ldl          || 'Not specified',
             hdl:          hdl          || 'Not specified',
             heart_rate:   heartRate    || 'Not specified',
+            haemoglobin:  haemoglobin  || 'Not specified',
+            sodium:       sodium       || 'Not specified',
+            ggt:          ggt          || 'Not specified',
             _token: '{{ csrf_token() }}'
         };
 
@@ -743,6 +890,10 @@
         .then(r => r.json())
         .then(data => {
             if (data.success) {
+                if (suggestionInput) {
+                    suggestionInput.value = data.suggestion;
+                }
+
                 const styles = {
                     food:               'border-emerald-100 bg-emerald-50 text-emerald-900',
                     exercise:           'border-blue-100 bg-blue-50 text-blue-900',
@@ -766,10 +917,18 @@
                     }).join('');
                 responseArea.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">${cards}</div>`;
             } else {
+                if (suggestionInput) {
+                    suggestionInput.value = '';
+                }
+
                 responseArea.innerHTML = `<span class="text-red-500">Error: ${data.message}</span>`;
             }
         })
         .catch(() => {
+            if (suggestionInput) {
+                suggestionInput.value = '';
+            }
+
             responseArea.innerHTML = '<span class="text-red-500">Failed to connect to AI server.</span>';
         });
     }

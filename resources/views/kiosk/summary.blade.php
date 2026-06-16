@@ -7,6 +7,20 @@
     <meta name="robots" content="noindex, nofollow">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        teal: { 50: '#f0fdfa', 100: '#ccfbf1', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e' },
+                        cyan: { 500: '#06b6d4', 600: '#0891b2' }
+                    }
+                }
+            }
+        }
+    </script>
     @php
         $summaryBgVersion = file_exists(storage_path('app/public/bg.png'))
             ? filemtime(storage_path('app/public/bg.png'))
@@ -14,491 +28,46 @@
         $summaryBgUrl = asset('storage/bg.png') . '?v=' . $summaryBgVersion;
     @endphp
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --teal:     #0d9488;
-            --teal-d:   #0f766e;
-            --teal-l:   #14b8a6;
-            --cyan:     #06b6d4;
-            --bg:       #f0f4f8;
-            --surface:  #ffffff;
-            --surface2: #f8fafc;
-            --border:   #e2e8f0;
-            --border2:  #cbd5e1;
-            --text:     #0f172a;
-            --muted:    #64748b;
-            --muted2:   #94a3b8;
-            --danger:   #ef4444;
-            --warn:     #f59e0b;
-            --green:    #22c55e;
-            --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
-            --shadow:    0 4px 16px rgba(15,23,42,.08), 0 2px 6px rgba(15,23,42,.05);
-            --shadow-lg: 0 12px 40px rgba(15,23,42,.1), 0 4px 14px rgba(15,23,42,.06);
-        }
-
-        html { scroll-behavior: smooth; }
-        body { font-family: 'Inter', sans-serif; background: #eef7f8; color: var(--text); min-height: 100vh; }
-
-        /* Background */
+        /* Preserve complex background scenes and legacy badge classes returned by PHP */
+        body { background-color: #eef7f8; }
         .bg-scene {
-            position: fixed; inset: 0; z-index: 0; pointer-events: none;
-            background:
-                linear-gradient(120deg, rgba(255,255,255,.30), rgba(238,247,248,.66)),
-                url("{{ $summaryBgUrl }}"),
-                radial-gradient(ellipse 70% 50% at 10% 0%,  rgba(13,148,136,.12) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 45% at 90% 100%, rgba(6,182,212,.10) 0%, transparent 55%),
-                linear-gradient(160deg, #f4fbfb 0%, #e7f3fb 100%);
+            position: fixed; inset: 0; z-index: -1; pointer-events: none;
+            background: linear-gradient(120deg, rgba(255,255,255,.30), rgba(238,247,248,.66)),
+                        url("{{ $summaryBgUrl }}"),
+                        radial-gradient(ellipse 70% 50% at 10% 0%,  rgba(13,148,136,.12) 0%, transparent 60%),
+                        radial-gradient(ellipse 60% 45% at 90% 100%, rgba(6,182,212,.10) 0%, transparent 55%),
+                        linear-gradient(160deg, #f4fbfb 0%, #e7f3fb 100%);
             background-position: center; background-size: cover;
         }
         .bg-scene::before {
             content: ""; position: absolute; inset: 0;
-            background: linear-gradient(180deg, rgba(255,255,255,.68), rgba(255,255,255,.50));
-            opacity: .88;
-        }
-        .bg-scene::after {
-            content: ""; position: absolute; inset: auto 0 0 0; height: 260px;
-            background: linear-gradient(180deg, transparent, rgba(255,255,255,.72)),
-                repeating-linear-gradient(90deg, rgba(13,148,136,.08) 0 1px, transparent 1px 72px);
-            opacity: .55;
+            background: linear-gradient(180deg, rgba(255,255,255,.68), rgba(255,255,255,.50)); opacity: .88;
         }
         .bg-dots {
-            position: fixed; inset: 0; z-index: 0; pointer-events: none;
-            background-image:
-                linear-gradient(rgba(13,148,136,.055) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(13,148,136,.055) 1px, transparent 1px);
+            position: fixed; inset: 0; z-index: -1; pointer-events: none;
+            background-image: linear-gradient(rgba(13,148,136,.055) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(13,148,136,.055) 1px, transparent 1px);
             background-size: 44px 44px;
-            mask-image: linear-gradient(180deg, rgba(0,0,0,.85), rgba(0,0,0,.18));
-            opacity: .75;
+            mask-image: linear-gradient(180deg, rgba(0,0,0,.85), rgba(0,0,0,.18)); opacity: .75;
         }
+        
+        /* Required mapping for PHP Badge Closure */
+        .rbadge-normal     { background-color: #dcfce7; color: #15803d; }
+        .rbadge-borderline { background-color: #fef3c7; color: #b45309; }
+        .rbadge-high       { background-color: #fee2e2; color: #b91c1c; }
+        .rbadge-low        { background-color: #fee2e2; color: #b91c1c; }
+        .rbadge-na         { background-color: #f1f5f9; color: #64748b; }
 
-        /* Layout */
-        .page { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 24px 20px 60px; }
-
-        /* Top bar */
-        .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
-        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-        .logo-icon {
-            width: 38px; height: 38px; border-radius: 10px;
-            background: linear-gradient(135deg, var(--teal), var(--cyan));
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 12px rgba(13,148,136,.3); color: #fff;
-        }
-        .logo-text { font-size: 1.1rem; font-weight: 800; color: var(--text); letter-spacing: -.02em; }
-        .top-bar-actions { display: flex; gap: 10px; }
-        .btn-ghost {
-            display: flex; align-items: center; gap: 6px;
-            padding: 8px 16px; border-radius: 10px; font-size: .83rem; font-weight: 600;
-            border: 1px solid var(--border2); background: var(--surface);
-            color: var(--muted); cursor: pointer; text-decoration: none;
-            transition: all .2s; box-shadow: var(--shadow-sm);
-        }
-        .btn-ghost:hover { background: var(--surface2); color: var(--text); }
-        .btn-primary {
-            display: flex; align-items: center; gap: 6px;
-            padding: 8px 18px; border-radius: 10px; font-size: .83rem; font-weight: 700;
-            background: linear-gradient(135deg, var(--teal), var(--cyan));
-            color: #fff; text-decoration: none; border: none; cursor: pointer;
-            transition: all .2s; box-shadow: 0 4px 14px rgba(13,148,136,.3);
-        }
-        .btn-primary:hover { opacity: .88; }
-
-        /* Hero card */
-        .hero-card {
-            position: relative; border-radius: 22px; overflow: hidden; margin-bottom: 24px;
-            background:
-                linear-gradient(120deg, rgba(6,78,59,.82) 0%, rgba(8,145,178,.68) 58%, rgba(15,23,42,.42) 100%),
-                url("{{ $summaryBgUrl }}");
-            background-position: center; background-size: cover;
-            border: 1px solid rgba(13,148,136,.2);
-            box-shadow: var(--shadow-lg), 0 0 0 1px rgba(13,148,136,.08);
-        }
-        .hero-card::after {
-            content: ""; position: absolute; inset: 0;
-            background: linear-gradient(90deg, rgba(15,118,110,.24), rgba(255,255,255,.04));
-            pointer-events: none;
-        }
-        .hero-inner { position: relative; z-index: 1; display: flex; align-items: center; gap: 24px; padding: 28px 32px; }
-        .avatar {
-            width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
-            border: 3px solid rgba(255,255,255,.35); box-shadow: 0 0 0 5px rgba(255,255,255,.12);
-        }
-        .hero-name { font-size: 1.9rem; font-weight: 800; letter-spacing: -.03em; color: #fff; }
-        .hero-meta { display: flex; gap: 12px; margin-top: 6px; flex-wrap: wrap; }
-        .hero-meta span {
-            font-size: .8rem; font-weight: 600; color: rgba(255,255,255,.75);
-            background: rgba(255,255,255,.15); padding: 3px 12px; border-radius: 20px;
-        }
-        .hero-badge {
-            margin-left: auto; flex-shrink: 0;
-            display: flex; align-items: center; gap: 7px;
-            padding: 8px 16px; border-radius: 30px; font-size: .8rem; font-weight: 700;
-            background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25); color: #fff;
-        }
-        .hero-badge-dot { width:8px; height:8px; border-radius:50%; background:#4ade80; animation: pulse 1.5s ease-in-out infinite; }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
-
-        /* Kiosk notice */
-        .kiosk-notice {
-            display: flex; align-items: center; gap: 10px;
-            padding: 11px 18px; margin-bottom: 20px; border-radius: 12px;
-            background: rgba(6,182,212,.06); border: 1px solid rgba(6,182,212,.2);
-            font-size: .82rem; color: #0891b2; box-shadow: var(--shadow-sm);
-        }
-
-        /* Stat grid */
-        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
-        @media (max-width: 700px) { .stat-grid { grid-template-columns: repeat(2,1fr); } }
-        .stat-card {
-            border-radius: 18px; padding: 20px 22px;
-            background: var(--surface); border: 1px solid var(--border);
-            box-shadow: var(--shadow-sm); transition: box-shadow .2s;
-        }
-        .stat-card:hover { box-shadow: var(--shadow); }
-        .stat-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted2); margin-bottom: 10px; }
-        .stat-value { font-size: 2rem; font-weight: 800; letter-spacing: -.03em; color: var(--text); }
-        .stat-sub   { font-size: .78rem; color: var(--muted); margin-top: 4px; }
-        .badge-pill {
-            display: inline-block; padding: 3px 10px; border-radius: 20px;
-            font-size: .72rem; font-weight: 700; margin-top: 6px;
-        }
-        .pill-green  { background: rgba(34,197,94,.12);  color: #16a34a; }
-        .pill-yellow { background: rgba(245,158,11,.12); color: #b45309; }
-        .pill-red    { background: rgba(239,68,68,.12);  color: #dc2626; }
-        .pill-teal   { background: rgba(13,148,136,.12); color: var(--teal-d); }
-
-        /* Two-column section */
-        .two-col { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
-        @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
-
-        /* Section card */
-        .section-card {
-            border-radius: 18px; background: var(--surface); border: 1px solid var(--border);
-            overflow: hidden; margin-bottom: 20px; box-shadow: var(--shadow-sm);
-        }
-        .section-head {
-            padding: 16px 22px; border-bottom: 1px solid var(--border);
-            font-size: .95rem; font-weight: 700; color: var(--text); background: var(--surface2);
-        }
-        .section-body { padding: 20px 22px; }
-
-        /* Info rows */
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        .info-row { display: flex; flex-direction: column; gap: 4px; }
-        .info-key { font-size: .7rem; color: var(--muted2); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
-        .info-val { font-size: .93rem; font-weight: 600; color: var(--text); }
-
-        /* Checkup reading row with status badge */
-        .reading-row {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 10px 14px; border-radius: 12px;
-            background: var(--surface2); border: 1px solid var(--border);
-            margin-bottom: 8px;
-        }
-        .reading-label { font-size: .78rem; font-weight: 700; color: var(--muted); }
-        .reading-value { font-size: .95rem; font-weight: 800; color: var(--text); }
-        .reading-badge {
-            font-size: .68rem; font-weight: 800; padding: 2px 8px; border-radius: 20px;
-        }
-        .rbadge-normal     { background: rgba(34,197,94,.12);  color: #16a34a; }
-        .rbadge-borderline { background: rgba(245,158,11,.14); color: #b45309; }
-        .rbadge-high       { background: rgba(239,68,68,.12);  color: #dc2626; }
-        .rbadge-low        { background: rgba(239,68,68,.12);  color: #dc2626; }
-        .rbadge-na         { background: rgba(148,163,184,.12);color: var(--muted2); }
-
-        /* Medication items */
-        .med-item {
-            display: flex; align-items: center; gap: 14px;
-            padding: 12px 14px; border-radius: 12px;
-            background: var(--surface2); border: 1px solid var(--border);
-            margin-bottom: 10px; transition: box-shadow .2s;
-        }
-        .med-item:hover { box-shadow: var(--shadow-sm); }
-        .med-icon {
-            width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
-            background: linear-gradient(135deg, var(--teal), var(--cyan));
-            display: flex; align-items: center; justify-content: center; font-size: 17px;
-            box-shadow: 0 3px 10px rgba(13,148,136,.25);
-        }
-        .med-name   { font-size: .9rem; font-weight: 700; color: var(--text); }
-        .med-detail { font-size: .78rem; color: var(--muted); margin-top: 2px; }
-
-        /* Alert items */
-        .alert-item {
-            display: flex; align-items: center; gap: 10px;
-            padding: 12px 14px; border-radius: 12px;
-            background: rgba(239,68,68,.06); border: 1px solid rgba(239,68,68,.18);
-            color: #dc2626; font-size: .85rem; font-weight: 600; margin-bottom: 10px;
-        }
-        .alert-ok {
-            padding: 16px; border-radius: 12px; text-align: center;
-            background: rgba(34,197,94,.07); border: 1px solid rgba(34,197,94,.2);
-            color: #16a34a; font-size: .85rem; font-weight: 600;
-        }
-
-        /* AI Intelligence grid */
-        .intelligence-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 18px; margin-bottom: 24px; }
-        @media (max-width: 760px) { .intelligence-grid { grid-template-columns: 1fr; } }
-        .ai-card {
-            border-radius: 20px; background: var(--surface); border: 1px solid var(--border);
-            box-shadow: var(--shadow); overflow: hidden;
-        }
-        .ai-card-head {
-            display: flex; align-items: center; justify-content: space-between; gap: 12px;
-            padding: 18px 22px; border-bottom: 1px solid var(--border);
-            background: linear-gradient(135deg, rgba(13,148,136,.08), rgba(6,182,212,.07));
-        }
-        .ai-title    { font-size: 1rem; font-weight: 800; color: var(--text); }
-        .ai-subtitle { margin-top: 3px; font-size: .78rem; color: var(--muted); font-weight: 500; }
-        .risk-chip {
-            display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 999px;
-            font-size: .75rem; font-weight: 800; white-space: nowrap;
-        }
-        .risk-low      { background: rgba(34,197,94,.12);  color: #15803d; }
-        .risk-moderate { background: rgba(245,158,11,.14); color: #b45309; }
-        .risk-high     { background: rgba(239,68,68,.12);  color: #dc2626; }
-        .ai-card-body  { padding: 22px; }
-        .risk-metrics  { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
-        @media (max-width: 560px) { .risk-metrics { grid-template-columns: 1fr; } }
-        .risk-metric {
-            border: 1px solid var(--border); border-radius: 14px; padding: 14px;
-            background: var(--surface2);
-        }
-        .risk-metric-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted2); font-weight: 800; }
-        .risk-metric-value { margin-top: 6px; font-size: 1.55rem; font-weight: 800; color: var(--text); letter-spacing: -.03em; }
-
-        /* Risk score bar */
-        .risk-bar-wrap { margin: 16px 0; }
-        .risk-bar-label { display: flex; justify-content: space-between; font-size: .75rem; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
-        .risk-bar-track { height: 8px; border-radius: 99px; background: var(--border); overflow: hidden; }
-        .risk-bar-fill  { height: 100%; border-radius: 99px; transition: width .8s ease; }
-        .risk-bar-low      { background: linear-gradient(90deg, #22c55e, #4ade80); }
-        .risk-bar-moderate { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-        .risk-bar-high     { background: linear-gradient(90deg, #ef4444, #f87171); }
-
-        .summary-box {
-            padding: 15px 16px; border-radius: 14px; background: rgba(13,148,136,.07);
-            border: 1px solid rgba(13,148,136,.16); color: #115e59; font-size: .88rem; line-height: 1.55;
-        }
-        .factor-list { display: grid; gap: 10px; margin-top: 16px; }
-        .factor-item {
-            display: flex; align-items: center; gap: 9px; padding: 11px 12px;
-            border-radius: 12px; background: var(--surface2); border: 1px solid var(--border);
-            color: var(--text); font-size: .84rem; font-weight: 700;
-        }
-        .factor-check {
-            width: 20px; height: 20px; border-radius: 50%; display: inline-flex;
-            align-items: center; justify-content: center; background: rgba(13,148,136,.12);
-            color: var(--teal-d); font-size: .78rem; font-weight: 900; flex-shrink: 0;
-        }
-        .chart-box { position: relative; height: 300px; width: 100%; }
-
-        /* Lipid panel grid */
-        .lipid-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
-
-        /* Session timer */
-        #session-timer {
-            position: fixed; bottom: 20px; right: 24px; z-index: 50;
-            display: flex; align-items: center; gap: 8px;
-            padding: 10px 18px; border-radius: 30px;
-            background: var(--surface); border: 1px solid var(--border);
-            font-size: .8rem; color: var(--muted); box-shadow: var(--shadow);
-        }
-        #timer-count { font-weight: 700; color: var(--teal); }
-        #timer-count.warn   { color: #b45309; }
-        #timer-count.danger { color: #dc2626; }
-
-        @media (max-width: 760px) {
-            body { overflow-x: hidden; }
-
-            .page {
-                width: 100%;
-                max-width: none;
-                padding: 18px 14px 96px;
-                overflow-x: hidden;
-            }
-
-            .top-bar {
-                align-items: stretch;
-                flex-direction: column;
-                gap: 14px;
-                margin-bottom: 18px;
-            }
-
-            .logo {
-                min-width: 0;
-                gap: 12px;
-            }
-
-            .logo-icon {
-                width: 52px;
-                height: 52px;
-                border-radius: 16px;
-            }
-
-            .logo-text {
-                font-size: clamp(1.55rem, 8vw, 2.2rem);
-                line-height: 1.05;
-                overflow-wrap: anywhere;
-            }
-
-            .top-bar-actions {
-                display: grid;
-                grid-template-columns: 1fr;
-                gap: 10px;
-                width: 100%;
-            }
-
-            .btn-ghost,
-            .btn-primary {
-                width: 100%;
-                min-height: 52px;
-                justify-content: center;
-                text-align: center;
-                border-radius: 14px;
-                font-size: 1rem;
-                line-height: 1.2;
-                padding: 10px 14px;
-            }
-
-            .kiosk-notice {
-                align-items: flex-start;
-                flex-wrap: wrap;
-                gap: 8px;
-                padding: 14px;
-                margin-bottom: 18px;
-                font-size: .95rem;
-                line-height: 1.45;
-            }
-
-            .kiosk-notice svg {
-                margin-top: 3px;
-                flex-shrink: 0;
-            }
-
-            .hero-card {
-                border-radius: 24px;
-                margin-bottom: 18px;
-            }
-
-            .hero-inner {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-                gap: 18px;
-                padding: 28px 18px;
-            }
-
-            .avatar {
-                width: 112px;
-                height: 112px;
-            }
-
-            .hero-name {
-                max-width: 100%;
-                font-size: clamp(2rem, 10vw, 3.2rem);
-                line-height: 1.12;
-                overflow-wrap: anywhere;
-                word-break: break-word;
-            }
-
-            .hero-meta {
-                justify-content: center;
-                gap: 8px;
-            }
-
-            .hero-meta span {
-                max-width: 100%;
-                font-size: .95rem;
-                padding: 6px 14px;
-            }
-
-            .hero-badge {
-                margin-left: 0;
-                justify-content: center;
-                width: 100%;
-                max-width: 260px;
-            }
-
-            .stat-grid {
-                grid-template-columns: 1fr;
-                gap: 12px;
-                margin-bottom: 18px;
-            }
-
-            .stat-card {
-                padding: 18px;
-            }
-
-            .stat-value {
-                font-size: clamp(1.7rem, 9vw, 2.4rem);
-                overflow-wrap: anywhere;
-            }
-
-            .ai-card-head {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .ai-card-body,
-            .section-body {
-                padding: 18px;
-            }
-
-            .info-grid,
-            .lipid-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .reading-row {
-                align-items: flex-start;
-                flex-direction: column;
-                gap: 6px;
-            }
-
-            .reading-value {
-                overflow-wrap: anywhere;
-            }
-
-            .chart-box {
-                height: 260px;
-            }
-
-            #session-timer {
-                left: 14px;
-                right: 14px;
-                bottom: 14px;
-                justify-content: center;
-                text-align: center;
-                border-radius: 18px;
-                line-height: 1.35;
-            }
-        }
-
-        @media (max-width: 380px) {
-            .page {
-                padding-left: 12px;
-                padding-right: 12px;
-            }
-
-            .logo-icon {
-                width: 48px;
-                height: 48px;
-            }
-
-            .btn-ghost,
-            .btn-primary {
-                min-height: 48px;
-                font-size: .95rem;
-            }
-
-            .hero-inner {
-                padding: 24px 14px;
-            }
-        }
+        /* Custom Scrollbar for details panel */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
     </style>
 </head>
-<body>
+<body class="text-slate-800 antialiased min-h-screen">
 
 @php
     $latestCheckup  = $patient->healthCheckups->first();
@@ -507,48 +76,23 @@
     $bmi            = (float) $patient->bmi;
     $patientName    = $patient->user->name ?: ('Patient #' . $patient->id);
 
-    // BMI classification
-    if ($bmi >= 30)      { $bmiLabel = 'Obese';       $bmiPill = 'pill-red'; }
-    elseif ($bmi >= 25)  { $bmiLabel = 'Overweight';  $bmiPill = 'pill-yellow'; }
-    elseif ($bmi < 18.5) { $bmiLabel = 'Underweight'; $bmiPill = 'pill-yellow'; }
-    else                 { $bmiLabel = 'Healthy';      $bmiPill = 'pill-green'; }
+    if ($bmi >= 30)      { $bmiLabel = 'Obese';       $bmiPill = 'bg-red-100 text-red-700'; }
+    elseif ($bmi >= 25)  { $bmiLabel = 'Overweight';  $bmiPill = 'bg-amber-100 text-amber-700'; }
+    elseif ($bmi < 18.5) { $bmiLabel = 'Underweight'; $bmiPill = 'bg-amber-100 text-amber-700'; }
+    else                 { $bmiLabel = 'Healthy';     $bmiPill = 'bg-green-100 text-green-700'; }
 
-    // ── Lifestyle score (calculated from available patient data) ─────────────
-    $lifestyleScore = 70; // baseline
-    if ($bmi >= 30)                                         $lifestyleScore -= 20;
-    elseif ($bmi >= 25)                                     $lifestyleScore -= 10;
-    if ($latestCheckup?->blood_sugar > 7.0)                 $lifestyleScore -= 15;
-    elseif ($latestCheckup?->blood_sugar > 6.0)             $lifestyleScore -= 8;
-    if ($latestCheckup?->cholesterol > 6.2)                 $lifestyleScore -= 12;
-    elseif ($latestCheckup?->cholesterol > 5.2)             $lifestyleScore -= 6;
-    if ($latestCheckup?->ldl > 4.1)                         $lifestyleScore -= 10;
-    elseif ($latestCheckup?->ldl > 3.4)                     $lifestyleScore -= 5;
-    if ($latestCheckup?->hba1c > 6.5)                       $lifestyleScore -= 12;
-    elseif ($latestCheckup?->hba1c > 5.7)                   $lifestyleScore -= 6;
-    if ($patient->medications->count() > 3)                 $lifestyleScore -= 8;
-    if (optional($medicalHistory)->hypertension === 'High Risk') $lifestyleScore -= 10;
-    $lifestyleScore = max(0, min(100, $lifestyleScore));
-
-    // ── Helper: reading status badge ─────────────────────────────────────────
-    // Returns [label, css_class] for a given value and thresholds
-    // Usage in blade: [$badgeLabel, $badgeClass] = readingBadge($value, $normalMax)
-
-    // ── Health Alerts ─────────────────────────────────────────────────────────
     $riskFlags = collect([
         optional($medicalHistory)->hypertension === 'High Risk' ? 'High blood pressure risk' : null,
-        filled(optional($medicalHistory)->diabetes) && optional($medicalHistory)->diabetes !== 'None'
-            ? optional($medicalHistory)->diabetes : null,
+        filled(optional($medicalHistory)->diabetes) && optional($medicalHistory)->diabetes !== 'None' ? optional($medicalHistory)->diabetes : null,
         filled(optional($medicalHistory)->allergies)      ? 'General allergies recorded' : null,
         filled(optional($medicalHistory)->drug_allergies) ? 'Drug allergies recorded'    : null,
-        $latestCheckup && filled($latestCheckup->blood_pressure)
-            ? 'Latest BP: ' . $latestCheckup->blood_pressure : null,
+        $latestCheckup && filled($latestCheckup->blood_pressure) ? 'Latest BP: ' . $latestCheckup->blood_pressure : null,
         $latestCheckup && $latestCheckup->blood_sugar > 7.0 ? 'High blood sugar detected' : null,
         $latestCheckup && $latestCheckup->hba1c > 6.5       ? 'HbA1c above diabetic threshold' : null,
         $latestCheckup && $latestCheckup->cholesterol > 6.2  ? 'High total cholesterol' : null,
-        $latestCheckup && $latestCheckup->ldl > 4.1          ? 'High LDL cholesterol' : null,
+        $latestCheckup && $latestCheckup->ldl >= 2.6         ? 'LDL cholesterol outside normal range' : null,
     ])->filter()->values();
 
-    // ── Chart data ────────────────────────────────────────────────────────────
     $chartData         = $patient->healthCheckups->sortBy('checkup_date')->values();
     $chartLabels       = $chartData->pluck('checkup_date')->map(fn($d) => \Carbon\Carbon::parse($d)->format('d M y'))->values();
     $sugarSeries       = $chartData->pluck('blood_sugar')->values();
@@ -556,37 +100,17 @@
     $ldlSeries         = $chartData->pluck('ldl')->values();
     $hba1cSeries       = $chartData->pluck('hba1c')->values();
 
-    // ── AI Prediction fallback ────────────────────────────────────────────────
-    $prediction = $prediction ?? [
-        'success'    => false,
-        'risk'       => 'Not Available',
-        'risk_label' => 'Not Available',
-        'confidence' => '0%',
-        'risk_score' => 0,
-        'factors'    => [],
-        'summary'    => 'Prediction data is not available.',
-        'inputs'     => [
-            'bmi' => $bmi,
-            'blood_sugar'    => $latestCheckup?->blood_sugar ?? 0,
-            'blood_pressure' => $latestCheckup ? (int) explode('/', $latestCheckup->blood_pressure ?? '0/0')[0] : 0,
-            'cholesterol'    => $latestCheckup?->cholesterol ?? 0,
-            'lifestyle_score'=> $lifestyleScore,
-        ],
-    ];
+    $radarBmi      = $bmi > 0 ? min(round(($bmi / 40) * 100), 100) : 0;
+    $radarSugar    = $latestCheckup && is_numeric($latestCheckup->blood_sugar) ? min(round(((float) $latestCheckup->blood_sugar / 10) * 100), 100) : 0;
+    $radarCholest = $latestCheckup && is_numeric($latestCheckup->cholesterol) ? min(round(((float) $latestCheckup->cholesterol / 8) * 100), 100) : 0;
+    $systolic      = 0;
+    if ($latestCheckup && filled($latestCheckup->blood_pressure)) {
+        $systolic = (int) explode('/', $latestCheckup->blood_pressure)[0];
+    }
+    $radarBp        = $systolic > 0 ? min(round(($systolic / 180) * 100), 100) : 0;
+    $radarAdherence = $activeMedCount > 0 && $latestCheckup ? min($activeMedCount * 15, 100) : 0;
+    $hasRadarData   = ($radarBmi + $radarSugar + $radarCholest + $radarBp) > 0;
 
-    $riskClass = match ($prediction['risk']) {
-        'High'     => 'risk-high',
-        'Moderate' => 'risk-moderate',
-        default    => 'risk-low',
-    };
-
-    $riskBarClass = match ($prediction['risk']) {
-        'High'     => 'risk-bar-high',
-        'Moderate' => 'risk-bar-moderate',
-        default    => 'risk-bar-low',
-    };
-
-    // ── Reading badge helper (inline closure) ─────────────────────────────────
     $readingBadge = function($value, string $type): array {
         if ($value === null) return ['N/A', 'rbadge-na'];
         $v = (float) $value;
@@ -594,11 +118,17 @@
             'sugar'       => $v > 7.0  ? ['High', 'rbadge-high']       : ($v > 6.0  ? ['Borderline','rbadge-borderline'] : ['Normal','rbadge-normal']),
             'hba1c'       => $v > 6.5  ? ['High', 'rbadge-high']       : ($v > 5.7  ? ['Borderline','rbadge-borderline'] : ['Normal','rbadge-normal']),
             'cholesterol' => $v > 6.2  ? ['High', 'rbadge-high']       : ($v > 5.2  ? ['Borderline','rbadge-borderline'] : ['Normal','rbadge-normal']),
-            'ldl'         => $v > 4.1  ? ['High', 'rbadge-high']       : ($v > 3.4  ? ['Borderline','rbadge-borderline'] : ['Normal','rbadge-normal']),
-            'hdl'         => $v < 0.9  ? ['Low',  'rbadge-low']        : ($v < 1.0  ? ['Borderline','rbadge-borderline'] : ['Normal','rbadge-normal']),
-            'triglycerides'=> $v > 2.3 ? ['High', 'rbadge-high']       : ($v > 1.7  ? ['Borderline','rbadge-borderline'] : ['Normal','rbadge-normal']),
+            'ldl'         => $v > 3.4  ? ['High', 'rbadge-high']       : ($v >= 2.6 ? ['Borderline','rbadge-borderline'] : ['Normal','rbadge-normal']),
+            'hdl'         => $v < 1.0  ? ['Low',  'rbadge-low']        : ($v <= 1.3 ? ['Borderline','rbadge-borderline'] : ['Normal','rbadge-normal']),
             'hr'          => ($v < 60 || $v > 100) ? ($v < 50 || $v > 110 ? ['Abnormal','rbadge-high'] : ['Borderline','rbadge-borderline']) : ['Normal','rbadge-normal'],
-            'spo2'        => $v < 90   ? ['Critical','rbadge-high']     : ($v < 95   ? ['Low','rbadge-borderline']         : ['Normal','rbadge-normal']),
+            'haemoglobin' => ($v < 12 || $v > 16) ? ['Review','rbadge-borderline'] : ['Normal','rbadge-normal'],
+            'ag_ratio'    => ($v < 1.1 || $v > 2.5) ? ['Review','rbadge-borderline'] : ['Normal','rbadge-normal'],
+            'alp'         => ($v < 38 || $v > 124) ? ['Review','rbadge-borderline'] : ['Normal','rbadge-normal'],
+            'ast'         => $v >= 34 ? ['Review','rbadge-borderline'] : ['Normal','rbadge-normal'],
+            'alt'         => ($v < 10 || $v > 49) ? ['Review','rbadge-borderline'] : ['Normal','rbadge-normal'],
+            'ggt'         => $v >= 38 ? ['Review','rbadge-borderline'] : ['Normal','rbadge-normal'],
+            'sodium'      => ($v < 135 || $v > 145) ? ['Review','rbadge-borderline'] : ['Normal','rbadge-normal'],
+            'renal_glucose'=> ($v < 3.9 || $v > 6.0) ? ['Review','rbadge-borderline'] : ['Normal','rbadge-normal'],
             default       => ['—', 'rbadge-na'],
         };
     };
@@ -607,373 +137,517 @@
 <div class="bg-scene"></div>
 <div class="bg-dots"></div>
 
-<div class="page">
+<main class="relative z-10 max-w-5xl mx-auto px-4 py-8 pb-24 lg:px-8">
 
-    <!-- Top bar -->
-    <div class="top-bar">
-        <a href="{{ route('welcome') }}" class="logo">
-            <div class="logo-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-                    <path d="M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6V4z" stroke-linejoin="round"/>
-                </svg>
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <a href="{{ route('welcome') }}" class="flex items-center gap-3 group">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-teal-500/30 group-hover:scale-105 transition-transform">
+                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6V4z" stroke-linejoin="round"/></svg>
             </div>
-            <span class="logo-text">PharmaTrack</span>
+            <span class="text-xl font-extrabold text-slate-800 tracking-tight">PharmaTrack</span>
         </a>
-        <div class="top-bar-actions">
-            <a href="{{ route('welcome') }}" class="btn-ghost">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        
+        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <a href="{{ route('welcome') }}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-sm">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                 Back to Kiosk
             </a>
-            <a href="{{ route('pharmacist.patients.summary.download', $patient->id) }}" class="btn-primary">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <a href="{{ route('kiosk.summary.download', $patient->id) }}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 transition-all shadow-lg shadow-teal-500/25">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Download PDF
             </a>
         </div>
+    </header>
+
+    <div class="flex items-center gap-3 p-4 mb-6 rounded-xl bg-cyan-50 border border-cyan-100 text-cyan-700 shadow-sm">
+        <svg class="shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+        <span class="text-sm font-medium">You are viewing this page via <strong>face recognition</strong>. This session expires in <strong id="session-expire-notice">10 minutes</strong>.</span>
     </div>
 
-    <!-- Kiosk notice -->
-    <div class="kiosk-notice">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
-        You are viewing this page via <strong>&nbsp;face recognition&nbsp;</strong>. This session expires in
-        <strong>&nbsp;<span id="session-expire-notice">10 minutes</span></strong>.
-    </div>
-
-    <!-- Hero -->
-    <div class="hero-card">
-        <div class="hero-inner">
-            <img class="avatar"
-                 src="https://ui-avatars.com/api/?name={{ urlencode($patientName) }}&background=14b8a6&color=fff&size=128&bold=true"
-                 alt="{{ $patientName }}">
-            <div>
-                <div style="font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:rgba(255,255,255,.5); margin-bottom:4px;">
-                    Kiosk Health Summary
-                </div>
-                <div class="hero-name">{{ $patientName }}</div>
-                <div class="hero-meta">
-                    <span>{{ $patient->gender }}</span>
-                    <span>{{ $patient->age }} years old</span>
-                    <span>{{ $patient->height }} cm · {{ $patient->weight }} kg</span>
+    <section class="relative rounded-3xl overflow-hidden mb-8 shadow-xl shadow-slate-200/50 border border-teal-100 bg-gradient-to-br from-teal-900 via-cyan-800 to-slate-900">
+        <div class="absolute inset-0 bg-[url('{{ $summaryBgUrl }}')] bg-cover bg-center mix-blend-overlay opacity-30"></div>
+        <div class="relative z-10 flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-6 p-8 md:p-10">
+            
+            <img src="https://ui-avatars.com/api/?name={{ urlencode($patientName) }}&background=14b8a6&color=fff&size=128&bold=true" 
+                 alt="{{ $patientName }}" 
+                 class="w-24 h-24 rounded-full border-4 border-white/30 shadow-2xl shrink-0">
+            
+            <div class="flex-1">
+                <p class="text-xs font-bold uppercase tracking-widest text-teal-200 mb-1">Kiosk Health Summary</p>
+                <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight mb-3">{{ $patientName }}</h1>
+                <div class="flex flex-wrap justify-center md:justify-start gap-2">
+                    <span class="px-4 py-1.5 rounded-full text-sm font-medium bg-white/10 text-white backdrop-blur-md border border-white/20">{{ $patient->gender }}</span>
+                    <span class="px-4 py-1.5 rounded-full text-sm font-medium bg-white/10 text-white backdrop-blur-md border border-white/20">{{ $patient->age }} years old</span>
+                    <span class="px-4 py-1.5 rounded-full text-sm font-medium bg-white/10 text-white backdrop-blur-md border border-white/20">{{ $patient->height }} cm · {{ $patient->weight }} kg</span>
                 </div>
             </div>
-            <div class="hero-badge">
-                <div class="hero-badge-dot"></div>
+
+            <div class="mt-4 md:mt-0 flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 text-white border border-white/20 backdrop-blur-md font-bold text-sm shrink-0">
+                <span class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
                 Face Verified
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Stats -->
-    <div class="stat-grid">
-        <div class="stat-card">
-            <div class="stat-label">BMI</div>
-            <div class="stat-value">{{ number_format($bmi, 1) }}</div>
-            <span class="badge-pill {{ $bmiPill }}">{{ $bmiLabel }}</span>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">BMI</p>
+            <p class="text-3xl font-extrabold text-slate-800 tracking-tight">{{ number_format($bmi, 1) }}</p>
+            <span class="inline-block mt-2 px-3 py-1 text-xs font-bold rounded-full {{ $bmiPill }}">{{ $bmiLabel }}</span>
         </div>
-        <div class="stat-card">
-            <div class="stat-label">Blood Pressure</div>
-            <div class="stat-value" style="font-size:1.4rem;">{{ $latestCheckup?->blood_pressure ?? '—' }}</div>
-            <div class="stat-sub">
-                {{ $latestCheckup ? \Carbon\Carbon::parse($latestCheckup->checkup_date)->format('d M Y') : 'No checkup recorded' }}
-            </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Blood Pressure</p>
+            <p class="text-2xl font-extrabold text-slate-800 tracking-tight mt-1">{{ $latestCheckup?->blood_pressure ?? '—' }}</p>
+            <p class="text-xs font-medium text-slate-500 mt-2">{{ $latestCheckup ? \Carbon\Carbon::parse($latestCheckup->checkup_date)->format('d M Y') : 'No checkup recorded' }}</p>
         </div>
-        <div class="stat-card">
-            <div class="stat-label">Blood Sugar</div>
-            <div class="stat-value" style="font-size:1.4rem;">
-                {{ $latestCheckup?->blood_sugar ? number_format($latestCheckup->blood_sugar, 1) . ' mmol/L' : '—' }}
-            </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Blood Sugar</p>
+            <p class="text-2xl font-extrabold text-slate-800 tracking-tight mt-1">{{ $latestCheckup?->blood_sugar ? number_format($latestCheckup->blood_sugar, 1) . ' mmol/L' : '—' }}</p>
             @php [$bl, $bc] = $readingBadge($latestCheckup?->blood_sugar, 'sugar'); @endphp
-            <span class="badge-pill {{ $bc === 'rbadge-normal' ? 'pill-green' : ($bc === 'rbadge-high' ? 'pill-red' : 'pill-yellow') }}">{{ $bl }}</span>
+            <span class="inline-block mt-2 px-3 py-1 text-xs font-bold rounded-full {{ $bc === 'rbadge-normal' ? 'bg-green-100 text-green-700' : ($bc === 'rbadge-high' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700') }}">{{ $bl }}</span>
         </div>
-        <div class="stat-card">
-            <div class="stat-label">Active Medications</div>
-            <div class="stat-value">{{ $activeMedCount }}</div>
-            <span class="badge-pill pill-teal">{{ $activeMedCount > 0 ? 'On prescription' : 'None recorded' }}</span>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Active Meds</p>
+            <p class="text-3xl font-extrabold text-slate-800 tracking-tight">{{ $activeMedCount }}</p>
+            <span class="inline-block mt-2 px-3 py-1 text-xs font-bold rounded-full bg-teal-50 text-teal-700">{{ $activeMedCount > 0 ? 'On prescription' : 'None recorded' }}</span>
         </div>
     </div>
 
-    <!-- AI Health Intelligence -->
-    <div class="intelligence-grid">
-        <div class="ai-card">
-            <div class="ai-card-head">
-                <div>
-                    <div class="ai-title">🤖 AI Health Intelligence</div>
-                    <div class="ai-subtitle">Decision Tree prediction · Lifestyle score: {{ $lifestyleScore }}/100</div>
-                </div>
-                <span class="risk-chip {{ $riskClass }}">{{ $prediction['risk_label'] }}</span>
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 overflow-hidden flex flex-col">
+            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
+                <h3 class="font-bold text-slate-800 text-base">Health Radar</h3>
             </div>
-            <div class="ai-card-body">
-                <div class="risk-metrics">
-                    <div class="risk-metric">
-                        <div class="risk-metric-label">Risk Level</div>
-                        <div class="risk-metric-value" style="font-size:1.25rem;">{{ $prediction['risk_label'] }}</div>
-                    </div>
-                    <div class="risk-metric">
-                        <div class="risk-metric-label">Confidence</div>
-                        <div class="risk-metric-value">{{ $prediction['confidence'] }}</div>
-                    </div>
-                    <div class="risk-metric">
-                        <div class="risk-metric-label">Risk Score</div>
-                        <div class="risk-metric-value">{{ $prediction['risk_score'] }}/100</div>
-                    </div>
-                </div>
-
-                <!-- Risk score progress bar -->
-                <div class="risk-bar-wrap">
-                    <div class="risk-bar-label">
-                        <span>Risk Score</span>
-                        <span>{{ $prediction['risk_score'] }}/100</span>
-                    </div>
-                    <div class="risk-bar-track">
-                        <div class="risk-bar-fill {{ $riskBarClass }}" style="width: {{ $prediction['risk_score'] }}%"></div>
-                    </div>
-                </div>
-
-                <div class="summary-box">{{ $prediction['summary'] }}</div>
-
-                <div class="factor-list">
-                    @forelse($prediction['factors'] as $factor)
-                        <div class="factor-item"><span class="factor-check">&check;</span>{{ $factor }}</div>
-                    @empty
-                        <div class="factor-item"><span class="factor-check">&check;</span>No risk factors detected yet</div>
-                    @endforelse
+            <div class="p-6 flex-1 flex flex-col">
+                <p class="text-sm text-slate-500 mb-4">Quick overview of current patient status across key markers.</p>
+                <div class="relative w-full flex-1 min-h-[280px]">
+                    @if($hasRadarData)
+                        <canvas id="kioskRiskRadar"></canvas>
+                    @else
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-center text-slate-400">
+                            <svg class="w-12 h-12 mb-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            <p class="font-bold text-slate-500">Insufficient data</p>
+                            <p class="text-xs mt-1">Record a check-up to populate.</p>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
 
-        <!-- Health Radar -->
-        <div class="ai-card">
-            <div class="ai-card-head">
-                <div>
-                    <div class="ai-title">📡 Health Radar</div>
-                    <div class="ai-subtitle">BMI · Sugar · Pressure · Cholesterol · Lifestyle</div>
-                </div>
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm lg:col-span-3 overflow-hidden flex flex-col">
+            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
+                <h3 class="font-bold text-slate-800 text-base">Key Health Trend</h3>
             </div>
-            <div class="ai-card-body">
-                <div class="chart-box">
-                    <canvas id="kioskRiskRadar"></canvas>
+            <div class="p-6 flex-1 flex flex-col">
+                <p class="text-sm text-slate-500 mb-4">Historical readings for blood sugar, cholesterol, HbA1c, and LDL.</p>
+                <div class="relative w-full flex-1 min-h-[280px]">
+                    @if($chartData->count() >= 2)
+                        <canvas id="kioskHealthChart"></canvas>
+                    @else
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-center text-slate-400">
+                            <svg class="w-12 h-12 mb-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+                            <p class="font-bold text-slate-500">No historical data</p>
+                            <p class="text-xs mt-1">Complete at least 2 check-ups to view trends.</p>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Health Trends -->
-    <div class="section-card">
-        <div class="section-head">📈 Health Trends</div>
-        <div class="section-body">
-            @if($chartData->isNotEmpty())
-                <p style="font-size:.82rem; color:var(--muted); margin-bottom:14px;">
-                    Tracking blood sugar, cholesterol, LDL, and HbA1c readings across all recorded check-ups.
-                </p>
-                <div style="position:relative; height:320px; width:100%;">
-                    <canvas id="kioskHealthChart"></canvas>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="lg:col-span-2 space-y-6">
+            
+            <div id="checkup-create-panel" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center gap-2 text-slate-800">
+                    <svg class="w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <h3 class="font-bold text-base">Add Check-up</h3>
                 </div>
-            @else
-                <p style="color:var(--muted); font-size:.88rem; font-style:italic;">No check-up trend data is available yet.</p>
-            @endif
-        </div>
-    </div>
+                <div class="p-6">
+                    @if(session('kiosk_checkup_success'))
+                        <div class="mb-4 p-4 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm font-semibold">{{ session('kiosk_checkup_success') }}</div>
+                    @endif
+                    @if($errors->kioskCheckup->any())
+                        <div class="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-semibold">Please check the new check-up form below.</div>
+                    @endif
 
-    <!-- Two-column -->
-    <div class="two-col">
-        <!-- Left: Clinical info -->
-        <div>
-            <div class="section-card">
-                <div class="section-head">📋 Medical History</div>
-                <div class="section-body">
-                    <div class="info-grid">
-                        <div class="info-row">
-                            <span class="info-key">Hypertension</span>
-                            <span class="info-val">{{ optional($medicalHistory)->hypertension ?: 'None' }}</span>
+                    <div id="latest-checkup-slot"></div>
+
+                    <details id="checkup-create-details" class="group" {{ $errors->kioskCheckup->any() ? 'open' : '' }}>
+                        <summary class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold text-sm cursor-pointer hover:shadow-lg transition-all mt-4">
+                            <span>Open Check-up Form</span>
+                            <svg class="w-4 h-4 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </summary>
+                        
+                        <div class="mt-6 pt-6 border-t border-slate-100">
+                            <form action="{{ route('kiosk.checkups.store', $patient->id) }}" method="POST" class="space-y-8">
+                                @csrf
+                                
+                                <div>
+                                    <h4 class="text-sm font-extrabold text-slate-800 border-b border-slate-100 pb-2 mb-4">Visit Details</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5" for="kiosk-checkup-date">Date</label>
+                                            <input id="kiosk-checkup-date" type="date" name="checkup_date" value="{{ old('checkup_date', now()->toDateString()) }}" class="w-full rounded-xl border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none transition-all" required>
+                                            @error('checkup_date', 'kioskCheckup')<span class="text-xs text-red-600 font-bold mt-1 block">{{ $message }}</span>@enderror
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5" for="kiosk-report-source">Source</label>
+                                            <select id="kiosk-report-source" name="report_source" class="w-full rounded-xl border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none transition-all">
+                                                <option value="">Select source</option>
+                                                @foreach(['klinik_kesihatan' => 'Klinik Kesihatan', 'private_clinic' => 'Private Clinic', 'hospital' => 'Hospital', 'private_lab' => 'Private Lab', 'home_device' => 'Home Device'] as $val => $lbl)
+                                                    <option value="{{ $val }}" {{ old('report_source') === $val ? 'selected' : '' }}>{{ $lbl }}</option>
+                                                @endforeach
+                                            </select>
+                                            @error('report_source', 'kioskCheckup')<span class="text-xs text-red-600 font-bold mt-1 block">{{ $message }}</span>@enderror
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5" for="kiosk-checkup-code">Pharmacist Code</label>
+                                            <input id="kiosk-checkup-code" type="password" name="pharmacist_code" class="w-full rounded-xl border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none transition-all" required>
+                                            @error('pharmacist_code', 'kioskCheckup')<span class="text-xs text-red-600 font-bold mt-1 block">{{ $message }}</span>@enderror
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h4 class="text-sm font-extrabold text-slate-800 border-b border-slate-100 pb-2 mb-4">Patient Measurement</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Weight (kg)</label>
+                                            <input type="number" step="0.1" name="patient_weight" value="{{ old('patient_weight') }}" placeholder="{{ $patient->weight }}" class="w-full rounded-xl border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none transition-all">
+                                            @error('patient_weight', 'kioskCheckup')<span class="text-xs text-red-600 font-bold mt-1 block">{{ $message }}</span>@enderror
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Height (cm)</label>
+                                            <input type="number" step="0.1" name="patient_height" value="{{ old('patient_height') }}" placeholder="{{ $patient->height }}" class="w-full rounded-xl border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none transition-all">
+                                            @error('patient_height', 'kioskCheckup')<span class="text-xs text-red-600 font-bold mt-1 block">{{ $message }}</span>@enderror
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-slate-400 mt-2">Fill only when measurement needs updating.</p>
+                                </div>
+
+                                <div>
+                                    <h4 class="text-sm font-extrabold text-slate-800 border-b border-slate-100 pb-2 mb-4">Core Readings</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Blood Pressure</label>
+                                            <input type="text" name="blood_pressure" value="{{ old('blood_pressure') }}" placeholder="120/80" class="w-full rounded-xl border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none transition-all">
+                                            @error('blood_pressure', 'kioskCheckup')<span class="text-xs text-red-600 font-bold mt-1 block">{{ $message }}</span>@enderror
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Heart Rate</label>
+                                            <input type="number" name="heart_rate" value="{{ old('heart_rate') }}" placeholder="75" class="w-full rounded-xl border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none transition-all">
+                                            @error('heart_rate', 'kioskCheckup')<span class="text-xs text-red-600 font-bold mt-1 block">{{ $message }}</span>@enderror
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Haemoglobin</label>
+                                            <input type="number" step="0.01" name="haemoglobin" value="{{ old('haemoglobin') }}" placeholder="13.5" class="w-full rounded-xl border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none transition-all">
+                                            @error('haemoglobin', 'kioskCheckup')<span class="text-xs text-red-600 font-bold mt-1 block">{{ $message }}</span>@enderror
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div>
+                                        <h4 class="text-sm font-extrabold text-slate-800 border-b border-slate-100 pb-2 mb-4">Blood Glucose</h4>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Fasting Sugar</label>
+                                                <input type="number" step="0.01" name="blood_sugar" value="{{ old('blood_sugar') }}" placeholder="5.5" class="w-full rounded-xl border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none transition-all">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">HbA1c (%)</label>
+                                                <input type="number" step="0.1" name="hba1c" value="{{ old('hba1c') }}" placeholder="5.4" class="w-full rounded-xl border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none transition-all">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-extrabold text-slate-800 border-b border-slate-100 pb-2 mb-4">Lipid Panel</h4>
+                                        <div class="space-y-4">
+                                            <div class="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Total Chol.</label>
+                                                    <input type="number" step="0.01" name="cholesterol" value="{{ old('cholesterol') }}" placeholder="4.8" class="w-full rounded-xl border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none transition-all">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">LDL</label>
+                                                    <input type="number" step="0.01" name="ldl" value="{{ old('ldl') }}" placeholder="2.6" class="w-full rounded-xl border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none transition-all">
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">HDL</label>
+                                                <input type="number" step="0.01" name="hdl" value="{{ old('hdl') }}" placeholder="1.3" class="w-full rounded-xl border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none transition-all">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <details class="group bg-slate-50 border border-slate-200 rounded-xl">
+                                        <summary class="flex items-center justify-between px-4 py-3 cursor-pointer font-bold text-sm text-slate-700">
+                                            Liver & Renal Function Tests (Optional)
+                                            <svg class="w-4 h-4 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                        </summary>
+                                        <div class="p-4 border-t border-slate-200 bg-white rounded-b-xl">
+                                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">A/G Ratio</label><input type="number" step="0.01" name="albumin_globulin_ratio" class="w-full rounded-lg border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none"></div>
+                                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">ALP</label><input type="number" step="0.01" name="alkaline_phosphatase" class="w-full rounded-lg border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none"></div>
+                                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">AST</label><input type="number" step="0.01" name="aspartate_transaminase" class="w-full rounded-lg border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none"></div>
+                                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">ALT</label><input type="number" step="0.01" name="alanine_transaminase" class="w-full rounded-lg border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none"></div>
+                                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">GGT</label><input type="number" step="0.01" name="gamma_glutamyl_transferase" class="w-full rounded-lg border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none"></div>
+                                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Sodium</label><input type="number" step="0.01" name="sodium" class="w-full rounded-lg border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none"></div>
+                                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Renal Gluc.</label><input type="number" step="0.01" name="renal_glucose" class="w-full rounded-lg border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none"></div>
+                                            </div>
+                                        </div>
+                                    </details>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Notes</label>
+                                    <textarea name="notes" rows="3" class="w-full rounded-xl border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none transition-all" placeholder="Optional clinical notes">{{ old('notes') }}</textarea>
+                                </div>
+
+                                <div class="flex justify-end pt-4 border-t border-slate-100">
+                                    <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-teal-600 to-cyan-600 text-white font-bold hover:shadow-lg hover:shadow-teal-500/30 transition-all">Save New Check-up</button>
+                                </div>
+                            </form>
                         </div>
-                        <div class="info-row">
-                            <span class="info-key">Diabetes</span>
-                            <span class="info-val">{{ optional($medicalHistory)->diabetes ?: 'None' }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-key">Allergies</span>
-                            <span class="info-val">{{ optional($medicalHistory)->allergies ?: 'No known allergies' }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-key">Drug Allergies</span>
-                            <span class="info-val">{{ optional($medicalHistory)->drug_allergies ?: 'No known drug allergies' }}</span>
-                        </div>
-                    </div>
+                    </details>
                 </div>
             </div>
 
-            <div class="section-card">
-                <div class="section-head">💊 Current Medications</div>
-                <div class="section-body">
-                    @forelse($patient->medications as $med)
-                        <div class="med-item">
-                            <div class="med-icon">💊</div>
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center gap-2 text-slate-800">
+                    <svg class="w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    <h3 class="font-bold text-base">Medical History</h3>
+                </div>
+                <div class="p-6">
+                    @if(session('kiosk_medical_success'))
+                        <div class="mb-4 p-4 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm font-semibold">{{ session('kiosk_medical_success') }}</div>
+                    @endif
+                    @if($errors->kioskMedical->any())
+                        <div class="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-semibold">Please check the medical record form below.</div>
+                    @endif
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
+                        <div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Hypertension</p><p class="text-slate-800 font-semibold mt-1">{{ optional($medicalHistory)->hypertension ?: 'None' }}</p></div>
+                        <div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Diabetes</p><p class="text-slate-800 font-semibold mt-1">{{ optional($medicalHistory)->diabetes ?: 'None' }}</p></div>
+                        <div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Allergies</p><p class="text-slate-800 font-semibold mt-1">{{ optional($medicalHistory)->allergies ?: 'No known allergies' }}</p></div>
+                        <div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Drug Allergies</p><p class="text-slate-800 font-semibold mt-1">{{ optional($medicalHistory)->drug_allergies ?: 'No known drug allergies' }}</p></div>
+                        <div class="md:col-span-2"><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Other Conditions</p><p class="text-slate-800 font-semibold mt-1">{{ optional($medicalHistory)->others ?: 'None recorded' }}</p></div>
+                    </div>
+
+                    <details class="group mt-6 pt-6 border-t border-slate-100" {{ $errors->kioskMedical->any() ? 'open' : '' }}>
+                        <summary class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 text-slate-700 font-bold text-sm cursor-pointer hover:bg-slate-200 transition-colors">
+                            Update Medical Record
+                        </summary>
+                        <form action="{{ route('kiosk.medical.update', $patient->id) }}" method="POST" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            @csrf
                             <div>
-                                <div class="med-name">{{ $med->name }}</div>
-                                <div class="med-detail">{{ $med->dosage }}{{ $med->frequency ? ' · ' . $med->frequency : '' }}</div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Hypertension</label>
+                                <select name="hypertension" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none" required>
+                                    @foreach(['None', 'Monitored', 'High Risk'] as $opt)
+                                        <option value="{{ $opt }}" {{ old('hypertension', optional($medicalHistory)->hypertension ?: 'None') === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                                    @endforeach
+                                </select>
                             </div>
-                        </div>
-                    @empty
-                        <p style="color:var(--muted); font-size:.88rem; font-style:italic;">No active medications recorded.</p>
-                    @endforelse
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Diabetes</label>
+                                <select name="diabetes" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none" required>
+                                    @foreach(['None', 'Type 1', 'Type 2 (Controlled)', 'Type 2 (Uncontrolled)'] as $opt)
+                                        <option value="{{ $opt }}" {{ old('diabetes', optional($medicalHistory)->diabetes ?: 'None') === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Allergies</label><input type="text" name="allergies" value="{{ old('allergies', optional($medicalHistory)->allergies) }}" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none"></div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Drug Allergies</label><input type="text" name="drug_allergies" value="{{ old('drug_allergies', optional($medicalHistory)->drug_allergies) }}" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none"></div>
+                            <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Other Conditions</label><input type="text" name="others" value="{{ old('others', optional($medicalHistory)->others) }}" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none"></div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pharmacist Code <span class="text-red-500">*</span></label>
+                                <div class="flex gap-3 items-center">
+                                    <input type="password" name="pharmacist_code" class="w-full md:w-1/2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none" required>
+                                    <button type="submit" class="px-5 py-2 rounded-xl bg-teal-600 text-white font-bold text-sm hover:bg-teal-700 transition-colors">Save Updates</button>
+                                </div>
+                            </div>
+                        </form>
+                    </details>
                 </div>
             </div>
+
         </div>
 
-        <!-- Right: Alerts + Latest checkup -->
-        <div>
-            <div class="section-card">
-                <div class="section-head">⚠️ Health Alerts</div>
-                <div class="section-body">
+        <div class="space-y-6">
+            
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-red-200 bg-red-50 flex items-center gap-2 text-red-800">
+                    <svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <h3 class="font-bold text-base">Health Alerts</h3>
+                </div>
+                <div class="p-6">
                     @if($riskFlags->isNotEmpty())
+                        <div class="space-y-3">
                         @foreach($riskFlags as $flag)
-                            <div class="alert-item">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-                                </svg>
+                            <div class="flex items-center gap-3 p-3 rounded-xl bg-red-50 border border-red-100 text-red-700 font-semibold text-sm">
+                                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                                 {{ $flag }}
                             </div>
                         @endforeach
+                        </div>
                     @else
-                        <div class="alert-ok">✓ No high-priority health alerts recorded</div>
+                        <div class="flex items-center justify-center gap-2 p-4 rounded-xl bg-green-50 border border-green-100 text-green-700 font-semibold text-sm">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            No high-priority health alerts recorded
+                        </div>
                     @endif
                 </div>
             </div>
 
-            <!-- Latest checkup — now shows all fields with status badges -->
-            <div class="section-card">
-                <div class="section-head">🩺 Latest Check-up</div>
-                <div class="section-body">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center gap-2 text-slate-800">
+                    <svg class="w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <h3 class="font-bold text-base">Current Medications</h3>
+                </div>
+                <div class="p-6">
+                    @forelse($patient->medications as $med)
+                        <div class="flex items-center gap-4 p-3 mb-3 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-sm transition-shadow">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center shadow-sm text-white shrink-0">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                            </div>                            
+                            <div>
+                                <p class="font-bold text-slate-800 text-sm">{{ $med->name }}</p>
+                                <p class="text-xs text-slate-500 mt-0.5">{{ $med->dosage }}{{ $med->frequency ? ' · ' . $med->frequency : '' }}</p>
+                            </div>
+                        </div>
+                    @empty
+                        <p class="text-sm text-slate-400 italic">No active medications recorded.</p>
+                    @endforelse
+                </div>
+            </div>
+
+            <div class="section-card bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="section-head px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center gap-2 text-slate-800">
+                    <svg class="w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    <h3 class="font-bold text-base">Latest Check-up</h3>
+                </div>
+                <div class="p-6">
                     @if($latestCheckup)
-                        <p style="font-size:.75rem; color:var(--muted2); margin-bottom:12px;">
+                        <p class="text-xs text-slate-500 mb-4 font-medium">
                             {{ \Carbon\Carbon::parse($latestCheckup->checkup_date)->format('d M Y') }}
                             @if($latestCheckup->report_source)
-                                · {{ str_replace('_', ' ', ucfirst($latestCheckup->report_source)) }}
+                                <span class="mx-1">·</span> {{ str_replace('_', ' ', ucfirst($latestCheckup->report_source)) }}
                             @endif
                         </p>
 
-                        {{-- Vitals --}}
-                        <p style="font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--muted2); margin-bottom:8px;">Vitals</p>
+                        <div class="space-y-5">
+                            <div>
+                                <p class="text-[0.65rem] font-black uppercase tracking-wider text-slate-400 mb-2">Vitals</p>
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                                        <span class="text-xs font-bold text-slate-500">Blood Pressure</span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-sm font-extrabold text-slate-800">{{ $latestCheckup->blood_pressure ?? 'N/A' }}</span>
+                                            @php
+                                                $bpParts = explode('/', $latestCheckup->blood_pressure ?? '');
+                                                $sys = isset($bpParts[0]) ? (int)$bpParts[0] : 0;
+                                                $bpBadge = $sys >= 140 ? ['High','rbadge-high'] : ($sys >= 120 ? ['Elevated','rbadge-borderline'] : ($sys > 0 ? ['Normal','rbadge-normal'] : ['N/A','rbadge-na']));
+                                            @endphp
+                                            <span class="px-2 py-0.5 rounded-full text-[0.65rem] font-bold {{ $bpBadge[1] }}">{{ $bpBadge[0] }}</span>
+                                        </div>
+                                    </div>
+                                    @if($latestCheckup->heart_rate)
+                                    @php [$hl, $hc] = $readingBadge($latestCheckup->heart_rate, 'hr'); @endphp
+                                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                                        <span class="text-xs font-bold text-slate-500">Heart Rate</span>
+                                        <div class="flex items-center gap-2"><span class="text-sm font-extrabold text-slate-800">{{ $latestCheckup->heart_rate }} bpm</span><span class="px-2 py-0.5 rounded-full text-[0.65rem] font-bold {{ $hc }}">{{ $hl }}</span></div>
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
 
-                        <div class="reading-row">
-                            <span class="reading-label">Blood Pressure</span>
-                            <span class="reading-value">{{ $latestCheckup->blood_pressure ?? 'N/A' }}</span>
-                            @php
-                                $bpParts = explode('/', $latestCheckup->blood_pressure ?? '');
-                                $sys = isset($bpParts[0]) ? (int)$bpParts[0] : 0;
-                                $bpBadge = $sys >= 140 ? ['High','rbadge-high'] : ($sys >= 120 ? ['Elevated','rbadge-borderline'] : ($sys > 0 ? ['Normal','rbadge-normal'] : ['N/A','rbadge-na']));
-                            @endphp
-                            <span class="reading-badge {{ $bpBadge[1] }}">{{ $bpBadge[0] }}</span>
+                            <div>
+                                <p class="text-[0.65rem] font-black uppercase tracking-wider text-slate-400 mb-2">Blood Glucose</p>
+                                <div class="space-y-2">
+                                    @php [$sugarL, $sugarC] = $readingBadge($latestCheckup->blood_sugar, 'sugar'); @endphp
+                                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                                        <span class="text-xs font-bold text-slate-500">Fasting Sugar</span>
+                                        <div class="flex items-center gap-2"><span class="text-sm font-extrabold text-slate-800">{{ $latestCheckup->blood_sugar ? number_format($latestCheckup->blood_sugar,1).' mmol/L' : 'N/A' }}</span><span class="px-2 py-0.5 rounded-full text-[0.65rem] font-bold {{ $sugarC }}">{{ $sugarL }}</span></div>
+                                    </div>
+                                    @if($latestCheckup->hba1c)
+                                    @php [$hl, $hc] = $readingBadge($latestCheckup->hba1c, 'hba1c'); @endphp
+                                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                                        <span class="text-xs font-bold text-slate-500">HbA1c</span>
+                                        <div class="flex items-center gap-2"><span class="text-sm font-extrabold text-slate-800">{{ number_format($latestCheckup->hba1c,1) }}%</span><span class="px-2 py-0.5 rounded-full text-[0.65rem] font-bold {{ $hc }}">{{ $hl }}</span></div>
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div>
+                                <p class="text-[0.65rem] font-black uppercase tracking-wider text-slate-400 mb-2">Lipid Panel</p>
+                                <div class="space-y-2">
+                                    @php [$cl, $cc] = $readingBadge($latestCheckup->cholesterol, 'cholesterol'); @endphp
+                                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                                        <span class="text-xs font-bold text-slate-500">Total Chol.</span>
+                                        <div class="flex items-center gap-2"><span class="text-sm font-extrabold text-slate-800">{{ $latestCheckup->cholesterol ? number_format($latestCheckup->cholesterol,1).' mmol/L' : 'N/A' }}</span><span class="px-2 py-0.5 rounded-full text-[0.65rem] font-bold {{ $cc }}">{{ $cl }}</span></div>
+                                    </div>
+                                    @if($latestCheckup->ldl)
+                                    @php [$ll, $lc] = $readingBadge($latestCheckup->ldl, 'ldl'); @endphp
+                                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                                        <span class="text-xs font-bold text-slate-500">LDL</span>
+                                        <div class="flex items-center gap-2"><span class="text-sm font-extrabold text-slate-800">{{ number_format($latestCheckup->ldl,1) }} mmol/L</span><span class="px-2 py-0.5 rounded-full text-[0.65rem] font-bold {{ $lc }}">{{ $ll }}</span></div>
+                                    </div>
+                                    @endif
+                                    @if($latestCheckup->hdl)
+                                    @php [$hdll, $hdlc] = $readingBadge($latestCheckup->hdl, 'hdl'); @endphp
+                                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                                        <span class="text-xs font-bold text-slate-500">HDL</span>
+                                        <div class="flex items-center gap-2"><span class="text-sm font-extrabold text-slate-800">{{ number_format($latestCheckup->hdl,1) }} mmol/L</span><span class="px-2 py-0.5 rounded-full text-[0.65rem] font-bold {{ $hdlc }}">{{ $hdll }}</span></div>
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
-
-                        @if($latestCheckup->heart_rate)
-                        @php [$hl, $hc] = $readingBadge($latestCheckup->heart_rate, 'hr'); @endphp
-                        <div class="reading-row">
-                            <span class="reading-label">Heart Rate</span>
-                            <span class="reading-value">{{ $latestCheckup->heart_rate }} bpm</span>
-                            <span class="reading-badge {{ $hc }}">{{ $hl }}</span>
-                        </div>
-                        @endif
-
-                        @if($latestCheckup->spo2)
-                        @php [$sl, $sc] = $readingBadge($latestCheckup->spo2, 'spo2'); @endphp
-                        <div class="reading-row">
-                            <span class="reading-label">SpO₂</span>
-                            <span class="reading-value">{{ $latestCheckup->spo2 }}%</span>
-                            <span class="reading-badge {{ $sc }}">{{ $sl }}</span>
-                        </div>
-                        @endif
-
-                        @if($latestCheckup->bmi)
-                        <div class="reading-row">
-                            <span class="reading-label">BMI (at checkup)</span>
-                            <span class="reading-value">{{ number_format($latestCheckup->bmi, 1) }}</span>
-                            <span class="reading-badge {{ $bmiPill === 'pill-green' ? 'rbadge-normal' : ($bmiPill === 'pill-red' ? 'rbadge-high' : 'rbadge-borderline') }}">{{ $bmiLabel }}</span>
-                        </div>
-                        @endif
-
-                        {{-- Blood Glucose --}}
-                        <p style="font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--muted2); margin:14px 0 8px;">Blood Glucose</p>
-
-                        @php [$sugarL, $sugarC] = $readingBadge($latestCheckup->blood_sugar, 'sugar'); @endphp
-                        <div class="reading-row">
-                            <span class="reading-label">Fasting Sugar</span>
-                            <span class="reading-value">{{ $latestCheckup->blood_sugar ? number_format($latestCheckup->blood_sugar,1).' mmol/L' : 'N/A' }}</span>
-                            <span class="reading-badge {{ $sugarC }}">{{ $sugarL }}</span>
-                        </div>
-
-                        @if($latestCheckup->hba1c)
-                        @php [$hl, $hc] = $readingBadge($latestCheckup->hba1c, 'hba1c'); @endphp
-                        <div class="reading-row">
-                            <span class="reading-label">HbA1c</span>
-                            <span class="reading-value">{{ number_format($latestCheckup->hba1c,1) }}%</span>
-                            <span class="reading-badge {{ $hc }}">{{ $hl }}</span>
-                        </div>
-                        @endif
-
-                        {{-- Lipid Panel --}}
-                        <p style="font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--muted2); margin:14px 0 8px;">Lipid Panel</p>
-
-                        @php [$cl, $cc] = $readingBadge($latestCheckup->cholesterol, 'cholesterol'); @endphp
-                        <div class="reading-row">
-                            <span class="reading-label">Total Cholesterol</span>
-                            <span class="reading-value">{{ $latestCheckup->cholesterol ? number_format($latestCheckup->cholesterol,1).' mmol/L' : 'N/A' }}</span>
-                            <span class="reading-badge {{ $cc }}">{{ $cl }}</span>
-                        </div>
-
-                        @if($latestCheckup->ldl)
-                        @php [$ll, $lc] = $readingBadge($latestCheckup->ldl, 'ldl'); @endphp
-                        <div class="reading-row">
-                            <span class="reading-label">LDL</span>
-                            <span class="reading-value">{{ number_format($latestCheckup->ldl,1) }} mmol/L</span>
-                            <span class="reading-badge {{ $lc }}">{{ $ll }}</span>
-                        </div>
-                        @endif
-
-                        @if($latestCheckup->hdl)
-                        @php [$hdll, $hdlc] = $readingBadge($latestCheckup->hdl, 'hdl'); @endphp
-                        <div class="reading-row">
-                            <span class="reading-label">HDL</span>
-                            <span class="reading-value">{{ number_format($latestCheckup->hdl,1) }} mmol/L</span>
-                            <span class="reading-badge {{ $hdlc }}">{{ $hdll }}</span>
-                        </div>
-                        @endif
-
-                        @if($latestCheckup->triglycerides)
-                        @php [$tl, $tc] = $readingBadge($latestCheckup->triglycerides, 'triglycerides'); @endphp
-                        <div class="reading-row">
-                            <span class="reading-label">Triglycerides</span>
-                            <span class="reading-value">{{ number_format($latestCheckup->triglycerides,1) }} mmol/L</span>
-                            <span class="reading-badge {{ $tc }}">{{ $tl }}</span>
-                        </div>
-                        @endif
 
                         @if($latestCheckup->notes)
-                        <div style="margin-top:12px; padding:10px 14px; border-radius:12px; background:var(--surface2); border:1px solid var(--border); font-size:.82rem; color:var(--muted); line-height:1.5;">
-                            <span style="font-weight:700; color:var(--text);">Notes: </span>{{ $latestCheckup->notes }}
-                        </div>
+                            <div class="mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-600 leading-relaxed shadow-inner">
+                                <strong class="text-slate-800 block mb-1">Clinical Notes:</strong>
+                                {{ $latestCheckup->notes }}
+                            </div>
                         @endif
-
                     @else
-                        <p style="color:var(--muted); font-size:.88rem; font-style:italic;">No check-up records found.</p>
+                        <p class="text-sm text-slate-400 italic">No check-up records found.</p>
                     @endif
                 </div>
             </div>
+
         </div>
     </div>
-</div>
+</main>
 
-<!-- Session timer widget -->
-<div id="session-timer">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-    </svg>
-    Session expires in <span id="timer-count">10:00</span>
+<div class="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border border-slate-200 shadow-xl shadow-slate-200 text-sm font-medium text-slate-600">
+    <svg class="w-4 h-4 text-teal-500 animate-spin-slow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Session expires in <span id="timer-count" class="font-extrabold text-teal-600 w-10 text-center">10:00</span>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// ── Session countdown (10 minutes) ───────────────────────────────────────────
+// Session Countdown Logic
 (function () {
     const startedAt = {{ session('kiosk_auth_at') ?? 'null' }};
     if (!startedAt) return;
@@ -989,50 +663,62 @@
         const s = String(remaining % 60).padStart(2, '0');
         timerEl.textContent  = `${m}:${s}`;
         noticeEl.textContent = `${m}:${s}`;
-        timerEl.className    = remaining <= 60 ? 'danger' : remaining <= 120 ? 'warn' : '';
+        
+        // Color shifts based on time
+        if(remaining <= 60) {
+            timerEl.classList.remove('text-teal-600', 'text-amber-600');
+            timerEl.classList.add('text-red-600');
+        } else if (remaining <= 120) {
+            timerEl.classList.remove('text-teal-600', 'text-red-600');
+            timerEl.classList.add('text-amber-600');
+        }
     }
     update();
     setInterval(update, 1000);
 })();
-</script>
 
-<script>
+// DOM Moves & Interaction
 document.addEventListener('DOMContentLoaded', function () {
+    // Move latest checkup inside the create panel
+    const latestCheckupSlot = document.getElementById('latest-checkup-slot');
+    const latestCheckupCard = Array.from(document.querySelectorAll('.section-card')).find(function (card) {
+        const heading = card.querySelector('.section-head');
+        return heading && heading.textContent.includes('Latest Check-up');
+    });
 
-    // ── Health Radar chart ────────────────────────────────────────────────────
+    if (latestCheckupSlot && latestCheckupCard) {
+        latestCheckupSlot.appendChild(latestCheckupCard);
+    }
+
+    // Chart.js Implementations
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#64748b';
+
     const radarCanvas = document.getElementById('kioskRiskRadar');
     if (radarCanvas) {
-        const inputs = {!! json_encode($prediction['inputs']) !!};
-
         new Chart(radarCanvas.getContext('2d'), {
             type: 'radar',
             data: {
-                labels: ['BMI', 'Blood Sugar', 'Blood Pressure', 'Cholesterol', 'Lifestyle Score'],
+                labels: ['BMI', 'Blood Sugar', 'Blood Pressure', 'Cholesterol', 'Med. Adherence'],
                 datasets: [{
-                    label: 'Patient Health Profile',
-                    data: [
-                        Math.min((inputs.bmi / 40) * 100, 100),
-                        Math.min((inputs.blood_sugar / 10) * 100, 100),
-                        Math.min((inputs.blood_pressure / 180) * 100, 100),
-                        Math.min((inputs.cholesterol / 8) * 100, 100),
-                        // Lifestyle score: higher = better, so invert for risk radar
-                        Math.max(0, 100 - inputs.lifestyle_score)
-                    ],
-                    borderColor: 'rgb(13, 148, 136)',
-                    backgroundColor: 'rgba(13, 148, 136, 0.16)',
-                    pointBackgroundColor: 'rgb(6, 182, 212)',
-                    borderWidth: 2,
+                    label: 'Health Profile',
+                    data: [{{ $radarBmi }}, {{ $radarSugar }}, {{ $radarBp }}, {{ $radarCholest }}, {{ $radarAdherence }}],
+                    borderColor: '#06b6d4',
+                    backgroundColor: 'rgba(6, 182, 212, 0.2)',
+                    pointBackgroundColor: '#0d9488',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    borderWidth: 2
                 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 scales: {
                     r: {
-                        beginAtZero: true, max: 100,
-                        ticks: { display: false },
-                        grid: { color: 'rgba(100,116,139,.18)' },
-                        angleLines: { color: 'rgba(100,116,139,.18)' },
-                        pointLabels: { font: { size: 11, weight: '700' }, color: '#64748b' }
+                        beginAtZero: true, max: 100, ticks: { display: false },
+                        grid: { color: 'rgba(203, 213, 225, 0.4)' },
+                        angleLines: { color: 'rgba(203, 213, 225, 0.4)' },
+                        pointLabels: { font: { size: 11, weight: 'bold' }, color: '#475569' }
                     }
                 },
                 plugins: { legend: { display: false } }
@@ -1040,64 +726,53 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ── Health Trends chart (4 series now) ────────────────────────────────────
     const chartCanvas = document.getElementById('kioskHealthChart');
-    if (!chartCanvas) return;
-
-    const chartLabels       = {!! json_encode($chartLabels) !!};
-    const sugarSeries       = {!! json_encode($sugarSeries) !!};
-    const cholesterolSeries = {!! json_encode($cholesterolSeries) !!};
-    const ldlSeries         = {!! json_encode($ldlSeries) !!};
-    const hba1cSeries       = {!! json_encode($hba1cSeries) !!};
-
-    new Chart(chartCanvas.getContext('2d'), {
-        type: 'line',
-        data: {
-            labels: chartLabels,
-            datasets: [
-                {
-                    label: 'Blood Sugar (mmol/L)',
-                    data: sugarSeries,
-                    borderColor: 'rgb(13,148,136)', backgroundColor: 'rgba(13,148,136,.10)',
-                    borderWidth: 3, pointBackgroundColor: 'rgb(13,148,136)',
-                    pointRadius: 4, fill: true, tension: 0.35
-                },
-                {
-                    label: 'Cholesterol (mmol/L)',
-                    data: cholesterolSeries,
-                    borderColor: 'rgb(6,182,212)', backgroundColor: 'rgba(6,182,212,.06)',
-                    borderWidth: 3, pointBackgroundColor: 'rgb(6,182,212)',
-                    pointRadius: 4, fill: false, tension: 0.35
-                },
-                {
-                    label: 'LDL (mmol/L)',
-                    data: ldlSeries,
-                    borderColor: 'rgb(239,68,68)', backgroundColor: 'rgba(239,68,68,.05)',
-                    borderWidth: 2, pointBackgroundColor: 'rgb(239,68,68)',
-                    pointRadius: 4, fill: false, tension: 0.35,
-                    borderDash: [5, 3]
-                },
-                {
-                    label: 'HbA1c (%)',
-                    data: hba1cSeries,
-                    borderColor: 'rgb(245,158,11)', backgroundColor: 'rgba(245,158,11,.05)',
-                    borderWidth: 2, pointBackgroundColor: 'rgb(245,158,11)',
-                    pointRadius: 4, fill: false, tension: 0.35,
-                    borderDash: [3, 3]
-                }
-            ]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'top', labels: { font: { size: 12, weight: '600' }, usePointStyle: true } }
+    if (chartCanvas) {
+        new Chart(chartCanvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: {!! json_encode($chartLabels) !!},
+                datasets: [
+                    {
+                        label: 'Blood Sugar (mmol/L)', data: {!! json_encode($sugarSeries) !!},
+                        borderColor: '#0d9488', backgroundColor: 'rgba(13, 148, 136, 0.1)',
+                        borderWidth: 3, pointBackgroundColor: '#0d9488',
+                        pointRadius: 4, fill: true, tension: 0.4
+                    },
+                    {
+                        label: 'Cholesterol (mmol/L)', data: {!! json_encode($cholesterolSeries) !!},
+                        borderColor: '#06b6d4', backgroundColor: 'transparent',
+                        borderWidth: 3, pointBackgroundColor: '#06b6d4',
+                        pointRadius: 4, fill: false, tension: 0.4
+                    },
+                    {
+                        label: 'LDL (mmol/L)', data: {!! json_encode($ldlSeries) !!},
+                        borderColor: '#ef4444', backgroundColor: 'transparent',
+                        borderWidth: 2, borderDash: [5, 3], pointBackgroundColor: '#ef4444',
+                        pointRadius: 4, fill: false, tension: 0.4
+                    },
+                    {
+                        label: 'HbA1c (%)', data: {!! json_encode($hba1cSeries) !!},
+                        borderColor: '#f59e0b', backgroundColor: 'transparent',
+                        borderWidth: 2, borderDash: [3, 3], pointBackgroundColor: '#f59e0b',
+                        pointRadius: 4, fill: false, tension: 0.4
+                    }
+                ]
             },
-            scales: {
-                y: { beginAtZero: false, grid: { color: 'rgba(148,163,184,.15)' } },
-                x: { grid: { color: 'rgba(148,163,184,.10)' } }
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { weight: 'bold' } } },
+                    tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', padding: 12, cornerRadius: 8 }
+                },
+                scales: {
+                    y: { grid: { color: 'rgba(241, 245, 249, 1)', drawBorder: false } },
+                    x: { grid: { display: false, drawBorder: false } }
+                }
             }
-        }
-    });
+        });
+    }
 });
 </script>
 </body>

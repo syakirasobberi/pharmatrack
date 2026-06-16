@@ -27,11 +27,21 @@
             <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
 
                 <!-- TABLE HEADER -->
-                <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                <div class="px-6 py-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
                         <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                         Patient Directory
                     </h3>
+                    <form method="GET" action="{{ route('pharmacist.patients.index') }}" class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                        <label for="patient-search" class="sr-only">Search patients</label>
+                        <input id="patient-search" type="search" name="search" value="{{ $search }}" placeholder="Search patient name, email, or ID..." class="w-full sm:w-72 rounded-xl border-slate-300 text-sm focus:border-blue-500 focus:ring-blue-200">
+                        <div class="flex gap-2">
+                            <button type="submit" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold transition-colors">Search</button>
+                            @if($search)
+                                <a href="{{ route('pharmacist.patients.index') }}" class="px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold transition-colors">Clear</a>
+                            @endif
+                        </div>
+                    </form>
                 </div>
 
                 <!-- RESPONSIVE TABLE -->
@@ -141,7 +151,7 @@
                             @empty
                             <tr>
                                 <td colspan="6" class="py-8 text-center text-slate-500">
-                                    No patients registered yet.
+                                    {{ $search ? 'No matching patients found.' : 'No patients registered yet.' }}
                                 </td>
                             </tr>
                             @endforelse

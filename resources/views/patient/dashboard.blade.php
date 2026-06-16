@@ -60,6 +60,60 @@
                     </div>
                 </div>
 
+                <!-- System Notifications Hub -->
+                @php
+                    $unreadNotifications = auth()->user()->unreadNotifications;
+                @endphp
+
+                @if($unreadNotifications->isNotEmpty())
+                    <div class="bg-indigo-50/60 border border-indigo-200/50 backdrop-blur-md rounded-3xl p-6 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-extrabold text-lg text-indigo-900 flex items-center gap-2">
+                                <span class="relative flex h-3 w-3">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+                                </span>
+                                System Notifications ({{ $unreadNotifications->count() }})
+                            </h3>
+                            <a href="{{ route('patient.notifications.index') }}" class="text-xs font-extrabold uppercase tracking-wide text-indigo-700 hover:text-indigo-900">
+                                View Inbox
+                            </a>
+                        </div>
+                        <div class="space-y-3">
+                            @foreach($unreadNotifications as $notification)
+                                <div class="bg-white/80 border border-indigo-100 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-shadow">
+                                    <div>
+                                        <p class="font-bold text-gray-900 text-base">
+                                            {{ $notification->data['title'] ?? 'Notification' }}
+                                        </p>
+                                        <p class="text-sm text-gray-600 mt-1">
+                                            {{ $notification->data['message'] ?? '' }}
+                                        </p>
+                                        @if(isset($notification->data['last_checkup_date']) && $notification->data['last_checkup_date'])
+                                            <p class="text-xs text-gray-400 mt-1 font-medium">
+                                                Last Check-up: {{ \Carbon\Carbon::parse($notification->data['last_checkup_date'])->format('d M Y') }}
+                                            </p>
+                                        @endif
+                                    </div>
+                                    <div class="flex w-full flex-col gap-2 sm:w-auto">
+                                        @if(!empty($notification->data['action_url']))
+                                            <a href="{{ $notification->data['action_url'] }}" class="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2 text-xs font-bold text-indigo-700 ring-1 ring-indigo-200 hover:bg-indigo-50">
+                                                Open
+                                            </a>
+                                        @endif
+                                        <form action="{{ route('patient.notifications.read', $notification->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-sm">
+                                                Mark as Read
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 @if($needsFaceRegistration)
                     <div class="bg-amber-50 border border-amber-200 rounded-3xl p-6 shadow-sm">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -206,15 +260,41 @@
                 </div>
 
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Recent Checkups -->
+                <div class="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm">
+                    <h3 class="font-extrabold text-xl text-gray-800 flex items-center gap-2 mb-6">
+                        Recent Checkups
+                    </h3>
+                    <p class="mb-5 text-sm text-gray-500">Synced from the health checkup form saved by your pharmacist.</p>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                        @forelse($patient->healthCheckups->take(3) as $checkup)
+                            @include('patient.partials.checkup-card', ['checkup' => $checkup, 'compact' => true])
+                        @empty
+                            <div class="lg:col-span-3 p-6 bg-gray-50 rounded-2xl text-center text-gray-500 text-sm border border-gray-100">
+                                No recent checkup records available.
+                            </div>
+                        @endforelse
+                    </div>
+
+                    <div class="mt-6 text-center">
+                        <a href="{{ route('patient.checkups') }}" class="text-sm font-bold text-indigo-600 hover:text-indigo-800">View All Checkups &rarr;</a>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-8">
                     <!-- Medications List -->
-                    <div class="lg:col-span-2 space-y-6">
+                    <div class="space-y-6">
                         <div class="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm">
-                            <div class="flex justify-between items-center mb-6">
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
                                 <h3 class="font-extrabold text-2xl text-gray-800 flex items-center gap-2">
                                     💊 Active Medications
                                 </h3>
-                                <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full">{{ $patient->medications->count() }} Prescriptions</span>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full">{{ $patient->medications->count() }} Prescriptions</span>
+                                    <a href="{{ route('patient.medications') }}" class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-indigo-700">
+                                        Add / Update Medication
+                                    </a>
+                                </div>
                             </div>
 
                             <div class="space-y-4">
@@ -235,7 +315,7 @@
                                 @empty
                                     <div class="p-8 border border-dashed border-gray-300 rounded-2xl text-center">
                                         <p class="text-gray-500 italic mb-2">No active medications recorded.</p>
-                                        <p class="text-sm text-gray-400">If you were prescribed medications, please consult your pharmacist.</p>
+                                        <p class="text-sm text-gray-400">You can add medication from the medication page if you are currently taking any.</p>
                                     </div>
                                 @endforelse
                             </div>
@@ -273,57 +353,6 @@
                         </div>
                     </div>
 
-                    <!-- Right Column: Checkups -->
-                    <div class="space-y-6">
-                        <div class="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm">
-                            <h3 class="font-extrabold text-xl text-gray-800 flex items-center gap-2 mb-6">
-                                🩺 Recent Checkups
-                            </h3>
-                            <div class="space-y-5">
-                                @forelse($patient->healthCheckups->take(3) as $checkup)
-                                    <div class="relative pl-6 border-l-2 border-indigo-200 pb-2 last:pb-0 last:border-transparent">
-                                        <div class="absolute w-3 h-3 bg-indigo-500 rounded-full -left-[7px] top-1 ring-4 ring-white"></div>
-                                        <div class="mb-1 flex justify-between items-baseline">
-                                            <h4 class="font-bold text-gray-800 text-sm">{{ \Carbon\Carbon::parse($checkup->checkup_date)->format('d M Y, h:i A') }}</h4>
-                                        </div>
-                                        <div class="bg-gray-50 rounded-xl p-4 mt-2 border border-gray-100 space-y-2">
-                                            <div class="flex justify-between items-center text-sm">
-                                                <span class="text-gray-500">Blood Pressure</span>
-                                                @php
-                                                    $systolic = (float) preg_replace('/[^0-9.].*/', '', $checkup->blood_pressure);
-                                                @endphp
-                                                <span class="font-bold {{ $systolic > 130 ? 'text-red-600' : 'text-gray-800' }}">
-                                                    {{ $checkup->blood_pressure ?: 'N/A' }}
-                                                </span>
-                                            </div>
-                                            <div class="flex justify-between items-center text-sm">
-                                                <span class="text-gray-500">Blood Sugar</span>
-                                                <span class="font-bold {{ $checkup->blood_sugar >= 5.6 ? 'text-red-600' : 'text-gray-800' }}">
-                                                    {{ $checkup->blood_sugar }} mmol/L
-                                                </span>
-                                            </div>
-                                            <div class="flex justify-between items-center text-sm">
-                                                <span class="text-gray-500">Cholesterol</span>
-                                                <span class="font-bold {{ $checkup->cholesterol >= 5.2 ? 'text-orange-600' : 'text-gray-800' }}">
-                                                    {{ $checkup->cholesterol }} mmol/L
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @empty
-                                    <div class="p-6 bg-gray-50 rounded-2xl text-center text-gray-500 text-sm border border-gray-100">
-                                        No recent checkup records available.
-                                    </div>
-                                @endforelse
-                            </div>
-                            
-                            @if($patient->healthCheckups->count() > 3)
-                                <div class="mt-6 text-center">
-                                    <a href="{{ route('patient.checkups') }}" class="text-sm font-bold text-indigo-600 hover:text-indigo-800">View All Checkups &rarr;</a>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
                 </div>
 
             @else

@@ -47,6 +47,15 @@
             @endif
         </div>
 
+        @if($user->role === 'pharmacist')
+            <div>
+                <x-input-label for="phone_number" :value="__('Phone Number for WhatsApp')" />
+                <x-text-input id="phone_number" name="phone_number" type="tel" class="mt-1 block w-full" :value="old('phone_number', $user->phone_number)" placeholder="Example: 0123456789 or +60123456789" autocomplete="tel" />
+                <p class="mt-1 text-sm text-gray-500">Patients assigned to you will use this number from Contact Us.</p>
+                <x-input-error class="mt-2" :messages="$errors->get('phone_number')" />
+            </div>
+        @endif
+
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Save') }}</x-primary-button>
 

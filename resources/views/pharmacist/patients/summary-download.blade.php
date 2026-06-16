@@ -124,11 +124,19 @@
                 <div class="value">{{ $latestCheckup?->blood_pressure ?? 'N/A' }}</div>
             </div>
             <div class="card">
+                <div class="label">Haemoglobin</div>
+                <div class="value">{{ $latestCheckup?->haemoglobin ?? 'N/A' }}</div>
+            </div>
+            <div class="card">
                 <div class="label">Blood Sugar</div>
                 <div class="value">{{ $latestCheckup?->blood_sugar ?? 'N/A' }}</div>
             </div>
             <div class="card">
-                <div class="label">Cholesterol</div>
+                <div class="label">Sodium</div>
+                <div class="value">{{ $latestCheckup?->sodium ?? 'N/A' }}</div>
+            </div>
+            <div class="card">
+                <div class="label">Total Cholesterol</div>
                 <div class="value">{{ $latestCheckup?->cholesterol ?? 'N/A' }}</div>
             </div>
         </div>

@@ -18,7 +18,8 @@
         $healthAlerts = \App\Models\HealthCheckup::with('patient.user')
                             ->whereIn('patient_id', $assignedPatientIds)
                             ->where(function ($query) {
-                                $query->where('blood_sugar', '>=', 5.6)
+                                $query->where('blood_sugar', '<', 3.9)
+                                    ->orWhere('blood_sugar', '>', 6.0)
                                     ->orWhere('cholesterol', '>=', 5.2);
                             })
                             ->latest()
@@ -60,6 +61,20 @@
         </div>
 
         <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+
+            @if(blank(auth()->user()->phone_number))
+                <div class="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900 shadow-sm">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p class="font-extrabold">Add your WhatsApp phone number</p>
+                            <p class="mt-1 text-sm font-medium text-amber-800">Patients can contact you from Contact Us after you update your phone number.</p>
+                        </div>
+                        <a href="{{ route('profile.edit') }}" class="inline-flex items-center justify-center rounded-xl bg-amber-600 px-4 py-2 text-sm font-bold text-white hover:bg-amber-700">
+                            Update Profile
+                        </a>
+                    </div>
+                </div>
+            @endif
 
             <!-- Hero Section -->
             <div class="bg-gradient-to-br from-blue-700 via-indigo-600 to-blue-800 rounded-[2rem] p-8 shadow-2xl text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden border border-white/10">
@@ -215,10 +230,10 @@
                             </div>
                             
                             <div class="text-xs text-slate-600 space-y-1.5 bg-white/50 p-2.5 rounded-xl border border-rose-100/50">
-                                @if($alert->blood_sugar >= 5.6)
+                                @if(is_numeric($alert->blood_sugar) && ($alert->blood_sugar < 3.9 || $alert->blood_sugar > 6.0))
                                     <div class="flex items-center gap-2">
                                         <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                                        <span class="text-rose-700 font-bold">High Sugar:</span> {{ $alert->blood_sugar }} mmol/L
+                                        <span class="text-rose-700 font-bold">Sugar Alert:</span> {{ $alert->blood_sugar }} mmol/L
                                     </div>
                                 @endif
                                 @if($alert->cholesterol >= 5.2)
@@ -283,9 +298,17 @@
                                         ? 'Last check-up: ' . \Carbon\Carbon::parse($patientDue->healthCheckups->first()->checkup_date)->format('d M Y') . '.'
                                         : 'No health check-up on record.' }}
                                 </p>
-                                <a href="{{ route('pharmacist.checkups.create', $patientDue->id) }}" class="mt-3 text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 group-hover:gap-2 transition-all">
-                                    Schedule Check-up <span aria-hidden="true">&rarr;</span>
-                                </a>
+                                <div class="mt-3 flex items-center gap-3 flex-wrap">
+                                    <a href="{{ route('pharmacist.checkups.create', $patientDue->id) }}" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 group-hover:gap-2 transition-all">
+                                        Schedule Check-up <span aria-hidden="true">&rarr;</span>
+                                    </a>
+                                    <form action="{{ route('pharmacist.patients.sendReminder', $patientDue->id) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-all bg-indigo-50/80 hover:bg-indigo-100/80 px-2 py-1 rounded-lg border border-indigo-200/50">
+                                            ✉️ Send Reminder
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         @endforeach
                     </div>

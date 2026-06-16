@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Patient;
+use App\Support\HealthSummaryPdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -13,10 +14,25 @@ use App\Models\Medication;
 class PatientController extends Controller
 {
     // 1. Display all patients (Index Page)
-    public function index()
+    public function index(Request $request)
     {
-        $patients = Patient::assignedTo(request()->user())->with(['user', 'pharmacist'])->latest()->get();
-        return view('pharmacist.patients.index', compact('patients'));
+        $search = $request->string('search')->toString();
+
+        $patients = Patient::assignedTo($request->user())
+            ->with(['user', 'pharmacist'])
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($patientQuery) use ($search) {
+                    $patientQuery->where('id', 'like', "%{$search}%")
+                        ->orWhereHas('user', function ($userQuery) use ($search) {
+                            $userQuery->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->latest()
+            ->get();
+
+        return view('pharmacist.patients.index', compact('patients', 'search'));
     }
     
     // 2. Display the registration form (Includes Camera UI)
@@ -72,7 +88,13 @@ class PatientController extends Controller
     // 4. Display full patient profile
     public function show($id)
     {
-        $patient = Patient::assignedTo(request()->user())->with(['user', 'pharmacist', 'healthCheckups'])->findOrFail($id);
+        $patient = Patient::assignedTo(request()->user())->with([
+            'user',
+            'pharmacist',
+            'healthCheckups' => fn ($q) => $q->latest('checkup_date'),
+            'medicalHistory',
+            'medications',
+        ])->findOrFail($id);
         return view('pharmacist.patients.show', compact('patient'));
     }
 
@@ -125,11 +147,10 @@ class PatientController extends Controller
     public function downloadSummary($id)
     {
         $patient = $this->buildSummaryPatient($id);
-        $filename = 'patient-health-summary-' . $patient->id . '.html';
+        $filename = 'patient-health-summary-' . $patient->id . '-' . now()->format('Y-m-d') . '.pdf';
 
-        return response()
-            ->view('pharmacist.patients.summary-download', compact('patient'))
-            ->header('Content-Type', 'text/html; charset=UTF-8')
+        return response(HealthSummaryPdf::make($patient))
+            ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
     }
 
@@ -158,12 +179,15 @@ class PatientController extends Controller
 
         // Update or Create Medical History
         MedicalHistory::updateOrCreate(
-            ['patient_id' => $patient->id], 
+            ['patient_id' => $patient->id],
             [
-                'hypertension' => $request->hypertension,
-                'diabetes' => $request->diabetes,
-                'allergies' => $request->allergies,
+                'hypertension'  => $patient->medicalHistory?->hypertension ?? 'None', // preserved, not editable from form
+                'diabetes'      => $request->diabetes,
+                'allergies'     => $request->allergies,
                 'drug_allergies' => $request->drug_allergies,
+                'others'        => $request->others === 'Other (specify)'
+                                    ? $request->others_custom
+                                    : $request->others,
             ]
         );
 
@@ -184,30 +208,56 @@ class PatientController extends Controller
     // 7. Function to update face biometric for existing patients
     public function updateExistingFace(Request $request)
     {
-        $patientId = $request->input('patient_id');
-        $descriptor = $request->input('descriptor');
+        $validated = $request->validate([
+            'patient_id' => ['required', 'integer'],
+            'descriptor' => ['required', 'array', 'size:128'],
+            'descriptor.*' => ['required', 'numeric'],
+        ]);
 
-        $patient = Patient::assignedTo($request->user())->find($patientId);
+        $patient = Patient::assignedTo($request->user())->find($validated['patient_id']);
 
         if (!$patient) {
             return response()->json(['status' => 'error', 'message' => 'Patient not found.'], 404);
         }
 
-        // Update the face_descriptor column
-        $patient->face_descriptor = json_encode($descriptor);
+        $patient->face_descriptor = json_encode(array_map('floatval', $validated['descriptor']));
         $patient->save();
 
         return response()->json(['status' => 'success', 'message' => 'Face data successfully updated!']);
     }
 
-public function quickScan()
-{
-    // Ambil hanya pesakit yang benar-benar mempunyai data wajah yang boleh digunakan
-    $patients = Patient::assignedTo(request()->user())->with('user')
-        ->whereNotNull('face_descriptor')
-        ->where('face_descriptor', '!=', '')
-        ->get(['id', 'user_id', 'face_descriptor']);
-    
-    return view('pharmacist.patients.quick-scan', compact('patients'));
-}
+    public function deleteExistingFace(Request $request, $id)
+    {
+        $patient = Patient::assignedTo($request->user())->findOrFail($id);
+
+        $patient->face_descriptor = null;
+        $patient->save();
+
+        return redirect()
+            ->route('pharmacist.patients.show', $patient->id)
+            ->with('success', 'Patient face data removed successfully.');
+    }
+
+    public function quickScan()
+    {
+        // Ambil hanya pesakit yang benar-benar mempunyai data wajah yang boleh digunakan
+        $patients = Patient::assignedTo(request()->user())->with('user')
+            ->whereNotNull('face_descriptor')
+            ->where('face_descriptor', '!=', '')
+            ->get(['id', 'user_id', 'face_descriptor']);
+
+        return view('pharmacist.patients.quick-scan', compact('patients'));
+    }
+
+    public function sendCheckupReminder($id)
+    {
+        $patient = Patient::assignedTo(request()->user())->with('user')->findOrFail($id);
+
+        if ($patient->user) {
+            $patient->user->notify(new \App\Notifications\RoutineCheckupReminderNotification($patient));
+            return redirect()->back()->with('success', 'Routine check-up reminder sent to ' . $patient->user->name . ' via email and system notification.');
+        }
+
+        return redirect()->back()->with('error', 'Patient user account not found.');
+    }
 }

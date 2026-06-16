@@ -124,7 +124,7 @@ class HealthRiskPredictionController extends Controller
 
         if ($bloodSugar >= 7.0) {
             $factors[] = 'High Blood Sugar';
-        } elseif ($bloodSugar >= 5.6) {
+        } elseif ($bloodSugar > 6.0) {
             $factors[] = 'Borderline Blood Sugar';
         }
 

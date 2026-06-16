@@ -33,7 +33,8 @@ class AdminController extends Controller
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($innerQuery) use ($search) {
                     $innerQuery->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
                 });
             })
             ->withCount('assignedPatients')
@@ -80,7 +81,8 @@ class AdminController extends Controller
 
         $highRiskCheckups = HealthCheckup::with('patient.user')
             ->where(function ($query) {
-                $query->where('blood_sugar', '>=', 5.6)
+                $query->where('blood_sugar', '<', 3.9)
+                    ->orWhere('blood_sugar', '>', 6.0)
                     ->orWhere('cholesterol', '>=', 5.2);
             })
             ->latest('checkup_date')
@@ -159,12 +161,14 @@ class AdminController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
+            'phone_number' => ['required', 'string', 'max:30', 'regex:/^[0-9+\-\s()]+$/'],
             'password' => 'required|string|min:8',
         ]);
 
         User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'phone_number' => $validated['phone_number'],
             'password' => Hash::make($validated['password']),
             'role' => 'pharmacist',
             'requires_password_change' => true,

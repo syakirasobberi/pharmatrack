@@ -19,6 +19,7 @@ class Patient extends Model
         'weight',
         'height',
         'bmi',
+        'ai_summary',
         'face_descriptor',
     ];
 

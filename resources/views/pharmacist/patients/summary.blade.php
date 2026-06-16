@@ -16,6 +16,97 @@
                                ->values();
         $sugarSeries       = $chartData->pluck('blood_sugar')->values();
         $cholesterolSeries = $chartData->pluck('cholesterol')->values();
+        $hba1cSeries       = $chartData->pluck('hba1c')->values();
+        $ldlSeries         = $chartData->pluck('ldl')->values();
+        $previousCheckup   = $patient->healthCheckups->skip(1)->first();
+
+        $parseSystolic = function (?string $bloodPressure) {
+            if (! $bloodPressure || ! preg_match('/(\d+)/', $bloodPressure, $matches)) {
+                return null;
+            }
+
+            return (float) $matches[1];
+        };
+
+        $riskScore = function ($key, $value) {
+            if ($value === null || $value === '') {
+                return null;
+            }
+
+            $value = (float) $value;
+
+            return match ($key) {
+                'blood_pressure' => min(round(($value / 180) * 100), 100),
+                'blood_sugar' => min(round(($value / 10) * 100), 100),
+                'cholesterol' => min(round(($value / 8) * 100), 100),
+                'haemoglobin' => min(round((abs($value - 14) / 8) * 100), 100),
+                'hba1c' => min(round(($value / 10) * 100), 100),
+                'ldl' => min(round(($value / 5) * 100), 100),
+                'hdl' => min(round((max(0, 2 - $value) / 2) * 100), 100),
+                'albumin_globulin_ratio' => min(round((abs($value - 1.5) / 2) * 100), 100),
+                'alkaline_phosphatase' => min(round(($value / 200) * 100), 100),
+                'aspartate_transaminase' => min(round(($value / 80) * 100), 100),
+                'alanine_transaminase' => min(round(($value / 90) * 100), 100),
+                'gamma_glutamyl_transferase' => min(round(($value / 100) * 100), 100),
+                'sodium' => min(round((abs($value - 140) / 20) * 100), 100),
+                'renal_glucose' => min(round(($value / 10) * 100), 100),
+                default => null,
+            };
+        };
+
+        $formatMetric = function ($value, $unit = null, $decimals = 1) {
+            if ($value === null || $value === '') {
+                return 'N/A';
+            }
+
+            $display = is_numeric($value) ? number_format((float) $value, $decimals) : $value;
+
+            return $unit ? "{$display} {$unit}" : $display;
+        };
+
+        $comparisonMetrics = collect([
+            ['key' => 'blood_pressure', 'label' => 'Blood Pressure', 'unit' => 'mmHg systolic', 'previous' => $parseSystolic($previousCheckup?->blood_pressure), 'latest' => $parseSystolic($latestCheckup?->blood_pressure), 'care' => 'blood pressure control, salt intake, stress, and follow-up BP checks'],
+            ['key' => 'haemoglobin', 'label' => 'Haemoglobin', 'unit' => 'g/dL', 'previous' => $previousCheckup?->haemoglobin, 'latest' => $latestCheckup?->haemoglobin, 'care' => 'haemoglobin status and follow-up screening'],
+            ['key' => 'blood_sugar', 'label' => 'Blood Sugar', 'unit' => 'mmol/L', 'previous' => $previousCheckup?->blood_sugar, 'latest' => $latestCheckup?->blood_sugar, 'care' => 'sugar intake, meal timing, and diabetes monitoring'],
+            ['key' => 'cholesterol', 'label' => 'Cholesterol', 'unit' => 'mmol/L', 'previous' => $previousCheckup?->cholesterol, 'latest' => $latestCheckup?->cholesterol, 'care' => 'fat intake, exercise, and lipid monitoring'],
+            ['key' => 'hba1c', 'label' => 'HbA1c', 'unit' => '%', 'previous' => $previousCheckup?->hba1c, 'latest' => $latestCheckup?->hba1c, 'care' => 'long-term blood sugar control'],
+            ['key' => 'albumin_globulin_ratio', 'label' => 'A/G Ratio', 'unit' => null, 'previous' => $previousCheckup?->albumin_globulin_ratio, 'latest' => $latestCheckup?->albumin_globulin_ratio, 'care' => 'liver function profile follow-up'],
+            ['key' => 'alkaline_phosphatase', 'label' => 'ALP', 'unit' => 'U/L', 'previous' => $previousCheckup?->alkaline_phosphatase, 'latest' => $latestCheckup?->alkaline_phosphatase, 'care' => 'liver enzyme monitoring'],
+            ['key' => 'aspartate_transaminase', 'label' => 'AST', 'unit' => 'U/L', 'previous' => $previousCheckup?->aspartate_transaminase, 'latest' => $latestCheckup?->aspartate_transaminase, 'care' => 'liver enzyme monitoring'],
+            ['key' => 'alanine_transaminase', 'label' => 'ALT', 'unit' => 'U/L', 'previous' => $previousCheckup?->alanine_transaminase, 'latest' => $latestCheckup?->alanine_transaminase, 'care' => 'liver enzyme monitoring'],
+            ['key' => 'gamma_glutamyl_transferase', 'label' => 'GGT', 'unit' => 'U/L', 'previous' => $previousCheckup?->gamma_glutamyl_transferase, 'latest' => $latestCheckup?->gamma_glutamyl_transferase, 'care' => 'liver enzyme monitoring'],
+            ['key' => 'sodium', 'label' => 'Sodium', 'unit' => 'mmol/L', 'previous' => $previousCheckup?->sodium, 'latest' => $latestCheckup?->sodium, 'care' => 'renal function profile follow-up'],
+            ['key' => 'renal_glucose', 'label' => 'Renal Glucose', 'unit' => 'mmol/L', 'previous' => $previousCheckup?->renal_glucose, 'latest' => $latestCheckup?->renal_glucose, 'care' => 'renal glucose pattern monitoring'],
+            ['key' => 'ldl', 'label' => 'LDL', 'unit' => 'mmol/L', 'previous' => $previousCheckup?->ldl, 'latest' => $latestCheckup?->ldl, 'care' => 'heart health and high LDL cholesterol'],
+            ['key' => 'hdl', 'label' => 'HDL', 'unit' => 'mmol/L', 'previous' => $previousCheckup?->hdl, 'latest' => $latestCheckup?->hdl, 'care' => 'healthy cholesterol balance and physical activity'],
+        ])->filter(fn ($metric) => $metric['previous'] !== null && $metric['latest'] !== null)
+          ->map(function ($metric) use ($riskScore, $formatMetric) {
+              $previousScore = $riskScore($metric['key'], $metric['previous']);
+              $latestScore = $riskScore($metric['key'], $metric['latest']);
+              $scoreChange = $latestScore - $previousScore;
+
+              $metric['previous_score'] = $previousScore;
+              $metric['latest_score'] = $latestScore;
+              $metric['previous_display'] = $formatMetric($metric['previous'], $metric['unit']);
+              $metric['latest_display'] = $formatMetric($metric['latest'], $metric['unit']);
+              $metric['status'] = abs($scoreChange) <= 3 ? 'stable' : ($scoreChange < 0 ? 'improved' : 'worsened');
+              $metric['change_label'] = abs($scoreChange) <= 3 ? 'About the same' : ($scoreChange < 0 ? 'Improved' : 'Worsened');
+
+              return $metric;
+          })->values();
+
+        $comparisonLabels = $comparisonMetrics->pluck('label')->values();
+        $comparisonPreviousScores = $comparisonMetrics->pluck('previous_score')->values();
+        $comparisonLatestScores = $comparisonMetrics->pluck('latest_score')->values();
+        $comparisonRawValues = $comparisonMetrics->map(fn ($metric) => [
+            'previous' => $metric['previous_display'],
+            'latest' => $metric['latest_display'],
+            'status' => $metric['change_label'],
+        ])->values();
+        $hasComparisonData = $comparisonMetrics->isNotEmpty();
+        $improvedMetrics = $comparisonMetrics->where('status', 'improved')->values();
+        $worsenedMetrics = $comparisonMetrics->where('status', 'worsened')->values();
+        $stableMetrics = $comparisonMetrics->where('status', 'stable')->values();
 
         // ── BMI status ───────────────────────────────────────────────────────
         if ($bmi >= 30)       $bmiStatus = ['Obese',       'bg-red-100 text-red-700'];
@@ -64,9 +155,9 @@
             $alerts->push(['Diabetes status: ' . $medicalHistory->diabetes, 'review']);
         }
 
-        // Elevated blood sugar at latest check-up (> 7.0 mmol/L)
-        if ($latestCheckup && (float)$latestCheckup->blood_sugar > 7.0) {
-            $alerts->push(['Elevated blood sugar (' . $latestCheckup->blood_sugar . ' mmol/L) detected at last check-up.', 'critical']);
+        // Blood sugar outside latest normal range (3.9-6.0 mmol/L)
+        if ($latestCheckup && is_numeric($latestCheckup->blood_sugar) && ((float)$latestCheckup->blood_sugar < 3.9 || (float)$latestCheckup->blood_sugar > 6.0)) {
+            $alerts->push(['Blood sugar outside normal range (' . $latestCheckup->blood_sugar . ' mmol/L) detected at last check-up.', 'critical']);
         }
 
         // Elevated cholesterol at latest check-up (> 5.2 mmol/L)
@@ -89,6 +180,68 @@
             $systolic = (int) explode('/', $latestCheckup->blood_pressure)[0];
         }
         $radarBp         = $systolic > 0 ? min(round(($systolic / 180) * 100), 100) : 0;
+
+        $hasCriticalAlert = $alerts->contains(fn ($alert) => $alert[1] === 'critical');
+        $hasReviewAlert = $alerts->contains(fn ($alert) => $alert[1] === 'review');
+
+        if ($hasCriticalAlert || $worsenedMetrics->count() >= 2) {
+            $healthStatus = 'Needs close monitoring';
+            $healthStatusClass = 'bg-red-100 text-red-700';
+        } elseif ($hasReviewAlert || $worsenedMetrics->isNotEmpty()) {
+            $healthStatus = 'Needs monitoring';
+            $healthStatusClass = 'bg-amber-100 text-amber-700';
+        } else {
+            $healthStatus = 'Stable';
+            $healthStatusClass = 'bg-emerald-100 text-emerald-700';
+        }
+
+        $healthSummaryText = match (true) {
+            $hasCriticalAlert => 'The patient has high-priority risk factors that should be monitored closely and reviewed with the pharmacist.',
+            $worsenedMetrics->count() >= 2 => 'Several readings are trending worse compared with the previous check-up, so follow-up monitoring is recommended.',
+            $worsenedMetrics->isNotEmpty() => 'Most readings are acceptable, but at least one area has worsened and should be watched.',
+            $improvedMetrics->isNotEmpty() => 'The latest check-up shows improvement in some readings. Continue monitoring to maintain the progress.',
+            default => 'The available readings look stable. Continue routine check-ups and medication review as planned.',
+        };
+
+        $carePoints = collect();
+
+        if (! $latestCheckup) {
+            $carePoints->push('Complete a health check-up so current readings can be reviewed.');
+        } elseif (\Carbon\Carbon::parse($latestCheckup->checkup_date)->diffInDays(now()) > 90) {
+            $carePoints->push('Schedule a follow-up check-up because the latest record is older than 90 days.');
+        }
+
+        foreach ($worsenedMetrics as $metric) {
+            $carePoints->push('Watch ' . strtolower($metric['care']) . '.');
+        }
+
+        if ($latestCheckup && is_numeric($latestCheckup->blood_sugar) && ((float) $latestCheckup->blood_sugar < 3.9 || (float) $latestCheckup->blood_sugar > 6.0)) {
+            $carePoints->push('Review blood sugar pattern, food intake, and diabetes risk.');
+        }
+
+        if ($latestCheckup && (float) $latestCheckup->cholesterol >= 5.2) {
+            $carePoints->push('Review cholesterol control, diet, exercise, and lipid follow-up.');
+        }
+
+        if ($latestCheckup && $systolic >= 130) {
+            $carePoints->push('Monitor blood pressure and counsel on salt intake, stress, and follow-up readings.');
+        }
+
+        if ($activeMedCount >= 5) {
+            $carePoints->push('Review medication list for polypharmacy and adherence issues.');
+        } elseif ($activeMedCount === 0) {
+            $carePoints->push('Confirm whether the patient is taking any medication not yet recorded.');
+        }
+
+        if (filled(optional($medicalHistory)->drug_allergies) || filled(optional($medicalHistory)->allergies)) {
+            $carePoints->push('Check allergy history before recommending or dispensing medication.');
+        }
+
+        if ($carePoints->isEmpty()) {
+            $carePoints->push('Continue routine check-ups, medication adherence, balanced diet, and regular activity.');
+        }
+
+        $carePoints = $carePoints->unique()->take(5)->values();
         // Medication adherence proxy: if medications exist and recent check-up exists → higher score
         $radarAdherence  = $activeMedCount > 0 && $latestCheckup ? min($activeMedCount * 15, 100) : 0;
 
@@ -96,6 +249,35 @@
 
         // Latest medication update timestamp
         $latestMedDate   = $medications->sortByDesc('updated_at')->first()?->updated_at;
+
+        $aiSuggestionText = $latestCheckup?->ai_suggestion;
+        $aiSuggestionStyles = [
+            'food' => 'border-emerald-100 bg-emerald-50 text-emerald-900',
+            'exercise' => 'border-blue-100 bg-blue-50 text-blue-900',
+            'follow-up' => 'border-amber-100 bg-amber-50 text-amber-900',
+            'medication review' => 'border-purple-100 bg-purple-50 text-purple-900',
+        ];
+        $aiSuggestionCards = collect();
+
+        if (filled($aiSuggestionText)) {
+            $aiSuggestionCards = collect(preg_split('/\R+|(?=\d+\.\s*[A-Za-z])/', $aiSuggestionText) ?: [])
+                ->map(fn ($line) => trim(preg_replace('/^\d+\.\s*/', '', str_replace('*', '', $line))))
+                ->filter()
+                ->map(function ($line) use ($aiSuggestionStyles) {
+                    [$title, $body] = str_contains($line, ':')
+                        ? array_map('trim', explode(':', $line, 2))
+                        : ['Recommendation', $line];
+
+                    $key = strtolower($title);
+
+                    return [
+                        'title' => $title,
+                        'body' => $body ?: $line,
+                        'style' => $aiSuggestionStyles[$key] ?? 'border-indigo-100 bg-white text-indigo-900',
+                    ];
+                })
+                ->values();
+        }
     @endphp
 
     {{-- ════════════════════════════════════════════════════════════════════ --}}
@@ -274,8 +456,16 @@
                                                 <dd class="font-bold">{{ $latestCheckup->blood_pressure ?? 'N/A' }}</dd>
                                             </div>
                                             <div class="flex justify-between">
+                                                <dt class="font-medium text-slate-500">Haemoglobin</dt>
+                                                <dd class="font-bold">{{ $latestCheckup->haemoglobin ?? 'N/A' }}</dd>
+                                            </div>
+                                            <div class="flex justify-between">
                                                 <dt class="font-medium text-slate-500">Blood Sugar</dt>
                                                 <dd class="font-bold">{{ $latestCheckup->blood_sugar ?? 'N/A' }}</dd>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <dt class="font-medium text-slate-500">Sodium</dt>
+                                                <dd class="font-bold">{{ $latestCheckup->sodium ?? 'N/A' }}</dd>
                                             </div>
                                             <div class="flex justify-between">
                                                 <dt class="font-medium text-slate-500">Cholesterol</dt>
@@ -389,6 +579,81 @@
                         </div>{{-- end right column --}}
                     </div>
 
+                    {{-- Patient health summary --}}
+                    <div class="rounded-3xl border border-slate-200 bg-white shadow-sm">
+                            <div class="px-6 py-5 border-b border-slate-100">
+                                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                    <div>
+                                        <h2 class="text-lg font-extrabold text-slate-800">Patient Health Summary</h2>
+                                        <p class="text-sm text-slate-500 mt-0.5">Current status, care priorities, and API-generated health suggestions.</p>
+                                    </div>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="w-fit rounded-full px-3 py-1 text-xs font-bold {{ $healthStatusClass }}">
+                                            {{ $healthStatus }}
+                                        </span>
+                                        <button type="button" id="generateOverallSummary" class="rounded-full bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700">
+                                            {{ $aiSuggestionCards->isNotEmpty() ? 'Regenerate API Suggestion' : 'Generate API Suggestion' }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 p-6">
+                                <div class="rounded-2xl bg-slate-50 border border-slate-100 p-4">
+                                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Summary</p>
+                                    <p class="mt-2 text-sm font-semibold leading-6 text-slate-800">{{ $healthSummaryText }}</p>
+                                </div>
+
+                                <div class="rounded-2xl bg-white border border-slate-100 p-4">
+                                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Reading Direction</p>
+                                    <div class="mt-3 grid grid-cols-3 gap-2">
+                                        <div class="rounded-2xl bg-emerald-50 border border-emerald-100 p-3 text-center">
+                                            <p class="text-2xl font-extrabold text-emerald-700">{{ $improvedMetrics->count() }}</p>
+                                            <p class="text-[11px] font-bold uppercase text-emerald-700">Better</p>
+                                        </div>
+                                        <div class="rounded-2xl bg-red-50 border border-red-100 p-3 text-center">
+                                            <p class="text-2xl font-extrabold text-red-700">{{ $worsenedMetrics->count() }}</p>
+                                            <p class="text-[11px] font-bold uppercase text-red-700">Worse</p>
+                                        </div>
+                                        <div class="rounded-2xl bg-slate-50 border border-slate-100 p-3 text-center">
+                                            <p class="text-2xl font-extrabold text-slate-700">{{ $stableMetrics->count() }}</p>
+                                            <p class="text-[11px] font-bold uppercase text-slate-500">Same</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="rounded-2xl bg-white border border-slate-100 p-4">
+                                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Need to Take Care</p>
+                                    <ul class="mt-3 space-y-2">
+                                        @foreach($carePoints as $point)
+                                            <li class="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-100 px-3 py-2 text-sm font-semibold leading-5 text-amber-800">
+                                                <span class="mt-1 h-2 w-2 rounded-full bg-amber-400 shrink-0"></span>
+                                                {{ $point }}
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+
+                                <div id="apiOverallSummary" class="xl:col-span-3 {{ $aiSuggestionCards->isNotEmpty() ? '' : 'hidden' }} rounded-2xl border border-indigo-100 bg-indigo-50 p-4">
+                                    <p class="text-xs font-bold uppercase tracking-wide text-indigo-700">AI Health Insights</p>
+                                    <div id="apiOverallSummaryText" class="mt-3">
+                                        @if($aiSuggestionCards->isNotEmpty())
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                @foreach($aiSuggestionCards as $card)
+                                                    <div class="rounded-xl border {{ $card['style'] }} p-4">
+                                                        <p class="text-xs font-extrabold uppercase tracking-wide">{{ $card['title'] }}</p>
+                                                        <p class="mt-1 text-sm font-medium leading-6">{{ $card['body'] }}</p>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <p class="mt-3 text-xs font-semibold text-indigo-700">
+                                        Medication notes are for pharmacist review only. The system does not automatically prescribe medication.
+                                    </p>
+                                </div>
+                            </div>
+                    </div>
+
                     {{-- ── Row 2: Health Radar + Health Trend ─────────────────── --}}
                     <div class="grid grid-cols-1 xl:grid-cols-5 gap-6">
 
@@ -421,9 +686,9 @@
                         {{-- HEALTH TREND --}}
                         <div class="xl:col-span-3 rounded-3xl border border-slate-200 bg-white shadow-sm">
                             <div class="px-6 py-5 border-b border-slate-100">
-                                <h2 class="text-lg font-extrabold text-slate-800">Health Trend Analytics</h2>
+                                <h2 class="text-lg font-extrabold text-slate-800">Key Health Trend</h2>
                                 <p class="text-sm text-slate-500 mt-0.5">
-                                    Blood sugar and cholesterol trends from recorded check-ups.
+                                    High-concern readings from recorded check-ups: blood sugar, cholesterol, HbA1c, and LDL when available.
                                 </p>
                             </div>
                             <div class="p-6">
@@ -455,6 +720,80 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const generateSummaryButton = document.getElementById('generateOverallSummary');
+            const apiSummaryBox = document.getElementById('apiOverallSummary');
+            const apiSummaryText = document.getElementById('apiOverallSummaryText');
+
+            if (generateSummaryButton && apiSummaryBox && apiSummaryText) {
+                const renderSuggestionCards = (suggestion) => {
+                    const styles = {
+                        food: 'border-emerald-100 bg-emerald-50 text-emerald-900',
+                        exercise: 'border-blue-100 bg-blue-50 text-blue-900',
+                        'follow-up': 'border-amber-100 bg-amber-50 text-amber-900',
+                        'medication review': 'border-purple-100 bg-purple-50 text-purple-900',
+                    };
+
+                    const escapeHtml = (value) => value
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+
+                    const cards = suggestion
+                        .replace(/\*/g, '')
+                        .split(/\n|(?=\d+\.\s*[A-Za-z])/)
+                        .map(line => line.trim())
+                        .filter(Boolean)
+                        .map(line => {
+                            const cleaned = line.replace(/^\d+\.\s*/, '');
+                            const [rawTitle, ...rest] = cleaned.split(':');
+                            const title = rawTitle.trim();
+                            const body = rest.join(':').trim() || cleaned;
+                            const style = styles[title.toLowerCase()] || 'border-indigo-100 bg-white text-indigo-900';
+
+                            return `<div class="rounded-xl border ${style} p-4">
+                                <p class="text-xs font-extrabold uppercase tracking-wide">${escapeHtml(title)}</p>
+                                <p class="mt-1 text-sm font-medium leading-6">${escapeHtml(body)}</p>
+                            </div>`;
+                        })
+                        .join('');
+
+                    apiSummaryText.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">${cards}</div>`;
+                };
+
+                generateSummaryButton.addEventListener('click', async function () {
+                    generateSummaryButton.disabled = true;
+                    generateSummaryButton.textContent = 'Generating...';
+                    apiSummaryBox.classList.remove('hidden');
+                    apiSummaryText.innerHTML = '<span class="animate-pulse text-indigo-600 font-bold">Analyzing latest check-up metrics...</span>';
+
+                    try {
+                        const response = await fetch('{{ route('pharmacist.patients.aiSummary', $patient->id) }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({})
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok || !data.success) {
+                            throw new Error(data.message || 'Unable to generate suggestion.');
+                        }
+
+                        renderSuggestionCards(data.suggestion);
+                    } catch (error) {
+                        apiSummaryText.textContent = error.message || 'Unable to generate API suggestion right now.';
+                    } finally {
+                        generateSummaryButton.disabled = false;
+                        generateSummaryButton.textContent = 'Regenerate API Suggestion';
+                    }
+                });
+            }
 
             // ── Radar chart ──────────────────────────────────────────────────
             const radarCanvas = document.getElementById('summaryRiskRadar');
@@ -520,6 +859,26 @@
                                 backgroundColor:      'transparent',
                                 borderWidth:          3,
                                 pointBackgroundColor: 'rgb(20, 184, 166)',
+                                fill:    false,
+                                tension: 0.35
+                            },
+                            {
+                                label: 'HbA1c (%)',
+                                data:  {!! json_encode($hba1cSeries) !!},
+                                borderColor:          'rgb(147, 51, 234)',
+                                backgroundColor:      'transparent',
+                                borderWidth:          3,
+                                pointBackgroundColor: 'rgb(147, 51, 234)',
+                                fill:    false,
+                                tension: 0.35
+                            },
+                            {
+                                label: 'LDL (mmol/L)',
+                                data:  {!! json_encode($ldlSeries) !!},
+                                borderColor:          'rgb(245, 158, 11)',
+                                backgroundColor:      'transparent',
+                                borderWidth:          3,
+                                pointBackgroundColor: 'rgb(245, 158, 11)',
                                 fill:    false,
                                 tension: 0.35
                             }
