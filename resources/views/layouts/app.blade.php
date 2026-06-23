@@ -145,13 +145,24 @@
                             @endif
                         </a>
 
-                        {{-- Download PDF Summary --}}
-                        <a href="{{ route('patient.summary.download') }}"
-                           class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium"
-                           style="color:#c7d2fe;border-left:4px solid transparent;">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            Download PDF
-                        </a>
+                        {{-- Health Summary PDF Options --}}
+                        <div class="rounded-xl border border-indigo-700/70 bg-indigo-950/30 p-2">
+                            <p class="px-2 pb-2 text-xs font-bold uppercase tracking-wider text-indigo-300">Health Summary PDF</p>
+                            <a href="{{ route('patient.summary.download') }}"
+                               class="flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium text-indigo-100 transition-colors hover:bg-indigo-800">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                Download PDF
+                            </a>
+                            <form action="{{ route('patient.summary.email') }}" method="POST">
+                                @csrf
+                                <button type="submit"
+                                        class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left font-medium text-indigo-100 transition-colors hover:bg-indigo-800"
+                                        title="Send to {{ Auth::user()->email }}">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 8V6a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg>
+                                    Send to Email
+                                </button>
+                            </form>
+                        </div>
 
                     @else
                         <a href="{{ route('pharmacist.dashboard') }}" 
@@ -221,6 +232,22 @@
                 </header>
 
                 <main class="min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-gray-50/50">
+                    @if(session('summary_success'))
+                        <div class="mx-auto mt-5 max-w-5xl px-4 sm:px-6 lg:px-8">
+                            <div class="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 font-semibold text-green-800 shadow-sm">
+                                {{ session('summary_success') }}
+                            </div>
+                        </div>
+                    @endif
+
+                    @if(session('summary_error'))
+                        <div class="mx-auto mt-5 max-w-5xl px-4 sm:px-6 lg:px-8">
+                            <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 font-semibold text-red-800 shadow-sm">
+                                {{ session('summary_error') }}
+                            </div>
+                        </div>
+                    @endif
+
                     {{ $slot }}
                     <footer class="text-center text-xs text-gray-400 font-medium py-4 border-t border-gray-100 mt-auto">
                         &copy; {{ date('Y') }} PharmaTrack &mdash; Smart Pharmacy System.

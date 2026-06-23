@@ -263,6 +263,7 @@ Route::middleware(['auth', 'force_password_change', 'role:pharmacist'])->group(f
     Route::post('/pharmacist/patients/{id}/ai-summary', [AiController::class, 'generatePatientSummary'])->name('pharmacist.patients.aiSummary');
     Route::get('/pharmacist/patients/{id}/risk-prediction', [HealthRiskPredictionController::class, 'show'])->name('pharmacist.patients.riskPrediction');
     Route::get('/pharmacist/patients/{id}/summary/download', [PatientController::class, 'downloadSummary'])->name('pharmacist.patients.summary.download');
+    Route::post('/pharmacist/patients/{id}/summary/email', [PatientController::class, 'emailSummary'])->name('pharmacist.patients.summary.email');
     Route::get('/pharmacist/patients/{id}/medical', [PatientController::class, 'editMedical'])->name('pharmacist.patients.medical.edit');
     Route::post('/pharmacist/patients/{id}/medical', [PatientController::class, 'updateMedical'])->name('pharmacist.patients.medical.update');
     Route::get('/pharmacist/patients/{id}/checkup', [HealthCheckupController::class, 'create'])->name('pharmacist.checkups.create');
@@ -295,6 +296,7 @@ Route::middleware(['auth', 'force_password_change', 'role:patient'])->group(func
     Route::patch('/patient/medications/{medication}', [PatientPortalController::class, 'updateMedication'])->name('patient.medications.update');
     Route::get('/patient/checkups', [PatientPortalController::class, 'checkups'])->name('patient.checkups');
     Route::get('/patient/download-summary', [PatientPortalController::class, 'downloadSummary'])->name('patient.summary.download');
+    Route::post('/patient/email-summary', [PatientPortalController::class, 'emailSummary'])->name('patient.summary.email');
     Route::get('/patient/notifications', [PatientPortalController::class, 'notifications'])->name('patient.notifications.index');
     Route::post('/patient/notifications/{id}/read', [PatientPortalController::class, 'markNotificationRead'])->name('patient.notifications.read');
 });

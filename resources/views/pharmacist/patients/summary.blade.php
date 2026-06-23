@@ -280,6 +280,22 @@
         }
     @endphp
 
+    @if(session('success'))
+        <div class="mx-auto mt-6 max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
+                {{ session('success') }}
+            </div>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="mx-auto mt-6 max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                {{ session('error') }}
+            </div>
+        </div>
+    @endif
+
     {{-- ════════════════════════════════════════════════════════════════════ --}}
     {{--  PAGE WRAPPER                                                        --}}
     {{-- ════════════════════════════════════════════════════════════════════ --}}
@@ -327,6 +343,14 @@
                                class="px-4 py-2 rounded-full bg-white text-blue-700 font-bold shadow-sm hover:bg-blue-50 transition-colors text-sm">
                                 Download Summary
                             </a>
+                            <form action="{{ route('pharmacist.patients.summary.email', $patient->id) }}" method="POST">
+                                @csrf
+                                <button type="submit"
+                                        class="px-4 py-2 rounded-full bg-cyan-950/40 border border-white/40 text-white font-bold shadow-sm hover:bg-cyan-950/60 transition-colors text-sm"
+                                        title="Send to {{ $patientEmail }}">
+                                    Send to Patient Email
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>

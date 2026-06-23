@@ -38,7 +38,7 @@ class AiController extends Controller
         ]);
 
         try {
-            $apiKey = env('GEMINI_API_KEY');
+            $apiKey = config('services.gemini.key');
 
             if (!$apiKey) {
                 return response()->json([
@@ -125,7 +125,7 @@ class AiController extends Controller
         ])->findOrFail($id);
 
         try {
-            $apiKey = env('GEMINI_API_KEY');
+            $apiKey = config('services.gemini.key');
 
             if (!$apiKey) {
                 return response()->json([

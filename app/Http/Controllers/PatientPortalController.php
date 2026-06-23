@@ -8,7 +8,10 @@ use App\Support\HealthSummaryPdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules\Password;
+use Throwable;
 
 class PatientPortalController extends Controller
 {
@@ -17,18 +20,44 @@ class PatientPortalController extends Controller
      */
     public function downloadSummary(Request $request)
     {
-        $patient = Patient::with([
-            'user',
-            'healthCheckups' => fn ($q) => $q->latest('checkup_date'),
-            'medicalHistory',
-            'medications',
-        ])->where('user_id', $request->user()->id)->firstOrFail();
+        $patient = $this->summaryPatient($request);
 
         $filename = 'my-health-summary-' . now()->format('Y-m-d') . '.pdf';
 
         return response(HealthSummaryPdf::make($patient))
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    }
+
+    /**
+     * Email the patient's own health summary PDF to their account email.
+     */
+    public function emailSummary(Request $request)
+    {
+        $patient = $this->summaryPatient($request);
+        $recipient = $request->user()->email;
+        $filename = 'my-health-summary-' . now()->format('Y-m-d') . '.pdf';
+
+        try {
+            Mail::send('emails.patient-health-summary', ['patient' => $patient], function ($message) use ($patient, $recipient, $filename) {
+                $message
+                    ->to($recipient, $patient->user->name)
+                    ->subject('Your PharmaTrack Health Summary')
+                    ->attachData(HealthSummaryPdf::make($patient), $filename, [
+                        'mime' => 'application/pdf',
+                    ]);
+            });
+        } catch (Throwable $exception) {
+            Log::error('Failed to email patient health summary.', [
+                'patient_id' => $patient->id,
+                'user_id' => $request->user()->id,
+                'exception' => $exception,
+            ]);
+
+            return back()->with('summary_error', 'The PDF could not be sent right now. Please try again later.');
+        }
+
+        return back()->with('summary_success', "Your health summary PDF has been sent to {$recipient}.");
     }
 
     /**
@@ -130,5 +159,15 @@ class PatientPortalController extends Controller
         }
 
         return redirect()->back()->with('success', 'Notification marked as read.');
+    }
+
+    private function summaryPatient(Request $request): Patient
+    {
+        return Patient::with([
+            'user',
+            'healthCheckups' => fn ($query) => $query->latest('checkup_date'),
+            'medicalHistory',
+            'medications',
+        ])->where('user_id', $request->user()->id)->firstOrFail();
     }
 }

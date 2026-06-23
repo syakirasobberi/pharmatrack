@@ -50,17 +50,8 @@
         $workflowAlerts = $healthAlerts->count() + $medicationAlerts->count() + $patientsNeedingCheckup->count();
     @endphp
 
-    <!-- Main Container with Ambient Background to prevent "kosong" look -->
-    <div class="relative min-h-screen bg-slate-50 py-8 overflow-hidden font-sans">
-        
-        <!-- Decorative Ambient Background Blobs -->
-        <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-            <div class="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-blue-300/20 blur-[100px] mix-blend-multiply"></div>
-            <div class="absolute bottom-[-10%] right-[-5%] w-[50vw] h-[50vw] rounded-full bg-indigo-300/20 blur-[120px] mix-blend-multiply"></div>
-            <div class="absolute top-[20%] right-[15%] w-[30vw] h-[30vw] rounded-full bg-cyan-200/20 blur-[90px] mix-blend-multiply"></div>
-        </div>
-
-        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <div class="min-h-screen bg-slate-50 py-8 font-sans">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
             @if(blank(auth()->user()->phone_number))
                 <div class="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900 shadow-sm">
@@ -86,7 +77,6 @@
                 
                 <!-- Inner glow/gradient -->
                 <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-
                 <div class="relative z-10">
                     <h1 class="text-3xl md:text-4xl font-extrabold mb-2 tracking-tight text-white drop-shadow-md">Welcome back, Pharmacist</h1>
                     <p class="text-blue-100/90 text-sm md:text-base font-medium max-w-xl">
@@ -105,7 +95,7 @@
             <!-- Stats Overview -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Stat Card 1 -->
-                <div class="bg-white/80 backdrop-blur-lg rounded-[1.5rem] p-6 shadow-sm hover:shadow-md border border-slate-200/60 transition-all duration-300 flex items-center gap-5 group">
+                <div class="bg-white rounded-[1.5rem] p-6 shadow-sm hover:shadow-md border border-slate-200 transition-all duration-300 flex items-center gap-5 group">
                     <div class="w-16 h-16 bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600 rounded-2xl flex items-center justify-center border border-blue-200/50 shadow-inner group-hover:scale-105 transition-transform">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m6-6a4 4 0 11-8 0 4 4 0 018 0zm6 2a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -118,7 +108,7 @@
                 </div>
 
                 <!-- Stat Card 2 -->
-                <div class="bg-white/80 backdrop-blur-lg rounded-[1.5rem] p-6 shadow-sm hover:shadow-md border border-slate-200/60 transition-all duration-300 flex items-center gap-5 group">
+                <div class="bg-white rounded-[1.5rem] p-6 shadow-sm hover:shadow-md border border-slate-200 transition-all duration-300 flex items-center gap-5 group">
                     <div class="w-16 h-16 bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center border border-emerald-200/50 shadow-inner group-hover:scale-105 transition-transform">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-3-3v6m8-3a8 8 0 11-16 0 8 8 0 0116 0z"></path>
@@ -131,7 +121,7 @@
                 </div>
 
                 <!-- Stat Card 3 -->
-                <div class="bg-white/80 backdrop-blur-lg rounded-[1.5rem] p-6 shadow-sm hover:shadow-md border border-slate-200/60 transition-all duration-300 flex items-center gap-5 group">
+                <div class="bg-white rounded-[1.5rem] p-6 shadow-sm hover:shadow-md border border-slate-200 transition-all duration-300 flex items-center gap-5 group">
                     <div class="w-16 h-16 bg-gradient-to-br from-rose-50 to-rose-100 text-rose-600 rounded-2xl flex items-center justify-center border border-rose-200/50 shadow-inner group-hover:scale-105 transition-transform">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
@@ -148,7 +138,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
                 <!-- Left Column: Patient Table -->
-                <div class="lg:col-span-2 bg-white/90 backdrop-blur-xl border border-slate-200/60 rounded-[2rem] p-7 shadow-sm">
+                <div class="lg:col-span-2 bg-white border border-slate-200 rounded-[2rem] p-7 shadow-sm">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="font-extrabold text-xl text-slate-800 flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
@@ -205,7 +195,7 @@
                 </div>
 
                 <!-- Right Column: CDSS Alerts -->
-                <div class="bg-white/90 backdrop-blur-xl border border-slate-200/60 rounded-[2rem] p-7 shadow-sm flex flex-col">
+                <div class="bg-white border border-slate-200 rounded-[2rem] p-7 shadow-sm flex flex-col">
                     <h3 class="font-extrabold text-xl text-slate-800 mb-6 flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 relative">
                             <span class="absolute -top-1 -right-1 flex h-3 w-3">

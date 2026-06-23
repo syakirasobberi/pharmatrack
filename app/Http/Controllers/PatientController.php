@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\MedicalHistory;
+use App\Models\Medication;
 use App\Models\Patient;
+use App\Models\User;
 use App\Support\HealthSummaryPdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
-use App\Models\MedicalHistory; 
-use App\Models\Medication;
+use Throwable;
 
 class PatientController extends Controller
 {
@@ -152,6 +155,42 @@ class PatientController extends Controller
         return response(HealthSummaryPdf::make($patient))
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    }
+
+    public function emailSummary(Request $request, $id)
+    {
+        $patient = $this->buildSummaryPatient($id);
+        $recipient = $patient->user->email;
+
+        if (! filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+            return back()->with('error', 'This patient does not have a valid email address.');
+        }
+
+        $filename = 'patient-health-summary-' . $patient->id . '-' . now()->format('Y-m-d') . '.pdf';
+
+        try {
+            Mail::send('emails.pharmacist-patient-health-summary', [
+                'patient' => $patient,
+                'pharmacist' => $request->user(),
+            ], function ($message) use ($patient, $recipient, $filename) {
+                $message
+                    ->to($recipient, $patient->user->name)
+                    ->subject('Your PharmaTrack Health Summary')
+                    ->attachData(HealthSummaryPdf::make($patient), $filename, [
+                        'mime' => 'application/pdf',
+                    ]);
+            });
+        } catch (Throwable $exception) {
+            Log::error('Failed to email patient health summary from pharmacist portal.', [
+                'patient_id' => $patient->id,
+                'pharmacist_id' => $request->user()->id,
+                'exception' => $exception,
+            ]);
+
+            return back()->with('error', 'The PDF could not be sent right now. Please check the server email configuration and try again.');
+        }
+
+        return back()->with('success', "The health summary PDF has been sent to {$recipient}.");
     }
 
     protected function buildSummaryPatient($id)

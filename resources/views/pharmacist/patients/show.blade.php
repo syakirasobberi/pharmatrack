@@ -574,6 +574,15 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                             Download
                         </a>
+                        <form action="{{ route('pharmacist.patients.summary.email', $patient->id) }}" method="POST" class="mt-3">
+                            @csrf
+                            <button type="submit"
+                                    class="inline-flex items-center gap-2 bg-cyan-500 text-cyan-950 font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-cyan-400 transition-colors"
+                                    title="Send to {{ $patient->user->email }}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 8V6a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+                                Send to Patient Email
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>

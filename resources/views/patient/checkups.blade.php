@@ -26,10 +26,24 @@
                         <h1 class="text-3xl font-extrabold text-gray-900 mt-1">All Checkups</h1>
                         <p class="text-sm text-gray-500 mt-2">Review every health checkup field recorded by your pharmacist.</p>
                     </div>
-                    <a href="{{ route('patient.dashboard') }}" class="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50">
-                        Back to Dashboard
-                    </a>
+                    <div class="flex flex-col gap-2 sm:flex-row">
+                        <a href="{{ route('patient.summary.download') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-700">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Download PDF
+                        </a>
+                        <form action="{{ route('patient.summary.email') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-bold text-indigo-700 hover:bg-indigo-100" title="Send to {{ auth()->user()->email }}">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 8V6a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg>
+                                Send to Email
+                            </button>
+                        </form>
+                        <a href="{{ route('patient.dashboard') }}" class="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50">
+                            Back to Dashboard
+                        </a>
+                    </div>
                 </div>
+                <p class="mt-4 text-sm text-gray-500">Email option sends the PDF to <span class="font-semibold text-gray-700">{{ auth()->user()->email }}</span>.</p>
             </div>
 
             @if($checkupAlertMessage)

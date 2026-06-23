@@ -134,10 +134,11 @@
         .logo { display: flex; align-items: center; gap: 12px; }
         .logo-icon {
             width: 48px; height: 48px; border-radius: 14px;
-            background: linear-gradient(135deg, var(--primary-l), var(--primary));
+            background: rgba(13, 148, 136, 0.1);
             display: flex; align-items: center; justify-content: center;
-            font-size: 24px; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
+            color: #0d9488; border: 1px solid rgba(13, 148, 136, 0.18);
         }
+        .logo-icon svg { width: 30px; height: 30px; }
         .logo-text { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text); }
         .logo-sub  { font-size: 0.7rem; color: var(--primary); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 
@@ -357,12 +358,24 @@
         #timeout-bar { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; overflow: hidden; }
         #timeout-fill { height: 100%; background: var(--primary-l); transition: width 1s linear; border-radius: 3px; }
 
-        .btn-back {
+        .scan-actions {
+            display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+            gap: 12px; margin-top: 10px;
+        }
+
+        .btn-back, .btn-login-instead {
             background: var(--surface-solid); color: var(--text); border: 1px solid var(--border); 
             font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; 
-            margin-top: 10px; padding: 10px 20px; border-radius: 12px; box-shadow: var(--shadow-sm);
+            padding: 10px 20px; border-radius: 12px; box-shadow: var(--shadow-sm);
+            text-decoration: none; transition: all 0.2s;
         }
         .btn-back:hover { background: var(--bg); color: var(--primary); border-color: var(--border-hover); }
+        .btn-login-instead {
+            background: var(--primary); color: #fff; border-color: var(--primary);
+        }
+        .btn-login-instead:hover {
+            background: #0284c7; border-color: #0284c7; transform: translateY(-1px);
+        }
         
         .contact-float {
             position: fixed; right: 24px; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 30;
@@ -489,7 +502,11 @@
     <div id="welcome-screen">
         <header class="header">
             <div class="logo">
-                <div class="logo-icon">💊</div>
+                <div class="logo-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-width="2" d="M12 4v16M20 12H4"/>
+                    </svg>
+                </div>
                 <div>
                     <div class="logo-text">PharmaTrack</div>
                     <div class="logo-sub">Smart Pharmacy System</div>
@@ -647,7 +664,11 @@
     <div class="kiosk">
         <header class="header">
             <div class="logo">
-                <div class="logo-icon">💊</div>
+                <div class="logo-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-width="2" d="M12 4v16M20 12H4"/>
+                    </svg>
+                </div>
                 <div>
                     <div class="logo-text">PharmaTrack</div>
                     <div class="logo-sub">Smart Pharmacy System</div>
@@ -695,10 +716,16 @@
                     <div id="timeout-bar"><div id="timeout-fill"></div></div>
                 </div>
 
-                <button class="btn-back" id="btn-back">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-                    Cancel & Return
-                </button>
+                <div class="scan-actions">
+                    <button class="btn-back" id="btn-back">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+                        Cancel & Return
+                    </button>
+                    <a href="{{ route('login') }}" class="btn-login-instead">
+                        Login Instead
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
             </div>
         </main>
         <x-footer>Facial recognition data is used strictly for localized patient identification.</x-footer>
