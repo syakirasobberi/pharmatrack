@@ -26,6 +26,11 @@ return [
         'key' => env('GEMINI_API_KEY'),
     ],
 
+    // Public "Contact Us" WhatsApp button on the front page (international format, digits only).
+    'pharmacy' => [
+        'whatsapp' => env('PHARMACY_WHATSAPP', '60125764231'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

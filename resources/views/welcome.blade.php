@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PharmaTrack — Smart Check-In</title>
     <meta name="description" content="PharmaTrack facial recognition kiosk. Walk up and scan your face to check in instantly.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -78,25 +78,6 @@
         }
         
         .ekg-container {
-            position: fixed; top: 50%; left: 0; width: 100%; height: 250px;
-            transform: translateY(-50%); z-index: 0; opacity: 0.06;
-            pointer-events: none;
-        }
-
-        .ekg-line {
-            fill: none; stroke: var(--primary); stroke-width: 3;
-            stroke-linecap: round; stroke-linejoin: round;
-            stroke-dasharray: 3000; stroke-dashoffset: 3000;
-            animation: drawEkg 8s linear infinite;
-        }
-
-        @keyframes drawEkg {
-            0% { stroke-dashoffset: 3000; }
-            50% { stroke-dashoffset: 0; }
-            100% { stroke-dashoffset: -3000; }
-        }
-        
-        .ekg-container {
             position: fixed; top: 50%; left: 0; width: 100%; height: 200px;
             transform: translateY(-50%); z-index: 0; opacity: 0.08;
             pointer-events: none;
@@ -117,6 +98,16 @@
             0% { stroke-dashoffset: 3000; }
             50% { stroke-dashoffset: 0; }
             100% { stroke-dashoffset: -3000; }
+        }
+
+        /* While the camera scan runs, drop the animated/blurred decoration so face detection gets the CPU. */
+        body.scanning .bg-blob,
+        body.scanning .ekg-container { display: none; }
+        body.scanning .glass-card { backdrop-filter: none; animation: none; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .bg-blob, .ekg-line, .glass-card, .content-section { animation: none; }
+            .ekg-line { stroke-dashoffset: 0; }
         }
 
         /* ── Modern Glassmorphism Layout ── */
@@ -206,7 +197,7 @@
         }
         .btn-start:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(14, 165, 233, 0.35); }
         
-        .login-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+        .login-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 16px; }
         
         .btn-staff {
             display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -216,6 +207,14 @@
             box-shadow: var(--shadow-sm);
         }
         .btn-staff:hover { background: var(--bg); border-color: var(--border-hover); color: var(--primary); }
+
+        /* Visible keyboard focus for every interactive element */
+        a:focus-visible, button:focus-visible {
+            outline: 3px solid var(--primary-l); outline-offset: 3px;
+        }
+        .btn-start:focus-visible, .btn-login-instead:focus-visible, .contact-float:focus-visible {
+            outline-color: var(--text);
+        }
 
         /* ── Registration Banner ── */
         .registration-banner {
@@ -252,7 +251,7 @@
         .section-header span { color: var(--primary); }
 
         .steps-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
             gap: 24px; width: 100%;
         }
 
@@ -295,6 +294,9 @@
             display: flex; align-items: center; justify-content: center;
             color: var(--primary); border: 1px solid rgba(14, 165, 233, 0.2);
         }
+
+        .feature-title { font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 12px; }
+        .feature-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.5; }
 
         /* ── Privacy Banner ── */
         .privacy-banner {
@@ -352,6 +354,25 @@
         .status-badge.success .status-dot { background: var(--secondary); animation: none; }
         .status-badge.error .status-dot { background: #ef4444; animation: none; }
         .status-badge.error { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
+
+        /* Kiosk instruction list */
+        .kiosk-steps { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; list-style: none; }
+        .kiosk-step {
+            display: flex; align-items: center; gap: 16px; padding: 16px; border-radius: 16px;
+            background: var(--surface-solid); border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+            font-size: 0.95rem; font-weight: 500; color: var(--text);
+        }
+        .kiosk-step-num {
+            width: 36px; height: 36px; border-radius: 12px; flex-shrink: 0;
+            background: rgba(14, 165, 233, 0.1); color: var(--primary);
+            display: flex; align-items: center; justify-content: center; font-weight: 800;
+        }
+
+        .btn-retry {
+            display: none; padding: 10px 20px; border-radius: 12px; border: none; cursor: pointer;
+            background: var(--primary); color: #fff; font-size: 0.9rem; font-weight: 600;
+        }
+        .btn-retry.show { display: inline-flex; }
 
         /* ── Timeout Bar ── */
         .timeout-wrap { width: 100%; max-width: 300px; display: flex; align-items: center; gap: 12px; font-size: 0.8rem; color: var(--muted); font-weight: 600; }
@@ -476,9 +497,6 @@
     <div class="bg-blob blob-1"></div>
     <div class="bg-blob blob-2"></div>
     
-    <svg class="ekg-container" viewBox="0 0 1000 100" preserveAspectRatio="none">
-        <path class="ekg-line" d="M0,50 L350,50 L370,20 L390,80 L410,50 L600,50 L620,10 L640,90 L660,50 L1000,50"></path>
-    </svg>    
     <!-- Medical EKG Animation -->
     <svg class="ekg-container" viewBox="0 0 1000 100" preserveAspectRatio="none">
         <path class="ekg-line" d="M0,50 L350,50 L370,20 L390,80 L410,50 L600,50 L620,10 L640,90 L660,50 L1000,50"></path>
@@ -518,35 +536,35 @@
             <div id="clock">--:--:--</div>
         </header>
 
-        <div class="welcome-main">
-            
+        <main class="welcome-main">
+
             <div class="welcome-hero">
-                <!-- About Section -->
-                <div class="glass-card about-card">
-                    <span class="badge">Overview</span>
-                    <div class="section-headline">Clinical Decision <span>Support System</span></div>
-                    <div class="section-desc">
-                        PharmaTrack is an AI-enabled CDSS developed to help community pharmacists operate more efficiently. It seamlessly bridges advanced biometric technology with comprehensive patient care.
-                    </div>
-                </div>
+                <!-- Check-in (primary action, shown first) -->
+                <section class="glass-card welcome-card" aria-labelledby="hero-title">
+                    <span class="badge">Patient check-in</span>
+                    <h1 class="section-headline" id="hero-title">Check in with <span>your face</span></h1>
+                    <p class="section-desc">
+                        Look at the camera, close your eyes until the beep, and your pharmacist will have your records ready. No card or password needed.
+                    </p>
 
-                <!-- Interaction Section -->
-                <div class="glass-card welcome-card">
-                    <div class="section-headline">Secure Identity <span>Verification</span></div>
-                    <div class="section-desc">
-                        Walk up and scan your face to check in instantly. Biometric login ensures your personal health data is processed safely and exclusively for rapid identity verification.
-                    </div>
-
-                    <button class="btn-start" id="btn-start-verification">
+                    <button type="button" class="btn-start" id="btn-start-verification">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                         Start Face Verification
                     </button>
 
                     <div class="login-grid">
-                        <a href="{{ route('login') }}" class="btn-staff">Patient Login</a>
-                        <a href="{{ route('login') }}" class="btn-staff">Staff Login</a>
+                        <a href="{{ route('login') }}" class="btn-staff">Log in with email (patients &amp; staff)</a>
                     </div>
-                </div>
+                </section>
+
+                <!-- About -->
+                <section class="glass-card about-card" aria-labelledby="about-title">
+                    <span class="badge">About PharmaTrack</span>
+                    <h2 class="section-headline" id="about-title">Smarter care at your <span>community pharmacy</span></h2>
+                    <p class="section-desc">
+                        PharmaTrack helps your pharmacist keep your medications and health check-ups in one place, and uses AI-assisted clinical decision support to spot possible health risks early.
+                    </p>
+                </section>
             </div>
 
             <!-- "How it Works" Steps Section -->
@@ -559,18 +577,23 @@
                 <div class="steps-grid">
                     <div class="step-card">
                         <div class="step-number">1</div>
-                        <div class="step-title">Position Your Face</div>
-                        <div class="step-desc">Simply stand in front of the kiosk and look directly into the camera frame.</div>
+                        <h3 class="step-title">Position Your Face</h3>
+                        <p class="step-desc">Simply stand in front of the kiosk and look directly into the camera frame.</p>
                     </div>
                     <div class="step-card">
                         <div class="step-number">2</div>
-                        <div class="step-title">AI Verification</div>
-                        <div class="step-desc">Our secure facial recognition model instantly matches your biometric profile.</div>
+                        <h3 class="step-title">Close Your Eyes</h3>
+                        <p class="step-desc">Close your eyes until you hear a beep, then open them. This proves a real person is in front of the camera.</p>
                     </div>
                     <div class="step-card">
                         <div class="step-number">3</div>
-                        <div class="step-title">Ready for Pharmacist</div>
-                        <div class="step-desc">Your health and medication records are automatically routed to the pharmacist.</div>
+                        <h3 class="step-title">AI Verification</h3>
+                        <p class="step-desc">Hold still with your eyes open while our facial recognition model matches your profile.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">4</div>
+                        <h3 class="step-title">Ready for Pharmacist</h3>
+                        <p class="step-desc">Your health and medication records are automatically routed to the pharmacist.</p>
                     </div>
                 </div>
 
@@ -584,7 +607,7 @@
                         </svg>
                     </div>
                     <div class="registration-content">
-                        <h3>Not registered for facial recognition yet?</h3>
+                        <h3>Not registered for face check-in yet?</h3>
                         <p>Please proceed to the pharmacy counter. Once our pharmacist registers your profile, you can use this check-in kiosk or log in to the portal instantly.</p>
                     </div>
                 </div>
@@ -593,7 +616,7 @@
             <!-- "Why PharmaTrack?" Visual Section -->
             <div class="content-section">
                 <div class="section-header">
-                    <h2>Why choose <span>PharmaTrack?</span></h2>
+                    <h2>What PharmaTrack <span>does for you</span></h2>
                 </div>
                 
                 <div class="features-grid">
@@ -604,8 +627,8 @@
                                 <path d="M9 18h6"></path><path d="M10 22h4"></path>
                             </svg>
                         </div>
-                        <div class="feature-title">AI-Enabled CDSS</div>
-                        <div class="feature-desc">A smart Clinical Decision Support System to actively assist community pharmacists in delivering precision care.</div>
+                        <h3 class="feature-title">Early Health Warnings</h3>
+                        <p class="feature-desc">AI-assisted clinical decision support helps your pharmacist spot possible health risks from your check-up results early.</p>
                     </div>
 
                     <div class="feature-card">
@@ -615,8 +638,8 @@
                                 <path d="M9 3v18"></path><path d="M14 9h4"></path><path d="M14 15h4"></path>
                             </svg>
                         </div>
-                        <div class="feature-title">Efficient Records</div>
-                        <div class="feature-desc">Manage and monitor patient health and medication records faster and more accurately through a unified dashboard.</div>
+                        <h3 class="feature-title">All Your Records in One Place</h3>
+                        <p class="feature-desc">Your medications and health check-ups are kept together, so your pharmacist sees the full picture every visit.</p>
                     </div>
 
                     <div class="feature-card">
@@ -626,8 +649,8 @@
                                 <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line>
                             </svg>
                         </div>
-                        <div class="feature-title">Frictionless Check-in</div>
-                        <div class="feature-desc">Leverage advanced facial recognition models for instant, secure, and touchless patient authentication.</div>
+                        <h3 class="feature-title">Touchless Check-in</h3>
+                        <p class="feature-desc">No card, queue number or password: check in at the kiosk with your face in a few seconds.</p>
                     </div>
                 </div>
             </div>
@@ -642,13 +665,13 @@
                 </div>
                 <div class="privacy-content">
                     <h3>Your Data is Secure</h3>
-                    <p>PharmaTrack operates under strict confidentiality protocols. Your biometric data and medical records are heavily encrypted and never shared with third parties. Facial scans are processed locally solely for identity verification.</p>
+                    <p>No photo of your face is saved. The camera image is turned into a numeric face template on this device, and only that template is sent to our server to match you against registered patients. It is used solely for identity verification.</p>
                 </div>
             </div>
 
-        </div>
+        </main>
 
-        <a class="contact-float" href="https://wa.me/60125764231" target="_blank" rel="noopener" aria-label="Contact pharmacist on WhatsApp">
+        <a class="contact-float" href="https://wa.me/{{ preg_replace('/\D+/', '', config('services.pharmacy.whatsapp')) }}" target="_blank" rel="noopener" aria-label="Contact pharmacist on WhatsApp">
             <img class="contact-pharmacist" src="{{ asset('storage/pharmacist-helper.png') }}" alt="" aria-hidden="true">
             <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M21 11.5a8.4 8.4 0 0 1-8.7 8.4 9 9 0 0 1-3.8-.8L3 21l1.8-5.2a8.2 8.2 0 0 1-1-4A8.4 8.4 0 0 1 12.3 3 8.4 8.4 0 0 1 21 11.5z"></path>
@@ -679,25 +702,16 @@
             </div>
         </header>
 
-        <main class="main">
+        <section class="main" aria-label="Face check-in">
             <!-- Left Info Panel on Scanning Screen -->
             <div class="glass-card" style="max-width: 440px; width: 100%;">
-                <div class="section-headline" style="font-size: clamp(2rem, 5vw, 2.5rem);">Ready to verify your <span>identity</span></div>
-                
-                <div class="steps-grid" style="display:flex; flex-direction:column; gap:12px; margin-top:24px;">
-                    <div style="display:flex; align-items:center; gap:16px; padding:16px; border-radius:16px; background:var(--surface-solid); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
-                        <div style="width:36px; height:36px; border-radius:12px; flex-shrink:0; background:rgba(14,165,233,0.1); color:var(--primary); display:flex; align-items:center; justify-content:center; font-weight:800;">1</div>
-                        <div style="font-size:0.95rem; font-weight:500; color:var(--text);">Face the camera directly</div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:16px; padding:16px; border-radius:16px; background:var(--surface-solid); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
-                        <div style="width:36px; height:36px; border-radius:12px; flex-shrink:0; background:rgba(14,165,233,0.1); color:var(--primary); display:flex; align-items:center; justify-content:center; font-weight:800;">2</div>
-                        <div style="font-size:0.95rem; font-weight:500; color:var(--text);">Close your eyes until the beep, then open them</div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:16px; padding:16px; border-radius:16px; background:var(--surface-solid); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
-                        <div style="width:36px; height:36px; border-radius:12px; flex-shrink:0; background:rgba(14,165,233,0.1); color:var(--primary); display:flex; align-items:center; justify-content:center; font-weight:800;">3</div>
-                        <div style="font-size:0.95rem; font-weight:500; color:var(--text);">Records retrieved instantly</div>
-                    </div>
-                </div>
+                <h2 class="section-headline" style="font-size: clamp(2rem, 5vw, 2.5rem);">Ready to verify your <span>identity</span></h2>
+
+                <ol class="kiosk-steps">
+                    <li class="kiosk-step"><span class="kiosk-step-num" aria-hidden="true">1</span>Face the camera directly</li>
+                    <li class="kiosk-step"><span class="kiosk-step-num" aria-hidden="true">2</span>Close your eyes until the beep, then open them</li>
+                    <li class="kiosk-step"><span class="kiosk-step-num" aria-hidden="true">3</span>Records retrieved instantly</li>
+                </ol>
             </div>
 
             <div class="cam-panel">
@@ -707,12 +721,12 @@
                     <canvas id="overlay-canvas"></canvas>
                 </div>
                 
-                <div class="status-badge" id="status-badge">
-                    <div class="status-dot" id="status-dot"></div>
+                <div class="status-badge" id="status-badge" role="status" aria-live="polite">
+                    <div class="status-dot" id="status-dot" aria-hidden="true"></div>
                     <span id="status-text">Initializing AI Engine…</span>
                 </div>
 
-                <select id="camera-select" style="display:none;"></select>
+                <button type="button" class="btn-retry" id="btn-retry">Try again</button>
 
                 <div class="timeout-wrap">
                     <span id="timeout-label">30s</span>
@@ -720,7 +734,7 @@
                 </div>
 
                 <div class="scan-actions">
-                    <button class="btn-back" id="btn-back">
+                    <button type="button" class="btn-back" id="btn-back">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
                         Cancel & Return
                     </button>
@@ -730,13 +744,10 @@
                     </a>
                 </div>
             </div>
-        </main>
+        </section>
         <x-footer>Facial recognition data is used strictly for localized patient identification.</x-footer>
     </div>
 
-    <!-- Script dependencies exactly as original -->
-    <script src="{{ asset('js/face-api.min.js') }}"></script>
-    <script src="{{ asset('js/face-utils.js') }}"></script>
     <script>
     const clockEl = document.getElementById('clock');
     const tick = () => {
@@ -745,9 +756,35 @@
     };
     tick(); setInterval(tick, 1000);
 
-    document.getElementById('btn-start-verification').addEventListener('click', async () => {
+    // face-api.js is large, so it is only downloaded when someone actually starts a check-in
+    // (or hovers/focuses the button, to get a head start).
+    let faceLibsPromise = null;
+    function loadScript(src) {
+        return new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = src;
+            s.onload = resolve;
+            s.onerror = () => reject(new Error(`Failed to load ${src}`));
+            document.head.appendChild(s);
+        });
+    }
+    function loadFaceLibs() {
+        if (!faceLibsPromise) {
+            faceLibsPromise = loadScript('{{ asset("js/face-api.min.js") }}')
+                .then(() => loadScript('{{ asset("js/face-utils.js") }}'))
+                .catch((e) => { faceLibsPromise = null; throw e; }); // allow a retry after a network error
+        }
+        return faceLibsPromise;
+    }
+
+    const startBtn = document.getElementById('btn-start-verification');
+    ['pointerenter', 'focus', 'touchstart'].forEach(evt =>
+        startBtn.addEventListener(evt, () => { loadFaceLibs().catch(() => {}); }, { once: true, passive: true }));
+
+    startBtn.addEventListener('click', async () => {
         document.getElementById('welcome-screen').style.display = 'none';
         document.querySelector('.kiosk').style.display = 'flex';
+        document.body.classList.add('scanning');
         await startVerification();
     });
 
@@ -760,7 +797,12 @@
         window._toastTimer = setTimeout(() => { toast.style.display = 'none'; }, ms);
     }
 
-    function cancelVerification(toastMsg = null) {
+    // Each start gets a new session number; anything left over from an earlier attempt checks it and stops.
+    window._kioskSession = 0;
+
+    // Stops the camera and every timer of the current attempt.
+    function stopScan() {
+        window._kioskSession++;
         if (window._kioskStream) {
             window._kioskStream.getTracks().forEach(t => t.stop());
             window._kioskStream = null;
@@ -771,16 +813,25 @@
 
         const fill = document.getElementById('timeout-fill');
         if (fill) fill.style.width = '100%';
+        document.getElementById('btn-retry').classList.remove('show');
+    }
 
+    function cancelVerification(toastMsg = null) {
+        stopScan();
         document.querySelector('.kiosk').style.display = 'none';
         document.getElementById('welcome-screen').style.display = 'flex';
+        document.body.classList.remove('scanning');
 
         if (toastMsg) { showToast(toastMsg); }
     }
 
     document.getElementById('btn-back').addEventListener('click', () => { cancelVerification(); });
+    document.getElementById('btn-retry').addEventListener('click', () => { startVerification(); });
 
     async function startVerification() {
+        stopScan(); // clean up anything left from a previous attempt (e.g. after "Try again")
+        const session = ++window._kioskSession;
+        const isStale = () => session !== window._kioskSession;
         const video = document.getElementById('video');
         const canvas = document.getElementById('overlay-canvas');
         const statusBadge = document.getElementById('status-badge');
@@ -789,7 +840,9 @@
         const scanLine = document.getElementById('scan-line');
         const successOv = document.getElementById('success-overlay');
         const successName = document.getElementById('success-name');
-        
+        const retryBtn = document.getElementById('btn-retry');
+        scanLine.style.display = '';
+
         // Matching happens on the server: we only send the descriptor of the face in front of the camera.
         const IDENTIFY_INTERVAL_MS = 2000;
         let modelsReady = false;
@@ -798,11 +851,16 @@
 
         setStatus('Loading AI models…', 'info');
         try {
+            await loadFaceLibs();
+            if (isStale()) return;
             await FaceUtils.loadModels('{{ asset("models") }}');
         } catch (e) {
-            setStatus('AI model files not found.', 'error');
+            if (isStale()) return;
+            setStatus('Could not load the face recognition engine. Check the connection and try again.', 'error');
+            retryBtn.classList.add('show');
             return;
         }
+        if (isStale()) return; // user cancelled while the models were loading
 
         modelsReady = true;
 
@@ -829,15 +887,22 @@
         async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                if (isStale()) { stream.getTracks().forEach(t => t.stop()); return; }
                 window._kioskStream = stream;
                 video.srcObject = stream;
                 setStatus('System live — scanning for faces…', 'info');
             } catch (e) {
-                setStatus('Could not start camera.', 'error');
+                if (isStale()) return;
+                setStatus('Could not start the camera. Allow camera access, then try again.', 'error');
+                retryBtn.classList.add('show');
             }
         }
 
-        video.addEventListener('play', () => {
+        // Replace (not add to) the previous attempt's handler, otherwise every retry starts another scan loop.
+        if (window._kioskPlayHandler) video.removeEventListener('play', window._kioskPlayHandler);
+        window._kioskPlayHandler = () => {
+            if (isStale()) return;
+            if (window._scanInterval) clearInterval(window._scanInterval);
             const displaySize = { width: video.clientWidth, height: video.clientHeight };
             canvas.width = displaySize.width;
             canvas.height = displaySize.height;
@@ -875,7 +940,8 @@
 
             let busy = false;
             // Runs as fast as the PC allows: the cheap 'liveness' phase must be quick enough to catch a blink.
-            window._scanInterval = setInterval(async () => {
+            const scanId = window._scanInterval = setInterval(async () => {
+                if (isStale()) { clearInterval(scanId); return; }
                 if (busy || !modelsReady || redirecting) return;
                 busy = true;
 
@@ -984,7 +1050,8 @@
                     busy = false;
                 }
             }, 30);
-        });
+        };
+        video.addEventListener('play', window._kioskPlayHandler);
 
         function setStatus(msg, state) {
             statusText.textContent = msg;
