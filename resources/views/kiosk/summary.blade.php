@@ -306,9 +306,9 @@
                                             @error('report_source', 'kioskCheckup')<span class="text-xs text-red-600 font-bold mt-1 block">{{ $message }}</span>@enderror
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5" for="kiosk-checkup-code">Pharmacist Code</label>
-                                            <input id="kiosk-checkup-code" type="password" name="pharmacist_code" class="w-full rounded-xl border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none transition-all" required>
-                                            @error('pharmacist_code', 'kioskCheckup')<span class="text-xs text-red-600 font-bold mt-1 block">{{ $message }}</span>@enderror
+                                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5" for="kiosk-checkup-code">Pharmacist Kiosk PIN</label>
+                                            <input id="kiosk-checkup-code" type="password" name="kiosk_pin" inputmode="numeric" autocomplete="off" class="w-full rounded-xl border-slate-200 bg-slate-50 border px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none transition-all" required>
+                                            @error('kiosk_pin', 'kioskCheckup')<span class="text-xs text-red-600 font-bold mt-1 block">{{ $message }}</span>@enderror
                                         </div>
                                     </div>
                                 </div>
@@ -469,11 +469,12 @@
                             <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Drug Allergies</label><input type="text" name="drug_allergies" value="{{ old('drug_allergies', optional($medicalHistory)->drug_allergies) }}" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none"></div>
                             <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Other Conditions</label><input type="text" name="others" value="{{ old('others', optional($medicalHistory)->others) }}" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none"></div>
                             <div class="md:col-span-2">
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pharmacist Code <span class="text-red-500">*</span></label>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pharmacist Kiosk PIN <span class="text-red-500">*</span></label>
                                 <div class="flex gap-3 items-center">
-                                    <input type="password" name="pharmacist_code" class="w-full md:w-1/2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none" required>
+                                    <input type="password" name="kiosk_pin" inputmode="numeric" autocomplete="off" class="w-full md:w-1/2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none" required>
                                     <button type="submit" class="px-5 py-2 rounded-xl bg-teal-600 text-white font-bold text-sm hover:bg-teal-700 transition-colors">Save Updates</button>
                                 </div>
+                                @error('kiosk_pin', 'kioskMedical')<span class="text-xs text-red-600 font-bold mt-1 block">{{ $message }}</span>@enderror
                             </div>
                         </form>
                     </details>

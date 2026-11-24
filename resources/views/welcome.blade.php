@@ -485,7 +485,10 @@
     </svg>
 
     <!-- Timeout toast -->
-    <div id="verify-toast" style="display:none;">
+    <div id="verify-toast" role="status" aria-live="polite"
+         style="display:none; position:fixed; left:50%; bottom:32px; transform:translateX(-50%); z-index:1000; max-width:90vw;
+                padding:14px 22px; border-radius:14px; background:#7f1d1d; color:#fff; font-weight:600; font-size:15px;
+                box-shadow:0 10px 30px rgba(0,0,0,.25);">
         <span id="toast-msg">Face not recognised. Please contact staff.</span>
     </div>
 
@@ -688,7 +691,7 @@
                     </div>
                     <div style="display:flex; align-items:center; gap:16px; padding:16px; border-radius:16px; background:var(--surface-solid); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
                         <div style="width:36px; height:36px; border-radius:12px; flex-shrink:0; background:rgba(14,165,233,0.1); color:var(--primary); display:flex; align-items:center; justify-content:center; font-weight:800;">2</div>
-                        <div style="font-size:0.95rem; font-weight:500; color:var(--text);">Wait for AI verification</div>
+                        <div style="font-size:0.95rem; font-weight:500; color:var(--text);">Close your eyes until the beep, then open them</div>
                     </div>
                     <div style="display:flex; align-items:center; gap:16px; padding:16px; border-radius:16px; background:var(--surface-solid); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
                         <div style="width:36px; height:36px; border-radius:12px; flex-shrink:0; background:rgba(14,165,233,0.1); color:var(--primary); display:flex; align-items:center; justify-content:center; font-weight:800;">3</div>
@@ -733,6 +736,7 @@
 
     <!-- Script dependencies exactly as original -->
     <script src="{{ asset('js/face-api.min.js') }}"></script>
+    <script src="{{ asset('js/face-utils.js') }}"></script>
     <script>
     const clockEl = document.getElementById('clock');
     const tick = () => {
@@ -746,6 +750,15 @@
         document.querySelector('.kiosk').style.display = 'flex';
         await startVerification();
     });
+
+    // Non-blocking message (an alert() would freeze an unattended kiosk until someone clicks OK).
+    function showToast(message, ms = 5000) {
+        const toast = document.getElementById('verify-toast');
+        document.getElementById('toast-msg').textContent = message;
+        toast.style.display = 'block';
+        clearTimeout(window._toastTimer);
+        window._toastTimer = setTimeout(() => { toast.style.display = 'none'; }, ms);
+    }
 
     function cancelVerification(toastMsg = null) {
         if (window._kioskStream) {
@@ -762,7 +775,7 @@
         document.querySelector('.kiosk').style.display = 'none';
         document.getElementById('welcome-screen').style.display = 'flex';
 
-        if (toastMsg) { alert(toastMsg); /* Fallback or replace with toast element logic */ }
+        if (toastMsg) { showToast(toastMsg); }
     }
 
     document.getElementById('btn-back').addEventListener('click', () => { cancelVerification(); });
@@ -777,43 +790,21 @@
         const successOv = document.getElementById('success-overlay');
         const successName = document.getElementById('success-name');
         
-        const THRESHOLD = 0.45;
-        let faceMatcher = null;
+        // Matching happens on the server: we only send the descriptor of the face in front of the camera.
+        const IDENTIFY_INTERVAL_MS = 2000;
+        let modelsReady = false;
         let redirecting = false;
-
-        let registeredPatients = [];
-        try {
-            const res = await fetch('{{ route("kiosk.patients") }}');
-            registeredPatients = await res.json();
-        } catch (e) {
-            setStatus('Could not load patient data.', 'error');
-        }
+        let lastIdentifyAt = 0;
 
         setStatus('Loading AI models…', 'info');
         try {
-            await Promise.all([
-                faceapi.nets.ssdMobilenetv1.loadFromUri('{{ asset("models") }}'),
-                faceapi.nets.faceLandmark68Net.loadFromUri('{{ asset("models") }}'),
-                faceapi.nets.faceRecognitionNet.loadFromUri('{{ asset("models") }}'),
-            ]);
+            await FaceUtils.loadModels('{{ asset("models") }}');
         } catch (e) {
             setStatus('AI model files not found.', 'error');
             return;
         }
 
-        const labeled = registeredPatients.flatMap(p => {
-            try {
-                const d = JSON.parse(p.face_descriptor);
-                if (!Array.isArray(d) || d.length !== 128) return [];
-                return [new faceapi.LabeledFaceDescriptors(p.id.toString(), [new Float32Array(d)])];
-            } catch { return []; }
-        });
-
-        if (labeled.length === 0) {
-            setStatus('No patient face data registered yet.', 'error');
-        } else {
-            faceMatcher = new faceapi.FaceMatcher(labeled, THRESHOLD);
-        }
+        modelsReady = true;
 
         startCamera();
 
@@ -852,65 +843,147 @@
             canvas.height = displaySize.height;
             faceapi.matchDimensions(canvas, displaySize);
 
-            let busy = false;
-            window._scanInterval = setInterval(async () => {
-                if (busy || !faceMatcher || redirecting) return;
-                busy = true;
+            // Liveness + identification state
+            const blink = new FaceUtils.BlinkDetector(() => FaceUtils.beep()); // beep = "you can open your eyes"
+            const REQUIRED_FRAMES = 3;          // eyes-open frames sent to the server together
+            const tick = FaceUtils.fpsMeter();
+            let phase = 'liveness';             // 'liveness' (fast models, wait for blink) -> 'describe' (fingerprint frames)
+            let recent = [];                    // descriptors collected in the 'describe' phase
+            let describeAttempts = 0;
+            let missedFrames = 0;
 
+            const resetLiveness = () => { blink.reset(); recent = []; describeAttempts = 0; phase = 'liveness'; };
+            const debug = (msg) => FaceUtils.DEBUG
+                ? `${msg}  [${tick()} fps, eye ${blink.lastEar?.toFixed(3) ?? '-'} / base ${blink.baseline?.toFixed(3) ?? '-'}]`
+                : msg;
+
+            const drawBox = (detection, ok) => {
                 const currentSize = { width: video.clientWidth, height: video.clientHeight };
-                if(canvas.width !== currentSize.width) {
+                if (canvas.width !== currentSize.width) {
                     canvas.width = currentSize.width;
                     canvas.height = currentSize.height;
                     faceapi.matchDimensions(canvas, currentSize);
                 }
-
-                const detection = await faceapi.detectSingleFace(video).withFaceLandmarks().withFaceDescriptor();
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                if (!detection) {
-                    setStatus('No face detected — please look at the camera.', 'info');
-                    busy = false; return;
-                }
-
-                const resized = faceapi.resizeResults(detection, currentSize);
-                const box = resized.detection.box;
-                ctx.strokeStyle = '#0ea5e9';
+                if (!detection) return;
+                const box = faceapi.resizeResults(detection, currentSize).detection.box;
+                ctx.strokeStyle = ok ? '#0ea5e9' : '#f59e0b';
                 ctx.lineWidth = 3;
                 ctx.strokeRect(box.x, box.y, box.width, box.height);
+            };
 
-                const match = faceMatcher.findBestMatch(detection.descriptor);
+            let busy = false;
+            // Runs as fast as the PC allows: the cheap 'liveness' phase must be quick enough to catch a blink.
+            window._scanInterval = setInterval(async () => {
+                if (busy || !modelsReady || redirecting) return;
+                busy = true;
 
-                if (match.label !== 'unknown' && match.distance <= THRESHOLD) {
-                    redirecting = true;
-                    clearInterval(window._scanInterval);
-                    clearTimeout(window._verifyTimeout);
-                    clearInterval(window._countdownInt);
-                    setStatus('Patient identified! Redirecting…', 'success');
-                    scanLine.style.display = 'none';
+                try {
+                    if (phase === 'liveness') {
+                        const detection = await FaceUtils.detectFast(video);
+                        const quality = FaceUtils.checkQuality(detection, video.videoWidth);
+                        const blinkedNow = detection && quality.ok ? blink.update(detection.landmarks) : blink.blinked;
 
-                    const p = registeredPatients.find(x => x.id.toString() === match.label);
-                    successName.textContent = p ? `Welcome, ${p.name}!` : 'Face Recognized';
-                    successOv.classList.add('show');
-
-                    setTimeout(async () => {
-                        try {
-                            const res = await fetch(`/kiosk/auth/${match.label}`, {
-                                method: 'POST',
-                                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-                            });
-                            const data = await res.json();
-                            window.location.href = data.redirect;
-                        } catch (e) {
-                            window.location.href = `/kiosk/summary/${match.label}`;
+                        if (!detection) {
+                            drawBox(null);
+                            // Face gone for a while: someone else may step in, so start the liveness check over.
+                            if (++missedFrames > 8) resetLiveness();
+                            setStatus(debug('No face detected — please look at the camera.'), 'info');
+                            return;
                         }
-                    }, 2000);
-                } else {
-                    setStatus('Face detected — verifying identity…', 'info');
-                }
+                        missedFrames = 0;
 
-                busy = false;
-            }, 700);
+                        drawBox(detection, quality.ok);
+                        if (!quality.ok) {
+                            setStatus(debug(quality.reason), 'info');
+                            return;
+                        }
+
+                        if (blinkedNow) {
+                            phase = 'describe';
+                            setStatus(debug('Liveness confirmed ✓ — hold still with eyes open…'), 'info');
+                        } else if (blink.closed) {
+                            setStatus(debug('Eyes closed ✓ — open your eyes now.'), 'info');
+                        } else {
+                            setStatus(debug('Close your eyes until you hear a beep, then open them.'), 'info');
+                        }
+                        return;
+                    }
+
+                    // phase === 'describe': fingerprint a few frames with eyes open.
+                    const result = await FaceUtils.describe(video);
+                    describeAttempts++;
+                    const quality = FaceUtils.checkQuality(result, video.videoWidth);
+                    drawBox(result, quality.ok);
+
+                    const eyesOpen = result && FaceUtils.averageEar(result.landmarks) > (blink.baseline || 0.25) * 0.85;
+                    if (quality.ok && eyesOpen) {
+                        const d = Array.from(result.descriptor);
+                        if (recent.length && FaceUtils.euclidean(d, recent[0]) > 0.45) {
+                            resetLiveness(); // a different face appeared
+                            setStatus(debug('Face changed — please close your eyes again until the beep.'), 'info');
+                            return;
+                        }
+                        recent.push(d);
+                    }
+
+                    if (recent.length < REQUIRED_FRAMES) {
+                        if (describeAttempts > 10) {
+                            resetLiveness();
+                            setStatus(debug('Could not get a clear view — face the camera and close your eyes again until the beep.'), 'info');
+                        } else {
+                            setStatus(debug(`Liveness confirmed ✓ — hold still… (${recent.length}/${REQUIRED_FRAMES})`), 'info');
+                        }
+                        return;
+                    }
+
+                    // Don't hammer the server: one identification request every couple of seconds.
+                    if (Date.now() - lastIdentifyAt < IDENTIFY_INTERVAL_MS) return;
+                    lastIdentifyAt = Date.now();
+
+                    setStatus('Verifying identity…', 'info');
+                    let data = null;
+                    try {
+                        const res = await fetch('{{ route("kiosk.identify") }}', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ descriptors: recent.slice(0, 5) }),
+                        });
+                        if (res.status === 429) {
+                            setStatus('Too many attempts — please wait a moment.', 'error');
+                        } else if (res.ok) {
+                            data = await res.json();
+                        } else {
+                            setStatus('Not recognised yet — look straight at the camera, then close your eyes until the beep.', 'info');
+                        }
+                    } catch (e) {
+                        setStatus('Could not reach the server.', 'error');
+                    }
+
+                    if (data && data.matched) {
+                        redirecting = true;
+                        clearInterval(window._scanInterval);
+                        clearTimeout(window._verifyTimeout);
+                        clearInterval(window._countdownInt);
+                        setStatus('Patient identified! Redirecting…', 'success');
+                        scanLine.style.display = 'none';
+
+                        successName.textContent = `Welcome, ${data.name}!`;
+                        successOv.classList.add('show');
+
+                        setTimeout(() => { window.location.href = data.redirect; }, 2000);
+                    } else {
+                        resetLiveness(); // require a fresh blink before the next attempt
+                    }
+                } finally {
+                    busy = false;
+                }
+            }, 30);
         });
 
         function setStatus(msg, state) {

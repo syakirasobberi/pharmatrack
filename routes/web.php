@@ -4,205 +4,37 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AiController;
 use App\Http\Controllers\HealthRiskPredictionController;
 use App\Http\Controllers\HealthCheckupController;
+use App\Http\Controllers\KioskController;
+use App\Http\Controllers\KioskPinController;
 use App\Http\Controllers\MedicationController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientPortalController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
-use App\Models\HealthCheckup;
-use App\Models\MedicalHistory;
 use App\Models\Patient;
-use App\Support\HealthSummaryPdf;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
-// Public kiosk endpoint — returns only the data needed for face matching (no sensitive info)
-Route::get('/kiosk/patients', function () {
-    $patients = \App\Models\Patient::with('user')
-        ->whereNotNull('face_descriptor')
-        ->where('face_descriptor', '!=', '')
-        ->get(['id', 'user_id', 'face_descriptor'])
-        ->map(function ($p) {
-            return [
-                'id'              => $p->id,
-                'name'            => $p->user?->name ?? 'Patient',
-                'face_descriptor' => $p->face_descriptor,
-            ];
-        });
-    return response()->json($patients);
-})->name('kiosk.patients');
+// Kiosk: the browser computes a face descriptor and the server does the matching,
+// so stored biometric data and patient names are never sent to the client.
+Route::post('/kiosk/identify', [KioskController::class, 'identify'])
+    ->middleware('throttle:kiosk-identify')
+    ->name('kiosk.identify');
 
-// Kiosk face-recognition authentication — sets a short-lived session token
-Route::post('/kiosk/auth/{id}', function ($id) {
-    $patient = \App\Models\Patient::findOrFail($id);
-    session(['kiosk_patient_id' => $patient->id, 'kiosk_auth_at' => now()->timestamp]);
-    return response()->json(['redirect' => route('kiosk.summary', $id)]);
-})->name('kiosk.auth');
-
-// Kiosk summary — accessible only if session was set by face recognition above
-Route::get('/kiosk/summary/{id}', function ($id) {
-    // Validate session: must exist and be less than 10 minutes old
-    $kioskId  = session('kiosk_patient_id');
-    $kioskAt  = session('kiosk_auth_at');
-    $expired  = !$kioskAt || (now()->timestamp - $kioskAt) > 600;
-
-    if ((string) $kioskId !== (string) $id || $expired) {
-        session()->forget(['kiosk_patient_id', 'kiosk_auth_at']);
-        return redirect()->route('welcome')->with('error', 'Session expired. Please scan your face again.');
-    }
-
-    $patient = \App\Models\Patient::with([
-        'user',
-        'healthCheckups' => fn ($q) => $q->latest('checkup_date'),
-        'medicalHistory',
-        'medications',
-    ])->findOrFail($id);
-
-    return view('kiosk.summary', compact('patient'));
-})->name('kiosk.summary');
-
-Route::get('/kiosk/summary/{id}/download', function ($id) {
-    $kioskId  = session('kiosk_patient_id');
-    $kioskAt  = session('kiosk_auth_at');
-    $expired  = !$kioskAt || (now()->timestamp - $kioskAt) > 600;
-
-    if ((string) $kioskId !== (string) $id || $expired) {
-        session()->forget(['kiosk_patient_id', 'kiosk_auth_at']);
-        return redirect()->route('welcome')->with('error', 'Session expired. Please scan your face again.');
-    }
-
-    $patient = Patient::with([
-        'user',
-        'pharmacist',
-        'healthCheckups' => fn ($query) => $query->latest('checkup_date'),
-        'medicalHistory',
-        'medications',
-    ])->findOrFail($id);
-
-    $filename = 'kiosk-health-summary-' . $patient->id . '-' . now()->format('Y-m-d') . '.pdf';
-
-    return response(HealthSummaryPdf::make($patient))
-        ->header('Content-Type', 'application/pdf')
-        ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
-})->name('kiosk.summary.download');
-
-Route::post('/kiosk/summary/{id}/medical-history', function (Request $request, $id) {
-    $kioskId  = session('kiosk_patient_id');
-    $kioskAt  = session('kiosk_auth_at');
-    $expired  = !$kioskAt || (now()->timestamp - $kioskAt) > 600;
-
-    if ((string) $kioskId !== (string) $id || $expired) {
-        session()->forget(['kiosk_patient_id', 'kiosk_auth_at']);
-        return redirect()->route('welcome')->with('error', 'Session expired. Please scan your face again.');
-    }
-
-    $patient = Patient::with(['medicalHistory', 'pharmacist'])->findOrFail($id);
-    $pharmacist = $patient->pharmacist;
-
-    $validated = $request->validateWithBag('kioskMedical', [
-        'hypertension' => ['required', 'string', 'max:255'],
-        'diabetes' => ['required', 'string', 'max:255'],
-        'allergies' => ['nullable', 'string', 'max:255'],
-        'drug_allergies' => ['nullable', 'string', 'max:255'],
-        'others' => ['nullable', 'string', 'max:255'],
-        'pharmacist_code' => ['required', 'string'],
-    ]);
-
-    if (! $pharmacist || $pharmacist->role !== 'pharmacist' || ! Hash::check($validated['pharmacist_code'], $pharmacist->password)) {
-        return back()
-            ->withErrors(['pharmacist_code' => 'Invalid pharmacist code for this patient.'], 'kioskMedical')
-            ->withInput($request->except('pharmacist_code'));
-    }
-
-    MedicalHistory::updateOrCreate(
-        ['patient_id' => $patient->id],
-        [
-            'hypertension' => $validated['hypertension'],
-            'diabetes' => $validated['diabetes'],
-            'allergies' => $validated['allergies'] ?? null,
-            'drug_allergies' => $validated['drug_allergies'] ?? null,
-            'others' => $validated['others'] ?? null,
-        ]
-    );
-
-    return redirect()
-        ->route('kiosk.summary', $patient->id)
-        ->with('kiosk_medical_success', 'Medical record updated successfully.');
-})->name('kiosk.medical.update');
-
-Route::post('/kiosk/summary/{id}/checkups', function (Request $request, $id) {
-    $kioskId  = session('kiosk_patient_id');
-    $kioskAt  = session('kiosk_auth_at');
-    $expired  = !$kioskAt || (now()->timestamp - $kioskAt) > 600;
-
-    if ((string) $kioskId !== (string) $id || $expired) {
-        session()->forget(['kiosk_patient_id', 'kiosk_auth_at']);
-        return redirect()->route('welcome')->with('error', 'Session expired. Please scan your face again.');
-    }
-
-    $patient = Patient::with('pharmacist')->findOrFail($id);
-    $pharmacist = $patient->pharmacist;
-
-    $validated = $request->validateWithBag('kioskCheckup', [
-        'checkup_date' => ['required', 'date'],
-        'report_source' => ['nullable', 'string', 'max:255'],
-        'patient_weight' => ['nullable', 'required_with:patient_height', 'numeric', 'min:1', 'max:300'],
-        'patient_height' => ['nullable', 'required_with:patient_weight', 'numeric', 'min:1', 'max:250'],
-        'blood_pressure' => ['nullable', 'string', 'max:255'],
-        'heart_rate' => ['nullable', 'integer', 'min:30', 'max:250'],
-        'haemoglobin' => ['nullable', 'numeric', 'min:0', 'max:30'],
-        'blood_sugar' => ['nullable', 'numeric', 'min:0', 'max:50'],
-        'hba1c' => ['nullable', 'numeric', 'min:3', 'max:20'],
-        'albumin_globulin_ratio' => ['nullable', 'numeric', 'min:0', 'max:10'],
-        'alkaline_phosphatase' => ['nullable', 'numeric', 'min:0', 'max:2000'],
-        'aspartate_transaminase' => ['nullable', 'numeric', 'min:0', 'max:2000'],
-        'alanine_transaminase' => ['nullable', 'numeric', 'min:0', 'max:2000'],
-        'gamma_glutamyl_transferase' => ['nullable', 'numeric', 'min:0', 'max:2000'],
-        'sodium' => ['nullable', 'numeric', 'min:80', 'max:200'],
-        'renal_glucose' => ['nullable', 'numeric', 'min:0', 'max:50'],
-        'cholesterol' => ['nullable', 'numeric', 'min:0', 'max:30'],
-        'ldl' => ['nullable', 'numeric', 'min:0', 'max:20'],
-        'hdl' => ['nullable', 'numeric', 'min:0', 'max:10'],
-        'notes' => ['nullable', 'string', 'max:2000'],
-        'pharmacist_code' => ['required', 'string'],
-    ]);
-
-    if (! $pharmacist || $pharmacist->role !== 'pharmacist' || ! Hash::check($validated['pharmacist_code'], $pharmacist->password)) {
-        return back()
-            ->withErrors(['pharmacist_code' => 'Invalid pharmacist code for this patient.'], 'kioskCheckup')
-            ->withInput($request->except('pharmacist_code'));
-    }
-
-    $checkupData = $validated;
-    unset($checkupData['patient_weight'], $checkupData['patient_height'], $checkupData['pharmacist_code']);
-
-    DB::transaction(function () use ($patient, $pharmacist, $validated, $checkupData) {
-        if (isset($validated['patient_weight'], $validated['patient_height'])) {
-            $heightInMeters = (float) $validated['patient_height'] / 100;
-
-            $patient->update([
-                'weight' => $validated['patient_weight'],
-                'height' => $validated['patient_height'],
-                'bmi' => $validated['patient_weight'] / ($heightInMeters * $heightInMeters),
-            ]);
-        }
-
-        HealthCheckup::create(array_merge($checkupData, [
-            'patient_id' => $patient->id,
-            'pharmacist_id' => $pharmacist->id,
-        ]));
-    });
-
-    return redirect()
-        ->route('kiosk.summary', $patient->id)
-        ->with('kiosk_checkup_success', 'New check-up recorded successfully.');
-})->name('kiosk.checkups.store');
+// Kiosk summary routes: only reachable after a successful server-side face match (10-minute window).
+Route::middleware('kiosk.session')->prefix('kiosk/summary/{id}')->whereNumber('id')->group(function () {
+    Route::get('/', [KioskController::class, 'summary'])->name('kiosk.summary');
+    Route::get('/download', [KioskController::class, 'download'])->name('kiosk.summary.download');
+    Route::post('/medical-history', [KioskController::class, 'updateMedical'])
+        ->middleware('throttle:kiosk-write')
+        ->name('kiosk.medical.update');
+    Route::post('/checkups', [KioskController::class, 'storeCheckup'])
+        ->middleware('throttle:kiosk-write')
+        ->name('kiosk.checkups.store');
+});
 
 Route::get('/dashboard', function () {
     return match (request()->user()->role) {
@@ -220,6 +52,9 @@ Route::middleware(['auth', 'force_password_change'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::put('/profile/kiosk-pin', [KioskPinController::class, 'update'])
+        ->middleware('throttle:6,1')
+        ->name('profile.kiosk-pin.update');
 });
 
 require __DIR__ . '/auth.php';

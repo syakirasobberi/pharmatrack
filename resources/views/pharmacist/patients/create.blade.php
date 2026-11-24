@@ -8,7 +8,18 @@
     <div class="py-8 sm:py-12">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm rounded-2xl sm:rounded-lg p-4 sm:p-6">
-                
+
+                @if ($errors->any())
+                    <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800" role="alert">
+                        <p class="font-bold">Patient could not be saved. Please correct the fields below.</p>
+                        <ul class="mt-2 list-disc space-y-1 pl-5 text-sm">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <form id="patient-form" action="{{ route('pharmacist.patients.store') }}" method="POST">
                     @csrf
                     
@@ -16,22 +27,26 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Full Name</label>
-                            <input type="text" name="name" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                            <input type="text" name="name" value="{{ old('name') }}" required class="mt-1 block w-full rounded-md shadow-sm {{ $errors->has('name') ? 'border-red-400' : 'border-gray-300' }}">
+                            @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Email Address</label>
-                            <input type="email" name="email" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                            <input type="email" name="email" value="{{ old('email') }}" required class="mt-1 block w-full rounded-md shadow-sm {{ $errors->has('email') ? 'border-red-400' : 'border-gray-300' }}">
+                            @error('email') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Age</label>
-                            <input type="number" name="age" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                            <input type="number" name="age" value="{{ old('age') }}" min="0" max="130" required class="mt-1 block w-full rounded-md shadow-sm {{ $errors->has('age') ? 'border-red-400' : 'border-gray-300' }}">
+                            @error('age') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Gender</label>
                             <select name="gender" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
+                                <option value="Male" @selected(old('gender', 'Male') === 'Male')>Male</option>
+                                <option value="Female" @selected(old('gender') === 'Female')>Female</option>
                             </select>
+                            @error('gender') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                     </div>
 
@@ -39,11 +54,13 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Height (cm)</label>
-                            <input type="number" step="0.01" name="height" id="height" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <input type="number" step="0.01" min="1" max="999.99" name="height" id="height" value="{{ old('height') }}" required class="mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 {{ $errors->has('height') ? 'border-red-400' : 'border-gray-300' }}">
+                            @error('height') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Weight (kg)</label>
-                            <input type="number" step="0.01" name="weight" id="weight" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <input type="number" step="0.01" min="1" max="999.99" name="weight" id="weight" value="{{ old('weight') }}" required class="mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 {{ $errors->has('weight') ? 'border-red-400' : 'border-gray-300' }}">
+                            @error('weight') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Calculated BMI</label>
@@ -54,8 +71,11 @@
 
                     <div class="camera-section" style="margin-top: 20px; border: 1px solid #ccc; padding: 15px; border-radius: 8px;">
                         <h4 class="font-bold mb-2">Facial Biometric Registration <span class="text-sm font-normal text-gray-500">(Optional)</span></h4>
-                        <p id="status" class="text-sm text-gray-600 mb-2">Loading AI models... You can save the patient without face data.</p>
-                        
+                        <div class="mb-3">
+                            @include('pharmacist.patients.partials.face-capture-guide')
+                        </div>
+                        <p id="status" class="text-sm font-semibold text-indigo-700 mb-2">Loading AI models... You can save the patient without face data.</p>
+
                         <div id="video-container" class="relative inline-block w-full max-w-sm overflow-hidden rounded-lg bg-black">
                             <video id="video" width="320" height="240" autoplay muted playsinline class="w-full rounded-lg"></video>
                         </div>
@@ -87,6 +107,7 @@
     </div>
 
     <script src="{{ asset('js/face-api.min.js') }}"></script>
+    <script src="{{ asset('js/face-utils.js') }}"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -113,6 +134,7 @@
 
             heightInput.addEventListener('input', calculateBMI);
             weightInput.addEventListener('input', calculateBMI);
+            calculateBMI();
 
 
             // ==========================================
@@ -143,11 +165,7 @@
             const btnStartCamera = document.getElementById('btn-start-camera');
 
             // Load AI Models from public/models folder
-            Promise.all([
-                faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
-                faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-                faceapi.nets.faceRecognitionNet.loadFromUri('/models')
-            ]).then(() => {
+            FaceUtils.loadModels('/models').then(() => {
                 statusText.innerText = "AI Models ready. Face capture is optional. Click 'Start Camera' if you want to add face data.";
                 btnStartCamera.disabled = false;
                 btnStartCamera.innerText = "Start Camera";
@@ -191,7 +209,9 @@
                 faceapi.matchDimensions(previewCanvas, displaySize);
 
                 previewInterval = setInterval(async () => {
-                    const detections = await faceapi.detectAllFaces(video);
+                    if (window._faceCapturing) return; // don't compete with the capture for the GPU
+                    // Light detector for the live preview box; the capture itself uses FaceUtils.describe().
+                    const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224 }));
 
                     previewCanvas.getContext('2d').clearRect(0, 0, previewCanvas.width, previewCanvas.height);
 
@@ -204,12 +224,31 @@
 
             // Capture Face Action
             btnScanFace.addEventListener('click', async () => {
-                const detections = await faceapi.detectSingleFace(video).withFaceLandmarks().withFaceDescriptor();
-                
-                if (detections) {
+                // Multi-frame registration: average 5 clear frames instead of trusting a single snapshot.
+                const originalLabel = btnScanFace.innerText;
+                btnScanFace.disabled = true;
+                window._faceCapturing = true;
+                let capture = null;
+                try {
+                    capture = await FaceUtils.captureAverageDescriptor(video, {
+                        frames: 5,
+                        onProgress: (count, total, hint) => {
+                            btnScanFace.innerText = `Capturing ${count}/${total}…`;
+                            FaceUtils.showProgress(count, total, hint);
+                            statusText.innerText = hint;
+                        },
+                    });
+                } catch (err) {
+                    statusText.innerText = err.message;
+                } finally {
+                    window._faceCapturing = false;
+                    btnScanFace.disabled = false;
+                    btnScanFace.innerText = originalLabel;
+                }
+
+                if (capture) {
                     // Convert AI array to standard JSON text and put it in the hidden input
-                    const descriptorArray = Array.from(detections.descriptor);
-                    hiddenInput.value = JSON.stringify(descriptorArray); 
+                    hiddenInput.value = JSON.stringify(capture.descriptor);
                     
                     // Stop camera
                     const stream = video.srcObject;
@@ -224,10 +263,7 @@
 
                     // Show success message
                     successMsg.style.display = "block";
-                    statusText.innerText = "Face captured successfully. You can now save the patient.";
-                    alert("Face captured successfully!");
-                } else {
-                    alert("Face not detected. Please look clearly at the camera.");
+                    statusText.innerText = `Face captured successfully from ${capture.frames} frames. You can now save the patient.`;
                 }
             });
         });

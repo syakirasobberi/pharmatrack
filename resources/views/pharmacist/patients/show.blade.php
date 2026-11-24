@@ -281,6 +281,7 @@
                         </div>
 
                         <div class="flex flex-col items-center bg-gray-50 p-4 rounded-xl border border-dashed border-gray-300">
+                        @include('pharmacist.patients.partials.face-capture-guide')
                             <div id="camera-idle" class="flex flex-col items-center gap-3 py-6">
                                 <div class="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center">
                                     <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -335,6 +336,7 @@
                     <div class="flex flex-col items-center bg-gray-50 p-4 rounded-xl border border-dashed border-gray-300">
 
                         {{-- Idle prompt (shown before camera starts) --}}
+                        @include('pharmacist.patients.partials.face-capture-guide')
                         <div id="camera-idle" class="flex flex-col items-center gap-3 py-6">
                             <div class="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center">
                                 <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -600,6 +602,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ asset('js/face-api.min.js') }}"></script>
+    <script src="{{ asset('js/face-utils.js') }}"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -685,11 +688,7 @@
                 let activeStream = null;
 
                 // ── Load AI models silently in the background ─────────────────
-                Promise.all([
-                    faceapi.nets.ssdMobilenetv1.loadFromUri('{{ asset("models") }}'),
-                    faceapi.nets.faceLandmark68Net.loadFromUri('{{ asset("models") }}'),
-                    faceapi.nets.faceRecognitionNet.loadFromUri('{{ asset("models") }}')
-                ]).then(() => {
+                FaceUtils.loadModels('{{ asset("models") }}').then(() => {
                     modelsReady = true;
                     if (modelHint) modelHint.textContent = 'AI models ready.';
                 }).catch(err => {
@@ -753,7 +752,9 @@
                     faceapi.matchDimensions(canvas, displaySize);
 
                     setInterval(async () => {
-                        const detections = await faceapi.detectAllFaces(video);
+                        if (window._faceCapturing) return; // capture in progress owns the status text
+                        // Light detector for the live preview box; the capture itself uses FaceUtils.describe().
+                        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224 }));
                         const size = { width: video.videoWidth || video.width, height: video.videoHeight || video.height };
                         canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
                         if (detections && detections.length > 0) {
@@ -768,14 +769,30 @@
 
                 // ── Capture & Save Face button ────────────────────────────────
                 btnUpdateFace.addEventListener('click', async () => {
-                    const detection = await faceapi.detectSingleFace(video).withFaceLandmarks().withFaceDescriptor();
+                    // Multi-frame registration: average 5 clear frames instead of a single snapshot.
+                    btnUpdateFace.disabled = true;
+                    btnStop.disabled = true;
+                    window._faceCapturing = true;
+                    let capture = null;
+                    try {
+                        capture = await FaceUtils.captureAverageDescriptor(video, {
+                            frames: 5,
+                            onProgress: (count, total, hint) => {
+                                btnUpdateFace.textContent = `Capturing ${count}/${total}…`;
+                                FaceUtils.showProgress(count, total, hint);
+                                statusText.textContent = hint;
+                            },
+                        });
+                    } catch (err) {
+                        statusText.textContent = err.message;
+                    } finally {
+                        window._faceCapturing = false;
+                    }
 
-                    if (detection) {
+                    if (capture) {
                         btnUpdateFace.textContent = 'Saving…';
-                        btnUpdateFace.disabled = true;
-                        btnStop.disabled = true;
 
-                        const descriptorArray = Array.from(detection.descriptor);
+                        const descriptorArray = capture.descriptor;
 
                         fetch("{{ route('pharmacist.patients.updateFace') }}", {
                             method: 'POST',
@@ -795,7 +812,7 @@
                                 btnStop.classList.add('hidden');
                                 setTimeout(() => window.location.reload(), 1500);
                             } else {
-                                alert('Failed to save face data. Please try again.');
+                                statusText.textContent = 'Failed to save face data. Please try again.';
                                 btnUpdateFace.textContent = 'Capture & Save Face';
                                 btnUpdateFace.disabled = false;
                                 btnStop.disabled = false;
@@ -808,7 +825,9 @@
                             btnStop.disabled = false;
                         });
                     } else {
-                        alert('No face detected. Please make sure the patient\'s face is clearly visible.');
+                        btnUpdateFace.textContent = 'Capture & Save Face';
+                        btnUpdateFace.disabled = false;
+                        btnStop.disabled = false;
                     }
                 });
             }

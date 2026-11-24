@@ -8,6 +8,7 @@ use App\Models\Patient;
 use App\Models\User;
 use App\Support\HealthSummaryPdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -47,43 +48,44 @@ class PatientController extends Controller
     // 3. Save new patient data, with optional face biometric data
     public function store(Request $request)
     {
-        // Validate form data
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'age' => 'required|integer',
-            'gender' => 'required|string',
-            'weight' => 'required|numeric',
-            'height' => 'required|numeric',
-            'face_descriptor' => 'nullable|string',
-        ]);
+        $validated = $request->validate(
+            [
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
+                'age' => ['required', 'integer', 'min:0', 'max:130'],
+                'gender' => ['required', Rule::in(['Male', 'Female'])],
+                'weight' => ['required', 'numeric', 'min:1', 'max:999.99'],
+                'height' => ['required', 'numeric', 'min:1', 'max:999.99'],
+                'face_descriptor' => ['nullable', 'string'],
+            ],
+            [
+                'email.unique' => 'This email address is already registered. Please use a different email for the new patient.',
+            ]
+        );
 
-        // Create 'User' account for the patient
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make('password123'), // Temporary password
-            'requires_password_change' => true,
-            'role' => 'patient',
-        ]);
+        DB::transaction(function () use ($request, $validated) {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make('password123'),
+                'requires_password_change' => true,
+                'role' => 'patient',
+            ]);
 
-        // Calculate BMI automatically
-        $height_in_meters = $request->height / 100;
-        $bmi = $request->weight / ($height_in_meters * $height_in_meters);
+            $heightInMeters = $validated['height'] / 100;
 
-        // Save health profile and face descriptor in 'patients' table
-        Patient::create([
-            'user_id' => $user->user_id ?? $user->id, 
-            'pharmacist_id' => $request->user()->id,
-            'age' => $request->age,
-            'gender' => $request->gender,
-            'weight' => $request->weight,
-            'height' => $request->height,
-            'bmi' => $bmi,
-            'face_descriptor' => $request->filled('face_descriptor') ? $request->face_descriptor : null,
-        ]);
+            Patient::create([
+                'user_id' => $user->id,
+                'pharmacist_id' => $request->user()->id,
+                'age' => $validated['age'],
+                'gender' => $validated['gender'],
+                'weight' => $validated['weight'],
+                'height' => $validated['height'],
+                'bmi' => $validated['weight'] / ($heightInMeters * $heightInMeters),
+                'face_descriptor' => $validated['face_descriptor'] ?? null,
+            ]);
+        });
 
-        // Redirect directly to dashboard with success message
         return redirect()->route('pharmacist.dashboard')
                          ->with('success', 'Patient registered successfully!');
     }
