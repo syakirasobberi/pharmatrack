@@ -60,7 +60,7 @@ def main():
     x = data[["BMI", "BloodSugar", "BloodPressure", "Cholesterol"]]
     y = data["Risk"]
 
-    model = DecisionTreeClassifier(max_depth=4, random_state=42)
+    model = DecisionTreeClassifier(max_depth=8, random_state=42)
     model.fit(x, y)
 
     patient_data = pd.DataFrame([{

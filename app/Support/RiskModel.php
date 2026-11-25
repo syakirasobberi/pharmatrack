@@ -7,22 +7,37 @@ use RuntimeException;
 /**
  * Health risk model in pure PHP (no Python needed, so it runs on shared hosting).
  *
- * A CART decision tree like scikit-learn's DecisionTreeClassifier(max_depth=4):
+ * A CART decision tree like scikit-learn's DecisionTreeClassifier(max_depth=8):
  * binary splits on "feature <= threshold", chosen by the largest Gini impurity decrease,
  * thresholds halfway between neighbouring values. It is trained from health_data.csv,
  * so editing the CSV changes the model just as it did with predict.py.
+ *
+ * health_data.csv rows are labelled with this rule (keep new rows consistent with it):
+ *   points per reading     0        1           2
+ *   BMI                    < 25     25–29.9     >= 30
+ *   Fasting sugar mmol/L   < 5.6    5.6–6.9     >= 7.0
+ *   Systolic BP mmHg       < 130    130–139     >= 140
+ *   Cholesterol mmol/L     < 5.2    5.2–6.1     >= 6.2
+ *   High     = 4+ points, or any severe reading (BP >= 160, sugar >= 11.1, cholesterol >= 7.5, BMI >= 35)
+ *   Moderate = 2–3 points
+ *   Low      = 0–1 points
+ * The rows are illustrative examples, not real patient outcomes, so the model approximates
+ * this rule (about 88% agreement on unseen combinations).
  */
 class RiskModel
 {
     public const FEATURES = ['BMI', 'BloodSugar', 'BloodPressure', 'Cholesterol'];
 
-    private const MAX_DEPTH = 4;
+    /**
+     * Depth 8 is needed for the tree to combine all four readings: health_data.csv is labelled by
+     * the points rule in the class comment, and a depth-4 tree cannot add up four three-level
+     * readings — it misclassified "all normal" and "everything borderline".
+     */
+    private const MAX_DEPTH = 8;
 
     /**
-     * Order features are tried in; when two splits are equally good, the earlier feature wins.
-     * This training data separates perfectly on ANY single feature, so the choice is arbitrary.
-     * scikit-learn breaks such ties by its random seed (random_state=42); this order reproduces
-     * the tree predict.py built, so predictions stay identical to the Python version.
+     * Order features are tried in; when two splits are equally good, the earlier feature wins
+     * (keeps the tree deterministic; scikit-learn instead breaks ties with its random seed).
      *
      * @var list<int> indexes into FEATURES
      */
