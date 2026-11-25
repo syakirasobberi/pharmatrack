@@ -17,6 +17,11 @@
         $restartCount = 0;
 
         foreach ($medications as $medication) {
+            if (! $medication->last_taken) {
+                $reviewCount++; // no dose recorded yet
+                continue;
+            }
+
             $daysSinceLastDose = \Carbon\Carbon::parse($medication->last_taken)->diffInDays($today);
 
             if ($daysSinceLastDose > 30) {
@@ -114,14 +119,14 @@
 
                     @if($tbMedication)
                         @php
-                            $lastTaken = \Carbon\Carbon::parse($tbMedication->last_taken);
-                            $diffDays = $lastTaken->diffInDays($today);
+                            // Missing dates must not fall back to "today" (Carbon::parse(null) = now).
+                            $diffDays = $tbMedication->last_taken ? (int) \Carbon\Carbon::parse($tbMedication->last_taken)->diffInDays($today) : 999;
                             $isNonCompliant = $diffDays > 3;
-                            $startDate = \Carbon\Carbon::parse($tbMedication->start_date);
-                            $endDate = \Carbon\Carbon::parse($tbMedication->end_date);
-                            $totalDays = max(1, $startDate->diffInDays($endDate));
-                            $daysPassed = max(0, $startDate->diffInDays($today));
-                            $progressPercent = min(100, max(0, ($daysPassed / $totalDays) * 100));
+                            $startDate = $tbMedication->start_date ? \Carbon\Carbon::parse($tbMedication->start_date) : null;
+                            $endDate = $tbMedication->end_date ? \Carbon\Carbon::parse($tbMedication->end_date) : null;
+                            $progressPercent = ($startDate && $endDate)
+                                ? min(100, max(0, (max(0, $startDate->diffInDays($today)) / max(1, $startDate->diffInDays($endDate))) * 100))
+                                : 0;
                         @endphp
 
                         <div class="rounded-3xl border {{ $isNonCompliant ? 'border-red-300 bg-red-50' : 'border-emerald-200 bg-emerald-50' }} p-6">
@@ -145,7 +150,7 @@
                                         <div class="h-3 rounded-full {{ $isNonCompliant ? 'bg-red-500' : 'bg-emerald-500' }}" style="width: {{ $progressPercent }}%"></div>
                                     </div>
                                     <p class="mt-2 text-xs {{ $isNonCompliant ? 'text-red-600' : 'text-emerald-700' }}">
-                                        Start: {{ $startDate->format('d M Y') }} | End: {{ $endDate->format('d M Y') }}
+                                        Start: {{ $startDate?->format('d M Y') ?? 'not recorded' }} | End: {{ $endDate?->format('d M Y') ?? 'ongoing' }}
                                     </p>
                                 </div>
                             </div>
@@ -197,10 +202,14 @@
                                 <tbody class="divide-y divide-slate-100">
                                     @forelse($medications as $medication)
                                         @php
-                                            $lastTaken = \Carbon\Carbon::parse($medication->last_taken);
-                                            $diffDays = $lastTaken->diffInDays($today);
+                                            $lastTaken = $medication->last_taken ? \Carbon\Carbon::parse($medication->last_taken) : null;
+                                            $diffDays = $lastTaken ? $lastTaken->diffInDays($today) : null;
 
-                                            if ($diffDays > 30) {
+                                            if ($diffDays === null) {
+                                                $statusClass = 'bg-amber-100 text-amber-700 border-amber-200';
+                                                $statusLabel = 'Review Required';
+                                                $statusHint = 'No dose recorded yet';
+                                            } elseif ($diffDays > 30) {
                                                 $statusClass = 'bg-red-100 text-red-700 border-red-200';
                                                 $statusLabel = 'Needs Restart';
                                                 $statusHint = 'More than 30 days since last dose';
@@ -224,12 +233,12 @@
                                             </td>
                                             <td class="py-4 px-6 text-slate-600">
                                                 <div class="flex flex-col">
-                                                    <span>{{ \Carbon\Carbon::parse($medication->start_date)->format('d M Y') }}</span>
-                                                    <span class="text-xs text-slate-400">until {{ \Carbon\Carbon::parse($medication->end_date)->format('d M Y') }}</span>
+                                                    <span>{{ $medication->start_date?->format('d M Y') ?? 'Start not recorded' }}</span>
+                                                    <span class="text-xs text-slate-400">{{ $medication->end_date ? 'until ' . $medication->end_date->format('d M Y') : 'Ongoing (no end date)' }}</span>
                                                 </div>
                                             </td>
                                             <td class="py-4 px-6 text-slate-600">
-                                                {{ $lastTaken->format('d M Y') }}
+                                                {{ $lastTaken?->format('d M Y') ?? 'Not recorded' }}
                                             </td>
                                             <td class="py-4 px-6 text-slate-500">
                                                 {{ $medication->notes ?: 'No notes recorded' }}
@@ -423,8 +432,8 @@
                                                 <input type="date" name="start_date" id="start_date" value="{{ old('start_date') }}" required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 transition-colors">
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">End date</label>
-                                                <input type="date" name="end_date" id="end_date" value="{{ old('end_date') }}" required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 transition-colors">
+                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">End date <span class="font-normal text-slate-400">(leave blank if long-term)</span></label>
+                                                <input type="date" name="end_date" id="end_date" value="{{ old('end_date') }}" class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 transition-colors">
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-bold text-slate-700 mb-1.5">Latest dose date</label>
@@ -481,23 +490,11 @@
         const startDateInput = document.getElementById('start_date');
         const endDateInput = document.getElementById('end_date');
 
+        // No automatic end date: long-term medicines have none (blank = ongoing).
+        // Just stop the end date being picked before the start date.
         if (startDateInput && endDateInput) {
-            startDateInput.addEventListener('change', function() {
-                if (endDateInput.value) {
-                    return;
-                }
-
-                const start = new Date(this.value);
-
-                if (!isNaN(start)) {
-                    start.setMonth(start.getMonth() + 6);
-
-                    const year = start.getFullYear();
-                    const month = String(start.getMonth() + 1).padStart(2, '0');
-                    const day = String(start.getDate()).padStart(2, '0');
-
-                    endDateInput.value = `${year}-${month}-${day}`;
-                }
+            startDateInput.addEventListener('change', function () {
+                endDateInput.min = this.value || '';
             });
         }
     </script>

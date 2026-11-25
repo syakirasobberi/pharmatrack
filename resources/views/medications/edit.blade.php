@@ -48,16 +48,16 @@
                             <input id="notes" type="text" name="notes" maxlength="255" value="{{ old('notes', $medication->notes) }}" class="{{ $field }}">
                         </div>
                         <div>
-                            <label for="start_date" class="block text-sm font-bold text-gray-700 mb-1">Start Date <span class="text-red-500">*</span></label>
-                            <input id="start_date" type="date" name="start_date" required value="{{ old('start_date', $date($medication->start_date)) }}" class="{{ $field }}">
+                            <label for="start_date" class="block text-sm font-bold text-gray-700 mb-1">Start Date</label>
+                            <input id="start_date" type="date" name="start_date" value="{{ old('start_date', $date($medication->start_date)) }}" class="{{ $field }}">
                         </div>
                         <div>
-                            <label for="end_date" class="block text-sm font-bold text-gray-700 mb-1">End Date <span class="text-red-500">*</span></label>
-                            <input id="end_date" type="date" name="end_date" required value="{{ old('end_date', $date($medication->end_date)) }}" class="{{ $field }}">
+                            <label for="end_date" class="block text-sm font-bold text-gray-700 mb-1">End Date <span class="font-normal text-gray-400">(blank = ongoing)</span></label>
+                            <input id="end_date" type="date" name="end_date" value="{{ old('end_date', $date($medication->end_date)) }}" class="{{ $field }}">
                         </div>
                         <div>
-                            <label for="last_taken" class="block text-sm font-bold text-gray-700 mb-1">Latest Dose Date <span class="text-red-500">*</span></label>
-                            <input id="last_taken" type="date" name="last_taken" required value="{{ old('last_taken', $date($medication->last_taken)) }}" class="{{ $field }}">
+                            <label for="last_taken" class="block text-sm font-bold text-gray-700 mb-1">Latest Dose Date</label>
+                            <input id="last_taken" type="date" name="last_taken" max="{{ today()->toDateString() }}" value="{{ old('last_taken', $date($medication->last_taken)) }}" class="{{ $field }}">
                         </div>
                     </div>
 

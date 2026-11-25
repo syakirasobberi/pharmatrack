@@ -9,14 +9,28 @@ use Illuminate\Support\Facades\Log;
 
 class MedicationController extends Controller
 {
-    private const RULES = [
-        'name' => 'required|string|max:255',
-        'dosage' => 'required|string|max:255',
-        'frequency' => 'nullable|string|max:255',
-        'notes' => 'nullable|string|max:255',
-        'start_date' => 'required|date',
-        'end_date' => 'required|date|after_or_equal:start_date',
-        'last_taken' => 'required|date',
+    /**
+     * End date is optional everywhere: blank = ongoing (long-term medicines like metformin
+     * have no end date, and a made-up one would later mark them "Completed").
+     * When editing, start and latest-dose dates are optional too, because medications added
+     * by patients in their portal have none.
+     */
+    private static function rules(Request $request, bool $editing): array
+    {
+        return [
+            'name' => 'required|string|max:255',
+            'dosage' => 'required|string|max:255',
+            'frequency' => 'nullable|string|max:255',
+            'notes' => 'nullable|string|max:255',
+            'start_date' => [$editing ? 'nullable' : 'required', 'date'],
+            'end_date' => ['nullable', 'date', ...($request->filled('start_date') ? ['after_or_equal:start_date'] : [])],
+            'last_taken' => [$editing ? 'nullable' : 'required', 'date', 'before_or_equal:today'],
+        ];
+    }
+
+    private const MESSAGES = [
+        'end_date.after_or_equal' => 'The end date cannot be before the start date.',
+        'last_taken.before_or_equal' => 'The latest dose date cannot be in the future.',
     ];
 
     public function index($id)
@@ -35,7 +49,7 @@ class MedicationController extends Controller
     {
         $patient = Patient::assignedTo($request->user())->findOrFail($id);
 
-        $validated = $request->validate(self::RULES);
+        $validated = $request->validate(self::rules($request, editing: false), self::MESSAGES);
 
         Medication::create([
             'patient_id' => $patient->id,
@@ -44,7 +58,7 @@ class MedicationController extends Controller
             'frequency' => ($validated['frequency'] ?? null) ?: $validated['dosage'],
             'notes' => $validated['notes'] ?? null,
             'start_date' => $validated['start_date'],
-            'end_date' => $validated['end_date'],
+            'end_date' => $validated['end_date'] ?? null,
             'last_taken' => $validated['last_taken'],
         ]);
 
@@ -64,8 +78,9 @@ class MedicationController extends Controller
     public function update(Request $request, $medicationId)
     {
         $medication = $this->findOwnMedication($medicationId);
-        $validated = $request->validate(self::RULES);
-        $validated['frequency'] = ($validated['frequency'] ?? null) ?: $validated['dosage'];
+        $validated = $request->validate(self::rules($request, editing: true), self::MESSAGES);
+        // Keep the stored frequency if the field was left blank, so a no-change save writes nothing.
+        $validated['frequency'] = ($validated['frequency'] ?? null) ?: ($medication->frequency ?: $validated['dosage']);
 
         $medication->fill($validated);
         $changes = [];
