@@ -264,6 +264,16 @@
                                         <tr class="hover:bg-slate-50 transition-colors">
                                             <td class="py-4 px-6">
                                                 <p class="font-bold text-slate-800">{{ $medication->name }}</p>
+                                                @if($medication->needsReview())
+                                                    <div class="mt-1.5 flex flex-wrap items-center gap-2">
+                                                        <span class="px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200 text-[11px] font-bold">Recorded by patient · not reviewed</span>
+                                                        <form method="POST" action="{{ route('pharmacist.medication.review', $medication->id) }}">
+                                                            @csrf
+                                                            <button type="submit" class="px-2 py-0.5 rounded-lg border border-slate-300 bg-white text-[11px] font-bold text-slate-700 hover:bg-slate-50"
+                                                                    title="Confirms you have checked this medicine and the safety warnings above">Mark reviewed</button>
+                                                        </form>
+                                                    </div>
+                                                @endif
                                             </td>
                                             <td class="py-4 px-6 text-slate-600 font-medium">
                                                 {{ $medication->dosage }}

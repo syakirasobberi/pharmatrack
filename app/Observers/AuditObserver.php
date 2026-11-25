@@ -101,6 +101,7 @@ class AuditObserver
     {
         return match (true) {
             $model instanceof Medication && isset($changes['stopped_at']) => $model->stopped_at ? 'stopped' : 'resumed',
+            $model instanceof Medication && array_diff(array_keys($changes), ['reviewed_at', 'reviewed_by']) === [] => 'reviewed',
             $model instanceof Medication && isset($changes['supply_until']) && count($changes) <= 3 => 'refilled',
             $model instanceof Medication && isset($changes['refill_requested_at']) && count($changes) === 1 => $model->refill_requested_at ? 'refill_requested' : 'updated',
             $model instanceof Patient && isset($changes['archived_at']) => $model->archived_at ? 'archived' : 'restored',

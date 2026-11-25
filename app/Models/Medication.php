@@ -27,7 +27,20 @@ class Medication extends Model
         'supply_until' => 'date',
         'refill_reminder_sent_for' => 'date',
         'refill_requested_at' => 'datetime',
+        'reviewed_at' => 'datetime',
     ];
+
+    /** Recorded by the patient and not yet looked at by a pharmacist. */
+    public function needsReview(): bool
+    {
+        return $this->reviewed_at === null;
+    }
+
+    /** Set (not saved) the pharmacist review stamp. */
+    public function markReviewed(User $pharmacist): static
+    {
+        return $this->forceFill(['reviewed_at' => now(), 'reviewed_by' => $pharmacist->id]);
+    }
 
     /** Remind this many days before the supply runs out. */
     public const REFILL_NOTICE_DAYS = 5;

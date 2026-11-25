@@ -84,14 +84,33 @@
             ->values();
         $refillAlerts = $refillAlertsAll->take(3);
 
+        // Medicines patients recorded themselves that no pharmacist has reviewed, with safety warnings.
+        $reviewAlertsAll = \App\Models\Medication::whereIn('patient_id', $assignedPatientIds)
+            ->current()
+            ->whereNull('reviewed_at')
+            ->with(['patient.user', 'patient.medicalHistory', 'patient.currentMedications'])
+            ->latest()
+            ->get()
+            ->map(fn ($med) => (object) [
+                'med' => $med,
+                'warnings' => \App\Support\DrugSafety::checkNew(
+                    $med->name,
+                    $med->patient->currentMedications->where('id', '!=', $med->id),
+                    $med->patient->medicalHistory,
+                ),
+            ])
+            ->sortBy(fn ($a) => \App\Support\DrugSafety::hasMajor($a->warnings) ? 0 : ($a->warnings ? 1 : 2))
+            ->values();
+        $reviewAlerts = $reviewAlertsAll->take(4);
+
         // Due = no check-up in the last 90 days.
         $dueQuery = \App\Models\Patient::assignedTo($pharmacist)
             ->whereDoesntHave('healthCheckups', fn ($query) => $query->whereDate('checkup_date', '>=', today()->subDays(90)));
         $dueCount = (clone $dueQuery)->count();
         $patientsNeedingCheckup = $dueQuery->with(['user', 'latestCheckup'])->take(5)->get();
 
-        $workflowAlerts = $healthAlertsAll->count() + $medicationAlertCount + $adherenceAlertsAll->count() + $refillAlertsAll->count() + $dueCount;
-        $shownAlerts = $healthAlerts->count() + $medicationAlerts->count() + $adherenceAlerts->count() + $refillAlerts->count() + $patientsNeedingCheckup->count();
+        $workflowAlerts = $healthAlertsAll->count() + $medicationAlertCount + $adherenceAlertsAll->count() + $refillAlertsAll->count() + $reviewAlertsAll->count() + $dueCount;
+        $shownAlerts = $healthAlerts->count() + $medicationAlerts->count() + $adherenceAlerts->count() + $refillAlerts->count() + $reviewAlerts->count() + $patientsNeedingCheckup->count();
 
         $bmiBadge = function ($bmi) {
             if (! is_numeric($bmi) || $bmi <= 0) return ['—', 'bg-slate-100 text-slate-500', 'bg-slate-400', 'Not recorded'];
@@ -308,7 +327,7 @@
                         <span class="ml-auto rounded-full px-2.5 py-0.5 text-xs font-extrabold {{ $workflowAlerts > 0 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700' }}">{{ $workflowAlerts }}</span>
                     </h3>
                     <p class="text-xs text-slate-400 font-medium mb-5">
-                        {{ $healthAlertsAll->count() }} health · {{ $medicationAlertCount }} medication · {{ $adherenceAlertsAll->count() }} adherence · {{ $refillAlertsAll->count() }} refill · {{ $dueCount }} check-up due
+                        {{ $healthAlertsAll->count() }} health · {{ $medicationAlertCount }} medication · {{ $adherenceAlertsAll->count() }} adherence · {{ $refillAlertsAll->count() }} refill · {{ $reviewAlertsAll->count() }} to review · {{ $dueCount }} check-up due
                         @if($shownAlerts < $workflowAlerts) — showing {{ $shownAlerts }} @endif
                     </p>
 
@@ -343,6 +362,36 @@
                                 Review Case <span aria-hidden="true">&rarr;</span>
                             </a>
                         </div>
+                        @endforeach
+
+                        <!-- Medicines recorded by patients, not yet reviewed (with safety warnings) -->
+                        @foreach($reviewAlerts as $alert)
+                            @php $major = \App\Support\DrugSafety::hasMajor($alert->warnings); $med = $alert->med; @endphp
+                            <div class="p-4 border {{ $major ? 'border-rose-300 bg-rose-50/70' : ($alert->warnings ? 'border-amber-200/60 bg-amber-50/50' : 'border-sky-200/60 bg-sky-50/50') }} rounded-2xl shadow-sm">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4 {{ $major ? 'text-rose-500' : ($alert->warnings ? 'text-amber-500' : 'text-sky-500') }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    <h4 class="font-bold text-sm text-slate-800">{{ $med->patient->user->name ?? 'Unknown' }}</h4>
+                                    <span class="ml-auto px-2 py-1 bg-white rounded-md text-[10px] font-bold shadow-sm border {{ $major ? 'text-rose-600 border-rose-100' : 'text-slate-500 border-slate-100' }}">{{ $major ? 'Safety warning' : 'Added by patient' }}</span>
+                                </div>
+                                <div class="text-xs font-medium bg-white/60 p-2.5 rounded-xl border border-slate-100 text-slate-700">
+                                    <p><span class="font-bold">{{ $med->name }}</span> was recorded by the patient on {{ $med->created_at->format('d M') }}.</p>
+                                    @foreach(array_slice($alert->warnings, 0, 2) as $w)
+                                        <p class="mt-1 {{ $w['severity'] === 'major' ? 'text-rose-700 font-bold' : 'text-amber-800' }}">&#9888; {{ $w['title'] }}</p>
+                                    @endforeach
+                                    @if(count($alert->warnings) > 2)
+                                        <p class="mt-1 text-slate-500">+ {{ count($alert->warnings) - 2 }} more</p>
+                                    @endif
+                                </div>
+                                <div class="mt-3 flex items-center gap-3">
+                                    <a href="{{ route('pharmacist.medication.index', $med->patient_id) }}" class="text-xs font-bold text-blue-600 hover:text-blue-800">Review medications &rarr;</a>
+                                    @unless($alert->warnings)
+                                        <form method="POST" action="{{ route('pharmacist.medication.review', $med->id) }}" class="ml-auto">
+                                            @csrf
+                                            <button type="submit" class="text-xs font-bold text-slate-600 hover:text-slate-900 underline">Mark reviewed</button>
+                                        </form>
+                                    @endunless
+                                </div>
+                            </div>
                         @endforeach
 
                         <!-- Refill Alerts (patient request or supply running out) -->

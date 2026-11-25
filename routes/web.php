@@ -115,6 +115,7 @@ Route::middleware(['auth', 'force_password_change', 'role:pharmacist'])->group(f
     Route::patch('/pharmacist/medications/{medication}/resume', [MedicationController::class, 'resume'])->whereNumber('medication')->name('pharmacist.medication.resume');
     Route::post('/pharmacist/medications/{medication}/doses', [MedicationController::class, 'logDose'])->whereNumber('medication')->name('pharmacist.medication.doses.store');
     Route::post('/pharmacist/medications/{medication}/refill', [MedicationController::class, 'refill'])->whereNumber('medication')->name('pharmacist.medication.refill');
+    Route::post('/pharmacist/medications/{medication}/review', [MedicationController::class, 'review'])->whereNumber('medication')->name('pharmacist.medication.review');
     Route::delete('/pharmacist/medications/{medication}/doses', [MedicationController::class, 'removeDose'])->whereNumber('medication')->name('pharmacist.medication.doses.destroy');
     Route::patch('/pharmacist/patients/{id}/archive', [PatientController::class, 'archive'])->name('pharmacist.patients.archive');
     Route::patch('/pharmacist/patients/{id}/restore', [PatientController::class, 'restore'])->name('pharmacist.patients.restore');

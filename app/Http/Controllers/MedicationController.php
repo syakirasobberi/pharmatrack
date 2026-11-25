@@ -69,7 +69,10 @@ class MedicationController extends Controller
             return $blocked;
         }
 
-        $medication = Medication::create([
+        // forceCreate: the review stamp is not mass-assignable from requests.
+        $medication = Medication::forceCreate([
+            'reviewed_at' => now(),   // added by a pharmacist, who has just seen any safety warnings
+            'reviewed_by' => $request->user()->id,
             'patient_id' => $patient->id,
             'name' => $validated['name'],
             'dosage' => $validated['dosage'],
@@ -110,6 +113,11 @@ class MedicationController extends Controller
         }
 
         if ($changes === []) {
+            // Opening and saving a patient-recorded medicine is still a review.
+            if ($medication->needsReview()) {
+                $medication->markReviewed($request->user())->save();
+            }
+
             return redirect()->route('pharmacist.medication.index', $medication->patient_id)
                 ->with('success', 'No changes were made to ' . $medication->name . '.');
         }
@@ -131,7 +139,8 @@ class MedicationController extends Controller
             $medication->refill_requested_at = null;
         }
 
-        $medication->save();
+        // Editing it counts as a pharmacist review (warnings were checked above if the name changed).
+        $medication->markReviewed($request->user())->save();
         $this->logOverride($request, $medication, $warnings);
 
         Log::info('Medication edited.', [
@@ -181,7 +190,7 @@ class MedicationController extends Controller
     {
         $medication = $this->findOwnMedication($medicationId);
 
-        $medication->forceFill(['stopped_at' => null, 'stopped_reason' => null])->save();
+        $medication->forceFill(['stopped_at' => null, 'stopped_reason' => null])->markReviewed($request->user())->save();
 
         Log::info('Medication resumed.', [
             'medication_id' => $medication->id,
@@ -193,6 +202,18 @@ class MedicationController extends Controller
 
         return redirect()->route('pharmacist.medication.index', $medication->patient_id)
             ->with('success', $medication->name . ' resumed.' . $note);
+    }
+
+    /** Pharmacist has looked at a medicine the patient recorded (and its safety warnings). */
+    public function review(Request $request, $medicationId)
+    {
+        $medication = $this->findOwnMedication($medicationId);
+
+        if ($medication->needsReview()) {
+            $medication->markReviewed($request->user())->save();
+        }
+
+        return back()->with('success', "{$medication->name} marked as reviewed.");
     }
 
     /** Refill dispensed today for N days (leftover supply carries forward). */
