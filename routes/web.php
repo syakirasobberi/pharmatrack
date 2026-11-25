@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AiController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\HealthRiskPredictionController;
 use App\Http\Controllers\HealthCheckupController;
 use App\Http\Controllers\KioskController;
@@ -74,6 +75,8 @@ Route::middleware(['auth', 'force_password_change', 'role:admin'])->group(functi
     Route::get('/admin/reports', [AdminController::class, 'reports'])->name('admin.reports.index');
     Route::get('/admin/settings', [AdminController::class, 'settings'])->name('admin.settings.index');
     Route::patch('/admin/settings/app-name', [AdminController::class, 'updateAppName'])->name('admin.settings.updateAppName');
+    Route::get('/admin/audit-log', [AuditLogController::class, 'index'])->name('admin.audit.index');
+    Route::get('/admin/audit-log/export', [AuditLogController::class, 'export'])->name('admin.audit.export');
 });
 
 Route::middleware(['auth', 'force_password_change', 'role:pharmacist'])->group(function () {

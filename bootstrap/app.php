@@ -27,6 +27,8 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\PreventCachingWhenLoggedIn::class,
             // Daily reminders (no cron on the live host); runs after the response is sent.
             \App\Http\Middleware\RunDailyTasks::class,
+            // Audit trail of who viewed or sent out patient data.
+            \App\Http\Middleware\AuditAccess::class,
         ]);
 
         // Logout works even from a page left open past the session lifetime (120 min):
