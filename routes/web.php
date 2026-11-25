@@ -111,6 +111,9 @@ Route::middleware(['auth', 'force_password_change', 'role:pharmacist'])->group(f
     Route::post('/pharmacist/patients/{id}/send-reminder', [PatientController::class, 'sendCheckupReminder'])->name('pharmacist.patients.sendReminder');
 
     Route::post('/api/generate-ai-suggestion', [AiController::class, 'generateSuggestion'])->name('api.ai.suggestion');
+    Route::post('/api/extract-report', [AiController::class, 'extractReport'])
+        ->middleware('throttle:15,1')
+        ->name('api.ai.extractReport');
     Route::get('/kamera-test', function () {
         return view('kamera-test');
     })->name('pharmacist.kamera-test');

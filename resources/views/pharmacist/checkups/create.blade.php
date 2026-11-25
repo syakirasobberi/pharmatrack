@@ -138,7 +138,8 @@
                                     </svg>
                                     OCR Autofill From Checkup Report
                                 </h3>
-                                <p class="text-sm text-cyan-800 mt-1">Upload a full checkup report image or PDF. The system will extract vitals and lab values and autofill the fields below.</p>
+                                <p class="text-sm text-cyan-800 mt-1">Upload a checkup report image or PDF. <strong>Extract Readings</strong> reads it on this computer (digital PDFs are read exactly). <strong>Smart Extract (AI)</strong> is better for phone photos and scans.</p>
+                                <p class="text-xs text-cyan-700 mt-1">Smart Extract sends the report to Google Gemini; the file is not stored. Cover the patient's name and IC first if possible.</p>
                             </div>
                             <div class="flex flex-col sm:flex-row gap-3 shrink-0">
                                 <input type="file" id="ocr-image" accept="image/*,.pdf,application/pdf"
@@ -147,11 +148,15 @@
                                     class="rounded-xl bg-cyan-600 px-5 py-2.5 text-sm font-bold text-white shadow hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
                                     Extract Readings
                                 </button>
+                                <button type="button" id="ai-extract-btn"
+                                    class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
+                                    Smart Extract (AI)
+                                </button>
                             </div>
                         </div>
 
                         <div id="ocr-status" class="mt-4 text-sm font-semibold text-cyan-800">
-                            Choose a report image or PDF, then click Extract Readings. Please review values before saving.
+                            Choose a report image or PDF, then click Extract Readings or Smart Extract (AI). Please review values before saving.
                         </div>
 
                         {{-- Detected values preview --}}
@@ -193,7 +198,7 @@
                         <div id="ocr-timestamp" class="mt-2 text-xs text-cyan-600 italic hidden"></div>
 
                         <details class="mt-3">
-                            <summary class="cursor-pointer text-xs font-bold text-cyan-700">Show raw OCR text</summary>
+                            <summary class="cursor-pointer text-xs font-bold text-cyan-700">Show text read from the report</summary>
                             <pre id="ocr-output" class="mt-2 max-h-40 overflow-auto rounded-xl bg-white p-3 text-xs text-slate-600 border border-cyan-100 whitespace-pre-wrap"></pre>
                         </details>
                     </div>
@@ -474,10 +479,12 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="{{ asset('js/report-parser.js') }}?v={{ filemtime(public_path('js/report-parser.js')) }}"></script>
     <script>
     // ─── DOM refs ────────────────────────────────────────────────────────────────
     const ocrImageInput   = document.getElementById('ocr-image');
     const extractOcrButton = document.getElementById('extract-ocr-btn');
+    const aiExtractButton  = document.getElementById('ai-extract-btn');
     const ocrStatus       = document.getElementById('ocr-status');
     const ocrOutput       = document.getElementById('ocr-output');
 
@@ -597,243 +604,287 @@
 
     updatePatientBmi();
 
-    function normalizeOcrText(text) {
-        return text
-            .replace(/\r\n/g, '\n')
-            .replace(/[|]/g, '1')
-            .replace(/[，]/g, '.')
-            .replace(/(\d)[,](\d)/g, '$1.$2')
-            .replace(/[oO](?=\d)|(?<=\d)[oO]/g, '0')
-            .replace(/\s+/g, ' ')
-            .trim();
-    }
+    // ─── Report readings → form fields ───────────────────────────────────────────
+    const FIELD_INPUTS = {
+        blood_pressure:             { input: 'bp-input',            badge: 'bp-badge',            detected: 'detected-bp',          label: 'BP' },
+        blood_sugar:                { input: 'sugar-input',         badge: 'sugar-badge',         detected: 'detected-sugar',       label: 'blood sugar' },
+        hba1c:                      { input: 'hba1c-input',         badge: 'hba1c-badge',         detected: 'detected-hba1c',       label: 'HbA1c' },
+        haemoglobin:                { input: 'haemoglobin-input',   badge: 'haemoglobin-badge',   detected: 'detected-haemoglobin', label: 'haemoglobin' },
+        cholesterol:                { input: 'cholesterol-input',   badge: 'chol-badge',          detected: 'detected-cholesterol', label: 'cholesterol' },
+        ldl:                        { input: 'ldl-input',           badge: 'ldl-badge',           detected: null,                   label: 'LDL' },
+        hdl:                        { input: 'hdl-input',           badge: 'hdl-badge',           detected: null,                   label: 'HDL' },
+        albumin_globulin_ratio:     { input: 'ag-ratio-input',      badge: 'ag-ratio-badge',      detected: null,                   label: 'A/G ratio' },
+        alkaline_phosphatase:       { input: 'alp-input',           badge: 'alp-badge',           detected: null,                   label: 'ALP' },
+        aspartate_transaminase:     { input: 'ast-input',           badge: 'ast-badge',           detected: null,                   label: 'AST' },
+        alanine_transaminase:       { input: 'alt-input',           badge: 'alt-badge',           detected: null,                   label: 'ALT' },
+        gamma_glutamyl_transferase: { input: 'ggt-input',           badge: 'ggt-badge',           detected: 'detected-ggt',         label: 'GGT' },
+        sodium:                     { input: 'sodium-input',        badge: 'sodium-badge',        detected: 'detected-sodium',      label: 'sodium' },
+        renal_glucose:              { input: 'renal-glucose-input', badge: 'renal-glucose-badge', detected: null,                   label: 'urine glucose' },
+        heart_rate:                 { input: 'heart-rate-input',    badge: 'hr-badge',            detected: 'detected-heart-rate',  label: 'heart rate' },
+    };
 
-    // ─── OCR parsers ─────────────────────────────────────────────────────────────
-    function findBloodPressure(text) {
-        const direct = text.match(/\b(8\d|9\d|1\d{2}|2[0-4]\d)\s*[\/\\]\s*(4\d|5\d|6\d|7\d|8\d|9\d|1[0-3]\d)\b/);
-        if (direct) return `${direct[1]}/${direct[2]}`;
-
-        const sys = text.match(/systolic[^0-9]{0,30}(8\d|9\d|1\d{2}|2[0-4]\d)/i);
-        const dia = text.match(/diastolic[^0-9]{0,30}(4\d|5\d|6\d|7\d|8\d|9\d|1[0-3]\d)/i);
-        if (sys && dia) return `${sys[1]}/${dia[1]}`;
-
-        const bp = text.match(/(?:bp|blood\s*pressure)[^0-9]{0,30}(8\d|9\d|1\d{2}|2[0-4]\d)\s*[\/\\]\s*(4\d|5\d|6\d|7\d|8\d|9\d|1[0-3]\d)/i);
-        if (bp) return `${bp[1]}/${bp[2]}`;
-
-        return null;
-    }
-
-    function findNumberNearLabels(text, labels, min, max) {
-        for (const label of labels) {
-            const esc = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const m = text.match(new RegExp(`${esc}[^0-9]{0,30}(\\d{1,3}(?:\\.\\d{1,2})?)`, 'i'));
-            if (m) {
-                const v = parseFloat(m[1]);
-                if (v >= min && v <= max) return v.toFixed(2);
-            }
+    function setStatus(kind, message, notes = []) {
+        const colors = { ok: 'text-green-700', warn: 'text-amber-700', error: 'text-red-600', info: 'text-cyan-800' };
+        ocrStatus.replaceChildren();
+        const main = document.createElement('span');
+        main.className = colors[kind] || colors.info;
+        main.textContent = message;
+        ocrStatus.appendChild(main);
+        if (notes.length) {
+            const list = document.createElement('ul');
+            list.className = 'mt-1 list-disc pl-5 text-xs font-normal text-cyan-700';
+            notes.forEach((n) => { const li = document.createElement('li'); li.textContent = n; list.appendChild(li); });
+            ocrStatus.appendChild(list);
         }
-        return null;
     }
 
-    function findLooseReading(text, min, max, ignoredValues = []) {
-        const matches = [...text.matchAll(/\b\d{1,3}(?:\.\d{1,2})?\b/g)]
-            .map(m => parseFloat(m[0]))
-            .filter(v => v >= min && v <= max)
-            .filter(v => !ignoredValues.some(ig => Math.abs(ig - v) < 0.01));
-        return matches.length ? matches[0].toFixed(2) : null;
-    }
-
-    // ─── Autofill all fields from OCR text ───────────────────────────────────────
-    function autofillFromOcr(rawText) {
-        const text = normalizeOcrText(rawText);
-
-        const bp = findBloodPressure(text);
-
-        const sugar = findNumberNearLabels(text,
-            ['fasting blood glucose','fasting glucose','blood glucose','blood sugar',
-             'random glucose','random blood glucose','glucose','sugar','glu','fbs','rbs','bs'],
-            2, 30)
-            ?? findLooseReading(text, 2, 30, []);
-
-        const hba1c = findNumberNearLabels(text,
-            ['hba1c','hb a1c','glycated haemoglobin','glycated hemoglobin','a1c'],
-            4, 15);
-
-        const haemoglobin = findNumberNearLabels(text,
-            ['haemoglobin','hemoglobin','hb'],
-            5, 25);
-
-        const cholesterol = findNumberNearLabels(text,
-            ['total cholesterol','cholesterol total','serum cholesterol','cholesterol','chol','tc'],
-            2, 20)
-            ?? findLooseReading(text, 2, 20, sugar ? [parseFloat(sugar)] : []);
-
-        const ldl = findNumberNearLabels(text,
-            ['ldl cholesterol','ldl-c','ldl','low density lipoprotein','low-density lipoprotein'],
-            0.5, 10);
-
-        const hdl = findNumberNearLabels(text,
-            ['hdl cholesterol','hdl-c','hdl','high density lipoprotein','high-density lipoprotein'],
-            0.3, 5);
-
-        const albuminGlobulinRatio = findNumberNearLabels(text,
-            ['albumin globulin ratio','albumin-globulin ratio','a/g ratio','ag ratio'],
-            0.2, 5);
-
-        const alkalinePhosphatase = findNumberNearLabels(text,
-            ['alkaline phosphatase','alk phosphatase','alp'],
-            10, 1000);
-
-        const aspartateTransaminase = findNumberNearLabels(text,
-            ['aspartate transaminase','aspartate aminotransferase','ast','sgot'],
-            1, 1000);
-
-        const alanineTransaminase = findNumberNearLabels(text,
-            ['alanine transaminase','alanine aminotransferase','alt','sgpt'],
-            1, 1000);
-
-        const gammaGlutamylTransferase = findNumberNearLabels(text,
-            ['gamma glutamyl transferase','gamma-glutamyl transferase','gamma glutamyl','ggt'],
-            1, 1000);
-
-        const sodium = findNumberNearLabels(text,
-            ['sodium','natrium','na'],
-            80, 200);
-
-        const renalGlucose = findNumberNearLabels(text,
-            ['renal glucose','urine glucose','glucose'],
-            0, 50);
-
-        const heartRate = findNumberNearLabels(text,
-            ['heart rate','pulse rate','pulse','hr','bpm'],
-            30, 200);
-
-        // Fill fields & update badges
-        const fills = {
-            'bp-input':             { val: bp,           detected: 'detected-bp',          badge: 'bp-badge' },
-            'sugar-input':          { val: sugar,        detected: 'detected-sugar',        badge: 'sugar-badge' },
-            'hba1c-input':          { val: hba1c,        detected: 'detected-hba1c',        badge: 'hba1c-badge' },
-            'haemoglobin-input':    { val: haemoglobin,  detected: 'detected-haemoglobin',  badge: 'haemoglobin-badge' },
-            'cholesterol-input':    { val: cholesterol,  detected: 'detected-cholesterol',  badge: 'chol-badge' },
-            'ldl-input':            { val: ldl,          detected: 'detected-ldl',          badge: 'ldl-badge' },
-            'hdl-input':            { val: hdl,          detected: 'detected-hdl',          badge: 'hdl-badge' },
-            'ag-ratio-input':       { val: albuminGlobulinRatio, detected: null,             badge: 'ag-ratio-badge' },
-            'alp-input':            { val: alkalinePhosphatase, detected: null,              badge: 'alp-badge' },
-            'ast-input':            { val: aspartateTransaminase, detected: null,             badge: 'ast-badge' },
-            'alt-input':            { val: alanineTransaminase, detected: null,               badge: 'alt-badge' },
-            'ggt-input':            { val: gammaGlutamylTransferase, detected: 'detected-ggt', badge: 'ggt-badge' },
-            'sodium-input':         { val: sodium,       detected: 'detected-sodium',        badge: 'sodium-badge' },
-            'renal-glucose-input':  { val: renalGlucose, detected: null,                     badge: 'renal-glucose-badge' },
-            'heart-rate-input':     { val: heartRate,    detected: 'detected-heart-rate',   badge: 'hr-badge' },
-        };
-
+    // Fill the fields that were found; fields not found are left as they are.
+    function applyReadings(values, notes, source) {
         const found = [];
-        for (const [inputId, { val, detected, badge }] of Object.entries(fills)) {
-            const input = document.getElementById(inputId);
-            if (input && val !== null) {
+        for (const [key, cfg] of Object.entries(FIELD_INPUTS)) {
+            const input = document.getElementById(cfg.input);
+            const val = values[key];
+            const detectedEl = cfg.detected ? document.getElementById(cfg.detected) : null;
+            if (input && val !== undefined && val !== null && val !== '') {
                 input.value = val;
-                if (badge) updateBadge(inputId, badge);
-                if (detected) {
-                    const el = document.getElementById(detected);
-                    if (el) el.textContent = val;
-                }
-                found.push(inputId.replace('-input', '').replace(/-/g, ' '));
-            } else if (detected) {
-                const el = document.getElementById(detected);
-                if (el) el.textContent = '-';
+                updateBadge(cfg.input, cfg.badge);
+                if (detectedEl) detectedEl.textContent = val;
+                found.push(cfg.label);
+            } else if (detectedEl) {
+                detectedEl.textContent = '-';
             }
         }
 
-        // Timestamp
         const ts = document.getElementById('ocr-timestamp');
         if (ts) {
-            ts.textContent = `Values extracted on ${new Date().toLocaleString('en-MY', { dateStyle: 'medium', timeStyle: 'short' })} — please verify before saving.`;
+            ts.textContent = `Values extracted (${source}) on ${new Date().toLocaleString('en-MY', { dateStyle: 'medium', timeStyle: 'short' })} — please verify before saving.`;
             ts.classList.remove('hidden');
         }
 
         if (found.length) {
-            ocrStatus.innerHTML = `<span class="text-green-700">✓ Autofilled: ${found.join(', ')}. Please review before saving.</span>`;
+            setStatus('ok', `✓ ${source}: filled ${found.join(', ')}. Please review before saving.`, notes);
             generateAiAuto();
         } else {
-            ocrStatus.innerHTML = '<span class="text-amber-700">OCR completed, but no clear readings were found. Please enter values manually.</span>';
+            setStatus('warn', `${source} finished, but no clear readings were found. Try Smart Extract (AI) or enter values manually.`, notes);
         }
     }
 
-    // ─── PDF rendering ────────────────────────────────────────────────────────────
-    async function renderPdfPages(file, maxPages = 6) {
+    // ─── PDF helpers ──────────────────────────────────────────────────────────────
+    async function loadPdf(file) {
         if (!window.pdfjsLib) throw new Error('PDF.js library is not ready. Please refresh the page.');
+        return window.pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+    }
 
-        const data  = await file.arrayBuffer();
-        const pdf   = await window.pdfjsLib.getDocument({ data }).promise;
+    // Digital PDFs carry their text: read it directly, keeping each table row on one line.
+    async function pdfTextLayer(pdf, maxPages = 6) {
+        let out = '';
+        for (let n = 1; n <= Math.min(pdf.numPages, maxPages); n++) {
+            const content = await (await pdf.getPage(n)).getTextContent();
+            const items = content.items
+                .filter((it) => it.str && it.str.trim() !== '')
+                .map((it) => ({ str: it.str, x: it.transform[4], y: it.transform[5], h: Math.abs(it.transform[3]) || 8 }))
+                .sort((a, b) => (b.y - a.y) || (a.x - b.x));
+            const lines = [];
+            for (const it of items) {
+                const line = lines[lines.length - 1];
+                if (line && Math.abs(line.y - it.y) <= Math.max(2, it.h * 0.4)) line.items.push(it);
+                else lines.push({ y: it.y, items: [it] });
+            }
+            out += `\n--- Page ${n} ---\n` + lines
+                .map((l) => l.items.sort((a, b) => a.x - b.x).map((i) => i.str).join(' '))
+                .join('\n');
+        }
+        return out;
+    }
+
+    async function renderPdfPages(pdf, maxPages = 6) {
         const count = Math.min(pdf.numPages, maxPages);
         const pages = [];
-
         for (let n = 1; n <= count; n++) {
-            ocrStatus.textContent = `Preparing PDF page ${n} of ${count}...`;
+            setStatus('info', `Preparing PDF page ${n} of ${count}...`);
             const page     = await pdf.getPage(n);
-            const viewport = page.getViewport({ scale: 2 });
+            const viewport = page.getViewport({ scale: 2.5 });
             const canvas   = document.createElement('canvas');
             canvas.width   = viewport.width;
             canvas.height  = viewport.height;
             await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-            pages.push({ canvas, pageNumber: n, pageCount: count });
+            pages.push({ canvas: enhanceForOcr(canvas), pageNumber: n, pageCount: count });
         }
         return pages;
     }
 
-    // ─── Tesseract recognition (v5 API) ──────────────────────────────────────────
-    async function recognizeSource(source, label) {
+    // ─── Image helpers ────────────────────────────────────────────────────────────
+    function drawScaled(source, width, height, targetLong) {
+        const scale = targetLong / Math.max(width, height);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(width * scale);
+        canvas.height = Math.round(height * scale);
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+        return canvas;
+    }
+
+    // Grayscale + contrast stretch: helps Tesseract on dim or low-contrast photos.
+    function enhanceForOcr(canvas) {
+        const ctx = canvas.getContext('2d');
+        const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = img.data;
+        const hist = new Uint32Array(256);
+        for (let i = 0; i < d.length; i += 4) {
+            const g = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
+            d[i] = g; hist[g]++;
+        }
+        const total = d.length / 4;
+        let lo = 0, hi = 255, acc = 0;
+        for (let v = 0; v < 256; v++) { acc += hist[v]; if (acc > total * 0.02) { lo = v; break; } }
+        acc = 0;
+        for (let v = 255; v >= 0; v--) { acc += hist[v]; if (acc > total * 0.02) { hi = v; break; } }
+        const range = Math.max(1, hi - lo);
+        for (let i = 0; i < d.length; i += 4) {
+            const g = Math.max(0, Math.min(255, ((d[i] - lo) * 255) / range));
+            d[i] = d[i + 1] = d[i + 2] = g;
+        }
+        ctx.putImageData(img, 0, 0);
+        return canvas;
+    }
+
+    async function imageForOcr(file) {
+        const bitmap = await createImageBitmap(file);
+        const long = Math.max(bitmap.width, bitmap.height);
+        // Small photos are enlarged (Tesseract likes ~2000 px), huge ones shrunk to keep it fast.
+        const target = Math.min(3000, Math.max(long, 2000));
+        return enhanceForOcr(drawScaled(bitmap, bitmap.width, bitmap.height, target));
+    }
+
+    // ─── Tesseract (one worker reused for every page) ─────────────────────────────
+    async function ocrCanvases(sources) {
+        let label = '';
         const worker = await Tesseract.createWorker('eng', 1, {
-            logger: p => {
-                if (p.status === 'recognizing text')
-                    ocrStatus.textContent = `${label}: recognizing... ${Math.round(p.progress * 100)}%`;
-            }
+            logger: (p) => {
+                if (p.status === 'recognizing text') setStatus('info', `${label}: recognizing... ${Math.round(p.progress * 100)}%`);
+            },
         });
         try {
-            const result = await worker.recognize(source);
-            return result.data.text || '';
+            let text = '';
+            for (const s of sources) {
+                label = s.label;
+                text += `\n--- ${s.label} ---\n` + ((await worker.recognize(s.canvas)).data.text || '');
+            }
+            return text;
         } finally {
             await worker.terminate();
         }
     }
 
-    // ─── Extract button handler ───────────────────────────────────────────────────
+    const isPdf = (file) => file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+
+    function setBusy(busy) {
+        [extractOcrButton, aiExtractButton].forEach((b) => {
+            if (!b) return;
+            b.disabled = busy;
+            b.classList.toggle('opacity-60', busy);
+            b.classList.toggle('cursor-not-allowed', busy);
+        });
+    }
+
+    function chosenFile() {
+        const file = ocrImageInput.files[0];
+        if (!file) setStatus('error', 'Please choose an image or PDF first.');
+        return file;
+    }
+
+    // ─── B: Extract Readings (in the browser) ────────────────────────────────────
     if (extractOcrButton) {
         extractOcrButton.addEventListener('click', async () => {
-            const file = ocrImageInput.files[0];
-            if (!file) {
-                ocrStatus.innerHTML = '<span class="text-red-600">Please choose an image or PDF first.</span>';
-                return;
-            }
-            if (!window.Tesseract) {
-                ocrStatus.innerHTML = '<span class="text-red-600">OCR library is still loading. Please wait a moment and try again.</span>';
-                return;
-            }
+            const file = chosenFile();
+            if (!file) return;
 
-            extractOcrButton.disabled = true;
-            extractOcrButton.classList.add('opacity-60', 'cursor-not-allowed');
-            ocrStatus.textContent = 'Reading report... this may take a few seconds.';
+            setBusy(true);
+            setStatus('info', 'Reading report... this may take a few seconds.');
             ocrOutput.textContent = '';
 
             try {
                 let rawText = '';
-                if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-                    const pages = await renderPdfPages(file);
-                    for (const page of pages) {
-                        rawText += `\n\n--- Page ${page.pageNumber} ---\n`;
-                        rawText += await recognizeSource(page.canvas, `Page ${page.pageNumber} of ${page.pageCount}`);
+                let source = 'OCR';
+                if (isPdf(file)) {
+                    const pdf = await loadPdf(file);
+                    const layer = await pdfTextLayer(pdf);
+                    if (layer.replace(/--- Page \d+ ---|\s/g, '').length > 40 && /\d/.test(layer)) {
+                        rawText = layer;
+                        source = 'PDF text';
+                    } else {
+                        if (!window.Tesseract) throw new Error('OCR library is still loading.');
+                        const pages = await renderPdfPages(pdf);
+                        rawText = await ocrCanvases(pages.map((p) => ({ canvas: p.canvas, label: `Page ${p.pageNumber} of ${p.pageCount}` })));
                     }
                 } else {
-                    rawText = await recognizeSource(file, 'Image report');
+                    if (!window.Tesseract) throw new Error('OCR library is still loading.');
+                    setStatus('info', 'Preparing image...');
+                    rawText = await ocrCanvases([{ canvas: await imageForOcr(file), label: 'Image report' }]);
                 }
                 ocrOutput.textContent = rawText.trim() || 'No text detected.';
-                autofillFromOcr(rawText);
+                const { values, notes } = window.ReportParser.parse(rawText);
+                applyReadings(values, notes, source);
             } catch (err) {
                 console.error('OCR Error:', err);
-                ocrStatus.innerHTML = '<span class="text-red-600">OCR failed. Please try a clearer image or enter values manually.</span>';
+                setStatus('error', 'Could not read the report. Try Smart Extract (AI), a clearer image, or enter values manually.');
             } finally {
-                extractOcrButton.disabled = false;
-                extractOcrButton.classList.remove('opacity-60', 'cursor-not-allowed');
+                setBusy(false);
+            }
+        });
+    }
+
+    // ─── A: Smart Extract (AI) ────────────────────────────────────────────────────
+    async function fileForAi(file) {
+        if (isPdf(file)) return file;
+        const bitmap = await createImageBitmap(file);
+        const long = Math.max(bitmap.width, bitmap.height);
+        const canvas = drawScaled(bitmap, bitmap.width, bitmap.height, Math.min(long, 2000));
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.88));
+        return new File([blob], 'report.jpg', { type: 'image/jpeg' });
+    }
+
+    if (aiExtractButton) {
+        aiExtractButton.addEventListener('click', async () => {
+            const file = chosenFile();
+            if (!file) return;
+
+            setBusy(true);
+            setStatus('info', 'Smart Extract: sending the report to the AI... this can take up to 30 seconds.');
+            ocrOutput.textContent = '';
+
+            try {
+                const upload = await fileForAi(file);
+                if (upload.size > 10 * 1024 * 1024) {
+                    setStatus('error', 'The file is larger than 10 MB. Please upload a smaller PDF or a photo.');
+                    return;
+                }
+                const form = new FormData();
+                form.append('report', upload);
+                const response = await fetch('{{ route("api.ai.extractReport") }}', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                    body: form,
+                });
+                const data = await response.json().catch(() => ({}));
+
+                if (response.status === 429) {
+                    setStatus('error', 'Too many Smart Extract requests. Please wait a minute and try again.');
+                } else if (response.status === 413) {
+                    setStatus('error', 'The file is too large for the server. Please upload a smaller file.');
+                } else if (!response.ok || !data.success) {
+                    const message = data.errors?.report?.[0] || data.message || 'Smart Extract failed. Please try again or use Extract Readings.';
+                    setStatus('error', message);
+                } else {
+                    ocrOutput.textContent = JSON.stringify(data.values, null, 2);
+                    applyReadings(data.values || {}, data.notes || [], 'Smart Extract (AI)');
+                }
+            } catch (err) {
+                console.error('Smart Extract Error:', err);
+                setStatus('error', 'Smart Extract failed. Please check your connection, or use Extract Readings.');
+            } finally {
+                setBusy(false);
             }
         });
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Patient;
+use App\Support\ReportReadings;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -13,11 +14,11 @@ class AiController extends Controller
 {
     private const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
-    private function geminiClient(string $apiKey)
+    private function geminiClient(string $apiKey, int $timeout = 15)
     {
         // The key goes in a header, never the URL: error messages include the URL,
         // and a key in the query string would leak into logs and the browser.
-        $httpClient = Http::timeout(15)->acceptJson()->withHeaders(['x-goog-api-key' => $apiKey]);
+        $httpClient = Http::timeout($timeout)->acceptJson()->withHeaders(['x-goog-api-key' => $apiKey]);
 
         if (app()->environment('local')) {
             $httpClient = $httpClient->withoutVerifying();
@@ -27,10 +28,10 @@ class AiController extends Controller
     }
 
     /**
-     * Send a prompt to Gemini. Returns the reply text, or a JSON error response.
+     * Send a request body to Gemini. Returns the reply text, or a JSON error response.
      * Details are logged server-side only; the browser gets a generic message.
      */
-    private function askGemini(string $prompt, string $context): string|JsonResponse
+    private function callGemini(array $body, string $context, int $timeout = 15): string|JsonResponse
     {
         $apiKey = config('services.gemini.key');
 
@@ -39,14 +40,12 @@ class AiController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'AI suggestions are not configured on this server. Please contact the administrator.',
+                'message' => 'AI features are not configured on this server. Please contact the administrator.',
             ], 500);
         }
 
         try {
-            $response = $this->geminiClient($apiKey)->post(self::GEMINI_URL, [
-                'contents' => [['parts' => [['text' => $prompt]]]],
-            ]);
+            $response = $this->geminiClient($apiKey, $timeout)->post(self::GEMINI_URL, $body);
         } catch (Throwable $exception) {
             Log::error('Gemini request failed.', ['context' => $context, 'error' => $exception->getMessage()]);
 
@@ -79,6 +78,75 @@ class AiController extends Controller
         }
 
         return $text;
+    }
+
+    private function askGemini(string $prompt, string $context): string|JsonResponse
+    {
+        return $this->callGemini(['contents' => [['parts' => [['text' => $prompt]]]]], $context);
+    }
+
+    /**
+     * Read the readings off an uploaded check-up / lab report image or PDF with Gemini.
+     * The file is sent to Gemini and not stored. Values are unit-converted and
+     * range-checked before they reach the form, and the pharmacist reviews them.
+     */
+    public function extractReport(Request $request): JsonResponse
+    {
+        $request->validate([
+            'report' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
+        ], [
+            'report.uploaded' => 'The report could not be uploaded. Try a smaller file (under 10 MB).',
+            'report.mimes' => 'Please upload a JPG, PNG, WEBP image or a PDF.',
+            'report.max' => 'The report must be smaller than 10 MB.',
+        ]);
+
+        $file = $request->file('report');
+        $mime = $file->getMimeType() === 'application/pdf' ? 'application/pdf' : ($file->getMimeType() ?: 'image/jpeg');
+
+        $prompt = <<<'PROMPT'
+            You are reading a health screening or laboratory report for a community pharmacy.
+            Extract only the patient's measured RESULT for each field in the schema.
+            Rules:
+            - Use the result column, never the reference range, flag or previous result.
+            - Copy the number exactly as printed and give the unit exactly as printed (for example mmol/L, mg/dL, g/dL, g/L, %, mmol/mol, U/L).
+            - blood_sugar is blood/serum/plasma glucose (fasting or random). renal_glucose is urine glucose only.
+            - cholesterol is TOTAL cholesterol, not HDL, LDL, non-HDL or a ratio.
+            - If a field is not on the report or is unreadable, return null for it. Do not guess or calculate values.
+            - Do not return names, identity numbers, addresses or any other personal details.
+            PROMPT;
+
+        @set_time_limit(90);
+
+        $text = $this->callGemini([
+            'contents' => [[
+                'parts' => [
+                    ['inline_data' => ['mime_type' => $mime, 'data' => base64_encode($file->get())]],
+                    ['text' => $prompt],
+                ],
+            ]],
+            'generationConfig' => [
+                'temperature' => 0,
+                'responseMimeType' => 'application/json',
+                'responseSchema' => ReportReadings::responseSchema(),
+                'thinkingConfig' => ['thinkingBudget' => 0],
+            ],
+        ], 'report extraction', 60);
+
+        if ($text instanceof JsonResponse) {
+            return $text;
+        }
+
+        $raw = json_decode($text, true);
+
+        if (! is_array($raw)) {
+            Log::warning('Gemini report extraction returned non-JSON.', ['length' => strlen($text)]);
+
+            return response()->json(['success' => false, 'message' => 'The AI could not read this report. Please try a clearer image.'], 502);
+        }
+
+        $result = ReportReadings::normalize($raw);
+
+        return response()->json(['success' => true] + $result);
     }
 
     /**
