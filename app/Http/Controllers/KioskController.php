@@ -73,7 +73,10 @@ class KioskController extends Controller
             'currentMedications',
         ])->findOrFail($id);
 
-        return view('kiosk.summary', compact('patient'));
+        // Same ML risk estimate the pharmacist sees (PHP decision tree), worded for the patient in the view.
+        $prediction = app(HealthRiskPredictionController::class)->predictForPatient($patient);
+
+        return view('kiosk.summary', compact('patient', 'prediction'));
     }
 
     public function download(int $id)

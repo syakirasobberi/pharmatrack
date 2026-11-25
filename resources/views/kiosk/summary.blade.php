@@ -484,7 +484,61 @@
         </div>
 
         <div class="space-y-6">
-            
+
+            {{-- HEALTH RISK ESTIMATE (patient-facing wording of the pharmacist's ML card) --}}
+            @php
+                $risk = $prediction['risk'] ?? 'Not Available';
+                $riskTheme = match ($risk) {
+                    'High'     => ['box' => 'border-red-200 bg-red-50', 'chip' => 'bg-red-100 text-red-700', 'text' => 'text-red-800'],
+                    'Moderate' => ['box' => 'border-amber-200 bg-amber-50', 'chip' => 'bg-amber-100 text-amber-800', 'text' => 'text-amber-900'],
+                    'Low'      => ['box' => 'border-emerald-200 bg-emerald-50', 'chip' => 'bg-emerald-100 text-emerald-700', 'text' => 'text-emerald-800'],
+                    default    => ['box' => 'border-slate-200 bg-slate-50', 'chip' => 'bg-slate-100 text-slate-600', 'text' => 'text-slate-700'],
+                };
+                $riskAdvice = match ($risk) {
+                    'High'     => 'Some of your readings are higher than recommended. Please speak to your pharmacist soon about your results and next steps.',
+                    'Moderate' => 'A few of your readings are above the healthy range. Small changes to diet and activity can help — your pharmacist can guide you.',
+                    'Low'      => 'Your latest readings look healthy. Keep up your good habits and come back for regular check-ups.',
+                    default    => null,
+                };
+                $hasFactors = ($prediction['success'] ?? false) && collect($prediction['factors'] ?? [])->reject(fn ($f) => $f === 'No major risk factors detected')->isNotEmpty();
+            @endphp
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden" id="kiosk-health-risk">
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between gap-2 text-slate-800">
+                    <h3 class="font-bold text-base">Your Health Risk Estimate</h3>
+                    <span class="px-3 py-1 rounded-full text-xs font-bold {{ $riskTheme['chip'] }}">
+                        {{ ($prediction['success'] ?? false) ? $risk . ' Risk' : 'Not available yet' }}
+                    </span>
+                </div>
+                <div class="p-6 space-y-4">
+                    @if($prediction['success'] ?? false)
+                        <div class="rounded-xl border p-4 {{ $riskTheme['box'] }}">
+                            <p class="text-sm font-semibold leading-6 {{ $riskTheme['text'] }}">{{ $riskAdvice }}</p>
+                        </div>
+
+                        @if($hasFactors)
+                            <div>
+                                <p class="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Readings to watch</p>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($prediction['factors'] as $factor)
+                                        <span class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-slate-700">{{ $factor }}</span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        <p class="text-[11px] leading-5 text-slate-400">
+                            Based on your BMI and latest check-up (blood pressure {{ $prediction['inputs']['blood_pressure'] }}, blood sugar {{ $prediction['inputs']['blood_sugar'] }},
+                            cholesterol {{ $prediction['inputs']['cholesterol'] }}). This is an estimate, not a diagnosis — please discuss it with your pharmacist.
+                        </p>
+                    @else
+                        <p class="text-sm text-slate-500">
+                            An estimate needs your BMI plus a check-up with blood pressure, blood sugar and cholesterol.
+                            Add a check-up below or ask your pharmacist.
+                        </p>
+                    @endif
+                </div>
+            </div>
+
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="px-6 py-4 border-b border-red-200 bg-red-50 flex items-center gap-2 text-red-800">
                     <svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
