@@ -68,6 +68,13 @@ return [
     'timezone' => 'Asia/Kuala_Lumpur',
 
     /*
+    | Run the daily reminder commands from web traffic (App\Support\DailyTasks), for hosts
+    | without cron. On by default in production only, so local development never emails
+    | real patients by accident.
+    */
+    'daily_tasks_on_web' => (bool) env('DAILY_TASKS_ON_WEB', env('APP_ENV') === 'production'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------

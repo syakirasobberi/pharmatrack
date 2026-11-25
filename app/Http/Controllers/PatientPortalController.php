@@ -170,6 +170,25 @@ class PatientPortalController extends Controller
                 : "Logged: you took {$medication->name} on {$day->format('d M')}.");
     }
 
+    /** Ask the pharmacist for a refill; shows on the pharmacist's dashboard until they refill. */
+    public function requestRefill(Request $request, Medication $medication)
+    {
+        $medication = $this->ownCurrentMedication($request, $medication);
+        if (! $medication instanceof Medication) {
+            return $medication;
+        }
+
+        if ($medication->refill_requested_at) {
+            return redirect()->route('patient.medications')
+                ->with('success', "You already requested a refill of {$medication->name} on {$medication->refill_requested_at->format('d M Y')}. Your pharmacist will prepare it.");
+        }
+
+        $medication->forceFill(['refill_requested_at' => now()])->save();
+
+        return redirect()->route('patient.medications')
+            ->with('success', "Refill of {$medication->name} requested. Your pharmacist will prepare it — please collect it at the pharmacy.");
+    }
+
     /** Undo a dose logged by mistake. */
     public function removeDose(Request $request, Medication $medication)
     {

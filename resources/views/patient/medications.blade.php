@@ -264,6 +264,25 @@
                                 </div>
                             @endif
 
+                            @if($medication->isCurrent())
+                                @php $refill = $medication->refillStatus(); @endphp
+                                <div class="flex flex-col gap-3 border-b border-gray-100 px-6 py-3 sm:flex-row sm:items-center sm:justify-between {{ $refill === 'overdue' ? 'bg-red-50' : ($refill === 'due' ? 'bg-amber-50' : '') }}">
+                                    <div class="text-sm">
+                                        @if($medication->supply_until || $medication->refill_requested_at)
+                                            @include('medications.partials.supply-badge', ['medication' => $medication])
+                                        @else
+                                            <span class="text-xs text-gray-500">Running low? You can ask your pharmacist for a refill.</span>
+                                        @endif
+                                    </div>
+                                    @unless($medication->refill_requested_at)
+                                        <form method="POST" action="{{ route('patient.medications.refillRequest', $medication) }}">
+                                            @csrf
+                                            <button type="submit" class="rounded-xl px-4 py-2 text-xs font-extrabold {{ in_array($refill, ['due', 'overdue']) ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'border border-indigo-200 bg-white text-indigo-700 hover:bg-indigo-50' }}">Request refill</button>
+                                        </form>
+                                    @endunless
+                                </div>
+                            @endif
+
                             <div class="grid gap-6 p-6 lg:grid-cols-[1fr_320px]">
                                 <div class="grid gap-3 sm:grid-cols-2">
                                     <div class="rounded-2xl border border-gray-100 bg-gray-50 p-4">

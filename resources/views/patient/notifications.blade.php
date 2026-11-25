@@ -43,7 +43,7 @@
                         $type = $data['type'] ?? class_basename($notification->type);
                         $actionUrl = $data['action_url'] ?? match ($type) {
                             'checkup_due' => route('patient.checkups'),
-                            'medication_update_due' => route('patient.medications'),
+                            'medication_update_due', 'refill_due' => route('patient.medications'),
                             default => null,
                         };
                         $metaDate = $data['last_checkup_date'] ?? $data['last_medication_update'] ?? null;

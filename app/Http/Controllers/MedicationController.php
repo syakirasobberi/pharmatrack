@@ -27,12 +27,17 @@ class MedicationController extends Controller
             'start_date' => [$editing ? 'nullable' : 'required', 'date'],
             'end_date' => ['nullable', 'date', ...($request->filled('start_date') ? ['after_or_equal:start_date'] : [])],
             'last_taken' => [$editing ? 'nullable' : 'required', 'date', 'before_or_equal:today'],
+            // Adding: "dispensed today for N days". Editing: correct the run-out date directly.
+            ...($editing
+                ? ['supply_until' => ['nullable', 'date']]
+                : ['supply_days' => ['nullable', 'integer', 'min:1', 'max:365']]),
         ];
     }
 
     private const MESSAGES = [
         'end_date.after_or_equal' => 'The end date cannot be before the start date.',
         'last_taken.before_or_equal' => 'The latest dose date cannot be in the future.',
+        'supply_days.max' => 'Supply can be at most 365 days.',
     ];
 
     public function index($id)
@@ -73,6 +78,7 @@ class MedicationController extends Controller
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'] ?? null,
             'last_taken' => $validated['last_taken'],
+            'supply_until' => filled($validated['supply_days'] ?? null) ? today()->addDays((int) $validated['supply_days']) : null,
         ]);
 
         $this->logOverride($request, $medication, $warnings);
@@ -118,6 +124,11 @@ class MedicationController extends Controller
             if ($blocked = $this->requireAcknowledgement($request, $validated['name'], $warnings)) {
                 return $blocked;
             }
+        }
+
+        // A new run-out date answers any pending refill request.
+        if (isset($changes['supply_until'])) {
+            $medication->refill_requested_at = null;
         }
 
         $medication->save();
@@ -182,6 +193,34 @@ class MedicationController extends Controller
 
         return redirect()->route('pharmacist.medication.index', $medication->patient_id)
             ->with('success', $medication->name . ' resumed.' . $note);
+    }
+
+    /** Refill dispensed today for N days (leftover supply carries forward). */
+    public function refill(Request $request, $medicationId)
+    {
+        $medication = $this->findOwnMedication($medicationId);
+        if (! $medication->isCurrent()) {
+            return back()->with('error', "{$medication->name} is no longer current, so it cannot be refilled.");
+        }
+
+        $validated = $request->validateWithBag('refill', [
+            'days' => ['required', 'integer', 'min:1', 'max:365'],
+        ], [
+            'days.max' => 'A refill can be at most 365 days.',
+        ]);
+
+        $medication->refill((int) $validated['days']);
+
+        Log::info('Medication refilled.', [
+            'medication_id' => $medication->id,
+            'patient_id' => $medication->patient_id,
+            'days' => (int) $validated['days'],
+            'supply_until' => $medication->supply_until->toDateString(),
+            'refilled_by' => $request->user()->id,
+        ]);
+
+        return redirect()->route('pharmacist.medication.index', $medication->patient_id)
+            ->with('success', "{$medication->name} refilled for {$validated['days']} days — supply now lasts until {$medication->supply_until->format('d M Y')}.");
     }
 
     /** Log a dose the patient reports (e.g. at the counter or by phone), up to 30 days back. */

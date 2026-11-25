@@ -111,6 +111,7 @@ Route::middleware(['auth', 'force_password_change', 'role:pharmacist'])->group(f
     Route::patch('/pharmacist/medications/{medication}/stop', [MedicationController::class, 'stop'])->whereNumber('medication')->name('pharmacist.medication.stop');
     Route::patch('/pharmacist/medications/{medication}/resume', [MedicationController::class, 'resume'])->whereNumber('medication')->name('pharmacist.medication.resume');
     Route::post('/pharmacist/medications/{medication}/doses', [MedicationController::class, 'logDose'])->whereNumber('medication')->name('pharmacist.medication.doses.store');
+    Route::post('/pharmacist/medications/{medication}/refill', [MedicationController::class, 'refill'])->whereNumber('medication')->name('pharmacist.medication.refill');
     Route::delete('/pharmacist/medications/{medication}/doses', [MedicationController::class, 'removeDose'])->whereNumber('medication')->name('pharmacist.medication.doses.destroy');
     Route::patch('/pharmacist/patients/{id}/archive', [PatientController::class, 'archive'])->name('pharmacist.patients.archive');
     Route::patch('/pharmacist/patients/{id}/restore', [PatientController::class, 'restore'])->name('pharmacist.patients.restore');
@@ -138,6 +139,7 @@ Route::middleware(['auth', 'force_password_change', 'role:patient'])->group(func
     Route::post('/patient/medications', [PatientPortalController::class, 'storeMedication'])->name('patient.medications.store');
     Route::patch('/patient/medications/{medication}', [PatientPortalController::class, 'updateMedication'])->name('patient.medications.update');
     Route::post('/patient/medications/{medication}/doses', [PatientPortalController::class, 'logDose'])->name('patient.medications.doses.store');
+    Route::post('/patient/medications/{medication}/refill-request', [PatientPortalController::class, 'requestRefill'])->name('patient.medications.refillRequest');
     Route::delete('/patient/medications/{medication}/doses', [PatientPortalController::class, 'removeDose'])->name('patient.medications.doses.destroy');
     Route::get('/patient/checkups', [PatientPortalController::class, 'checkups'])->name('patient.checkups');
     Route::get('/patient/download-summary', [PatientPortalController::class, 'downloadSummary'])->name('patient.summary.download');

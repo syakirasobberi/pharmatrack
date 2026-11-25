@@ -72,14 +72,26 @@
             ->values();
         $adherenceAlerts = $adherenceAlertsAll->take(3);
 
+        // Refills: requested by the patient, or supply running out within the notice window / already out.
+        $refillAlertsAll = \App\Models\Medication::whereIn('patient_id', $assignedPatientIds)
+            ->current()
+            ->where(fn ($q) => $q->whereNotNull('refill_requested_at')
+                ->orWhereDate('supply_until', '<=', today()->addDays(\App\Models\Medication::REFILL_NOTICE_DAYS)))
+            ->with('patient.user')
+            ->get()
+            ->filter(fn ($m) => $m->refill_requested_at || in_array($m->refillStatus(), ['due', 'overdue'], true))
+            ->sortBy(fn ($m) => [$m->refill_requested_at ? 0 : 1, $m->supply_until?->timestamp ?? 0])
+            ->values();
+        $refillAlerts = $refillAlertsAll->take(3);
+
         // Due = no check-up in the last 90 days.
         $dueQuery = \App\Models\Patient::assignedTo($pharmacist)
             ->whereDoesntHave('healthCheckups', fn ($query) => $query->whereDate('checkup_date', '>=', today()->subDays(90)));
         $dueCount = (clone $dueQuery)->count();
         $patientsNeedingCheckup = $dueQuery->with(['user', 'latestCheckup'])->take(5)->get();
 
-        $workflowAlerts = $healthAlertsAll->count() + $medicationAlertCount + $adherenceAlertsAll->count() + $dueCount;
-        $shownAlerts = $healthAlerts->count() + $medicationAlerts->count() + $adherenceAlerts->count() + $patientsNeedingCheckup->count();
+        $workflowAlerts = $healthAlertsAll->count() + $medicationAlertCount + $adherenceAlertsAll->count() + $refillAlertsAll->count() + $dueCount;
+        $shownAlerts = $healthAlerts->count() + $medicationAlerts->count() + $adherenceAlerts->count() + $refillAlerts->count() + $patientsNeedingCheckup->count();
 
         $bmiBadge = function ($bmi) {
             if (! is_numeric($bmi) || $bmi <= 0) return ['—', 'bg-slate-100 text-slate-500', 'bg-slate-400', 'Not recorded'];
@@ -296,7 +308,7 @@
                         <span class="ml-auto rounded-full px-2.5 py-0.5 text-xs font-extrabold {{ $workflowAlerts > 0 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700' }}">{{ $workflowAlerts }}</span>
                     </h3>
                     <p class="text-xs text-slate-400 font-medium mb-5">
-                        {{ $healthAlertsAll->count() }} health · {{ $medicationAlertCount }} medication · {{ $adherenceAlertsAll->count() }} adherence · {{ $dueCount }} check-up due
+                        {{ $healthAlertsAll->count() }} health · {{ $medicationAlertCount }} medication · {{ $adherenceAlertsAll->count() }} adherence · {{ $refillAlertsAll->count() }} refill · {{ $dueCount }} check-up due
                         @if($shownAlerts < $workflowAlerts) — showing {{ $shownAlerts }} @endif
                     </p>
 
@@ -331,6 +343,32 @@
                                 Review Case <span aria-hidden="true">&rarr;</span>
                             </a>
                         </div>
+                        @endforeach
+
+                        <!-- Refill Alerts (patient request or supply running out) -->
+                        @foreach($refillAlerts as $med)
+                            @php $out = $med->refillStatus() === 'overdue'; $days = $med->supplyDaysLeft(); @endphp
+                            <div class="p-4 border {{ $out ? 'border-rose-200/60 bg-rose-50/50' : 'border-indigo-200/60 bg-indigo-50/50' }} rounded-2xl group shadow-sm">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4 {{ $out ? 'text-rose-500' : 'text-indigo-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                    <h4 class="font-bold text-sm text-slate-800">{{ $med->patient->user->name ?? 'Unknown' }}</h4>
+                                    @if($med->refill_requested_at)
+                                        <span class="ml-auto px-2 py-1 bg-white rounded-md text-[10px] font-bold text-indigo-600 shadow-sm border border-indigo-100">Requested</span>
+                                    @endif
+                                </div>
+                                <p class="text-xs {{ $out ? 'text-rose-800' : 'text-indigo-900' }} font-medium bg-white/60 p-2.5 rounded-xl border {{ $out ? 'border-rose-100/50' : 'border-indigo-100/50' }}">
+                                    <span class="font-bold">{{ $med->name }}:</span>
+                                    @if($med->refill_requested_at)
+                                        patient asked for a refill on {{ $med->refill_requested_at->format('d M') }}.
+                                    @endif
+                                    @if($days !== null)
+                                        {{ $days < 0 ? 'Supply ran out ' . abs($days) . ' days ago.' : ($days === 0 ? 'Supply runs out today.' : "Supply runs out in {$days} " . \Illuminate\Support\Str::plural('day', $days) . '.') }}
+                                    @endif
+                                </p>
+                                <a href="{{ route('pharmacist.medication.index', $med->patient_id) }}" class="mt-3 text-xs font-bold {{ $out ? 'text-rose-600 hover:text-rose-800' : 'text-indigo-600 hover:text-indigo-800' }} flex items-center gap-1 group-hover:gap-2 transition-all">
+                                    Record Refill <span aria-hidden="true">&rarr;</span>
+                                </a>
+                            </div>
                         @endforeach
 
                         <!-- Adherence Alerts (dose log, last 30 days) -->

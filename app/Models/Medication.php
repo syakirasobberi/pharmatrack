@@ -15,7 +15,8 @@ class Medication extends Model
         'notes',
         'start_date',
         'end_date',
-        'last_taken'
+        'last_taken',
+        'supply_until',
     ];
 
     protected $casts = [
@@ -23,7 +24,54 @@ class Medication extends Model
         'end_date' => 'date',
         'last_taken' => 'date',
         'stopped_at' => 'datetime',
+        'supply_until' => 'date',
+        'refill_reminder_sent_for' => 'date',
+        'refill_requested_at' => 'datetime',
     ];
+
+    /** Remind this many days before the supply runs out. */
+    public const REFILL_NOTICE_DAYS = 5;
+
+    /**
+     * Refill state for a current medication with a known supply:
+     * null (no supply date / not current), 'ok', 'due' (runs out within REFILL_NOTICE_DAYS) or 'overdue' (ran out).
+     */
+    public function refillStatus(): ?string
+    {
+        if ($this->supply_until === null || ! $this->isCurrent()) {
+            return null;
+        }
+        // No refill needed if the treatment ends before (or when) the supply runs out.
+        if ($this->end_date !== null && $this->end_date->lte($this->supply_until)) {
+            return null;
+        }
+        if ($this->supply_until->lt(today())) {
+            return 'overdue';
+        }
+
+        return $this->supply_until->lte(today()->addDays(self::REFILL_NOTICE_DAYS)) ? 'due' : 'ok';
+    }
+
+    /** Days of supply left (negative = days since it ran out), or null when unknown. */
+    public function supplyDaysLeft(): ?int
+    {
+        return $this->supply_until ? (int) today()->diffInDays($this->supply_until, false) : null;
+    }
+
+    /**
+     * Record a refill dispensed today for $days days. Tablets left over from the current
+     * supply carry forward, so the new supply starts from the later of today and supply_until.
+     */
+    public function refill(int $days): void
+    {
+        $from = $this->supply_until && $this->supply_until->gt(today()) ? $this->supply_until->copy() : today();
+
+        $this->forceFill([
+            'supply_until' => $from->addDays($days),
+            'refill_reminder_sent_for' => null,
+            'refill_requested_at' => null,
+        ])->save();
+    }
 
     public function patient()
     {

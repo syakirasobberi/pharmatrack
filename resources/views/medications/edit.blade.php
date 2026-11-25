@@ -59,6 +59,11 @@
                             <label for="last_taken" class="block text-sm font-bold text-gray-700 mb-1">Latest Dose Date</label>
                             <input id="last_taken" type="date" name="last_taken" max="{{ today()->toDateString() }}" value="{{ old('last_taken', $date($medication->last_taken)) }}" class="{{ $field }}">
                         </div>
+                        <div>
+                            <label for="supply_until" class="block text-sm font-bold text-gray-700 mb-1">Supply Runs Out On <span class="font-normal text-gray-400">(blank = not tracked)</span></label>
+                            <input id="supply_until" type="date" name="supply_until" value="{{ old('supply_until', $date($medication->supply_until)) }}" class="{{ $field }}">
+                            <p class="mt-1 text-xs text-gray-500">For a new refill, use <em>Refill…</em> on the Medications page instead.</p>
+                        </div>
                     </div>
 
                     @if(session('drug_warnings'))

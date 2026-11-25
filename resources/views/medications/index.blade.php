@@ -85,6 +85,12 @@
                         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl font-bold">{{ session('error') }}</div>
                     @endif
 
+                    @if($errors->refill->any())
+                        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl font-bold">
+                            @foreach($errors->refill->all() as $error)<p>{{ $error }}</p>@endforeach
+                        </div>
+                    @endif
+
                     @if($errors->dose->any())
                         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl font-bold">
                             @foreach($errors->dose->all() as $error)<p>{{ $error }}</p>@endforeach
@@ -266,6 +272,7 @@
                                                 <div class="flex flex-col">
                                                     <span>{{ $medication->start_date?->format('d M Y') ?? 'Start not recorded' }}</span>
                                                     <span class="text-xs text-slate-400">{{ $medication->end_date ? 'until ' . $medication->end_date->format('d M Y') : 'Ongoing (no end date)' }}</span>
+                                                    <div class="mt-1.5">@include('medications.partials.supply-badge', ['medication' => $medication])</div>
                                                 </div>
                                             </td>
                                             <td class="py-4 px-6 text-slate-600">
@@ -295,6 +302,23 @@
                                                     <a href="{{ route('pharmacist.medication.edit', $medication->id) }}"
                                                        class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-blue-600 hover:bg-blue-50"
                                                        aria-label="Edit {{ $medication->name }}">Edit</a>
+                                                    {{-- Refill dispensed today; leftover supply carries forward. --}}
+                                                    <details class="text-left">
+                                                        <summary class="list-none cursor-pointer px-3 py-1.5 rounded-lg border {{ in_array($medication->refillStatus(), ['due', 'overdue']) || $medication->refill_requested_at ? 'border-indigo-400 bg-indigo-50' : 'border-indigo-200' }} text-xs font-bold text-indigo-700 hover:bg-indigo-50 text-right">Refill…</summary>
+                                                        <form method="POST" action="{{ route('pharmacist.medication.refill', $medication->id) }}"
+                                                              class="mt-2 w-64 rounded-xl border border-indigo-200 bg-indigo-50 p-3 space-y-2" x-data="{ days: 30 }">
+                                                            @csrf
+                                                            <label for="refill-days-{{ $medication->id }}" class="block text-xs font-bold text-slate-700">Dispensed today: supply for how many days?</label>
+                                                            <div class="flex gap-1">
+                                                                @foreach([30, 60, 90] as $preset)
+                                                                    <button type="button" @click="days = {{ $preset }}" :class="days == {{ $preset }} ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-700'" class="flex-1 rounded-lg border border-indigo-300 px-2 py-1 text-xs font-bold">{{ $preset }}</button>
+                                                                @endforeach
+                                                            </div>
+                                                            <input id="refill-days-{{ $medication->id }}" type="number" name="days" min="1" max="365" required x-model="days" class="w-full rounded-lg border-slate-300 text-xs">
+                                                            <p class="text-[11px] text-slate-500">{{ $medication->supply_until && $medication->supply_until->isFuture() ? 'Added on top of the current supply (until ' . $medication->supply_until->format('d M') . ').' : 'Counted from today.' }}</p>
+                                                            <button type="submit" class="w-full px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs">Record refill</button>
+                                                        </form>
+                                                    </details>
                                                     {{-- Dose the patient reports at the counter / by phone. --}}
                                                     <details class="text-left">
                                                         <summary class="list-none cursor-pointer px-3 py-1.5 rounded-lg border border-emerald-200 text-xs font-bold text-emerald-700 hover:bg-emerald-50 text-right">Log dose…</summary>
@@ -512,6 +536,17 @@
                                                 <label class="block text-sm font-bold text-slate-700 mb-1.5">Latest dose date</label>
                                                 <input type="date" name="last_taken" value="{{ old('last_taken') }}" required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 transition-colors">
                                             </div>
+                                        </div>
+
+                                        <div class="mt-4" x-data="{ supply: @js(old('supply_days', '')) }">
+                                            <label for="supply_days" class="block text-sm font-bold text-slate-700 mb-1.5">Supply dispensed today <span class="font-normal text-slate-400">(days — for refill reminders; leave blank if not dispensed here)</span></label>
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                @foreach([30, 60, 90] as $preset)
+                                                    <button type="button" @click="supply = {{ $preset }}" :class="supply == {{ $preset }} ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-emerald-700 border-emerald-300'" class="rounded-xl border px-3 py-2 text-sm font-bold">{{ $preset }} days</button>
+                                                @endforeach
+                                                <input id="supply_days" type="number" name="supply_days" min="1" max="365" x-model="supply" placeholder="Other" class="w-28 rounded-2xl border-slate-300 bg-white shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200">
+                                            </div>
+                                            <p class="mt-1 text-xs text-slate-500" x-show="supply" x-text="'Runs out on ' + new Date(Date.now() + supply * 86400000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + '. The patient is reminded {{ \App\Models\Medication::REFILL_NOTICE_DAYS }} days before.'"></p>
                                         </div>
                                     </div>
                                 </div>
