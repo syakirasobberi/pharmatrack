@@ -107,7 +107,7 @@
     </div>
 
     <script src="{{ asset('js/face-api.min.js') }}"></script>
-    <script src="{{ asset('js/face-utils.js') }}"></script>
+    <script src="{{ asset('js/face-utils.js') }}?v={{ filemtime(public_path('js/face-utils.js')) }}"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

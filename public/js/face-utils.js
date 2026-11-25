@@ -2,7 +2,7 @@
  * PharmaTrack face helpers (requires face-api.js to be loaded first).
  *
  * Two pipelines, tuned for ordinary laptops / kiosk PCs without a strong GPU:
- *  - FAST     (tiny detector + tiny landmarks): every frame, for the blink check and quality hints.
+ *  - FAST     (tiny detector + tiny landmarks): every frame, for the head-turn check and quality hints.
  *  - DESCRIBE (tiny detector + full landmarks + recognition net): only on the few frames used for
  *             identification / registration. Registration and kiosk use the same pipeline so their
  *             face fingerprints are directly comparable.
@@ -11,9 +11,9 @@
  *  - FaceUtils.detectFast() / describe()   run one frame through a pipeline
  *  - FaceUtils.checkQuality()              rejects unclear / small / side-on faces
  *  - FaceUtils.captureAverageDescriptor()  multi-frame registration: averages several good frames
- *  - FaceUtils.BlinkDetector               liveness check from the eye landmarks
+ *  - FaceUtils.HeadTurnChallenge           liveness check: turn the head to a random side and back
  *
- * Add ?facedebug=1 to the page URL to see frame rate and eye-openness values in the status text.
+ * Add ?facedebug=1 to the page URL to see frame rate and head-turn values in the status text.
  */
 (function (global) {
     'use strict';
@@ -60,20 +60,16 @@
     /**
      * Decide whether a detection (with landmarks) is good enough to use.
      * Returns { ok: boolean, reason: string } — reason is a user-facing hint.
+     * allowTurn: skip the "face the camera directly" check (used during the head-turn challenge).
      */
-    function checkQuality(result, videoWidth) {
+    function checkQuality(result, videoWidth, { allowTurn = false } = {}) {
         if (!result) return { ok: false, reason: 'No face detected — please look at the camera.' };
 
         const { score, box } = result.detection;
         if (score < MIN_SCORE) return { ok: false, reason: 'Face unclear — improve lighting and hold still.' };
         if (videoWidth && box.width < videoWidth * MIN_FACE_RATIO) return { ok: false, reason: 'Please move closer to the camera.' };
 
-        const lm = result.landmarks;
-        const centre = (pts) => ({ x: pts.reduce((s, p) => s + p.x, 0) / pts.length, y: pts.reduce((s, p) => s + p.y, 0) / pts.length });
-        const l = centre(lm.getLeftEye()), r = centre(lm.getRightEye());
-        const eyeMidX = (l.x + r.x) / 2;
-        const noseTip = lm.getNose()[3];
-        if (Math.abs(noseTip.x - eyeMidX) / dist(l, r) > MAX_YAW_RATIO) {
+        if (!allowTurn && Math.abs(yaw(result.landmarks)) > MAX_YAW_RATIO) {
             return { ok: false, reason: 'Please face the camera directly.' };
         }
 
@@ -136,55 +132,83 @@
     }
 
     /**
-     * Liveness check ("close your eyes until the beep, then open them"): feed it one landmarks result
-     * per frame; `update()` returns true once the eyes were seen open → closed → open again.
-     *
-     * Why not a quick blink: on low-power kiosk PCs face detection runs at ~2 fps, so a 0.2 s blink
-     * falls between frames. Asking the person to keep their eyes closed until the kiosk beeps
-     * guarantees at least one "closed" frame. `onClosed` fires once when the closure is confirmed.
-     * The open-eye baseline adapts to each person (narrow or wide eyes).
+     * Signed head turn: nose-tip offset from the eye midpoint, relative to the eye distance.
+     * Positive = the person turned to THEIR left (nose moves to the right of the raw camera image).
+     * A flat photo tilted or rotated keeps this ratio almost unchanged, a real head does not.
      */
-    class BlinkDetector {
-        constructor(onClosed = null) { this.onClosed = onClosed; this.reset(); }
+    function yaw(landmarks) {
+        const centre = (pts) => ({ x: pts.reduce((s, p) => s + p.x, 0) / pts.length, y: pts.reduce((s, p) => s + p.y, 0) / pts.length });
+        const l = centre(landmarks.getLeftEye()), r = centre(landmarks.getRightEye());
+        return (landmarks.getNose()[3].x - (l.x + r.x) / 2) / dist(l, r);
+    }
+
+    /**
+     * Liveness check ("turn your head to your LEFT/RIGHT, then look back at the camera").
+     * Feed it one landmarks result per frame; `update()` returns true once the person looked
+     * straight, turned to the requested side (held for TURN_FRAMES frames) and looked straight again.
+     *
+     * Why a head turn instead of a blink: on low-power kiosk PCs detection runs at ~2 fps, so a
+     * blink falls between frames, and the tiny landmark model barely follows closing eyes. A turn is
+     * held for about a second and the nose offset is measured reliably. The side is picked at random
+     * so a pre-recorded video is unlikely to match. `onTurned` fires once the turn is confirmed.
+     */
+    class HeadTurnChallenge {
+        static CENTRE = 0.12;       // |yaw| below this = looking straight at the camera (~ <14 degrees)
+        static TURNED = 0.22;       // yaw beyond this in the asked direction = clear turn (~ 25 degrees)
+        static TURN_FRAMES = 2;     // consecutive turned frames required
+        static REPROMPT_MS = 12000; // pick a new side if the turn does not happen in time
+
+        constructor(onTurned = null) { this.onTurned = onTurned; this.reset(); }
 
         reset() {
-            this.baseline = null;
-            this.openFrames = 0;
-            this.closed = false;
-            this.closedAt = 0;
-            this.blinked = false;
-            this.lastEar = null;
+            this.direction = Math.random() < 0.5 ? 'left' : 'right';
+            this.stage = 'centre';      // 'centre' -> 'turn' -> 'return' -> 'done'
+            this.frontalFrames = 0;
+            this.turnFrames = 0;
+            this.promptAt = 0;
+            this.wrongWay = false;
+            this.lastYaw = null;
         }
+
+        get passed() { return this.stage === 'done'; }
 
         update(landmarks) {
-            const ear = averageEar(landmarks);
-            this.lastEar = ear;
+            const y = yaw(landmarks);
+            this.lastYaw = y;
+            const toward = this.direction === 'left' ? y : -y; // positive = turning the asked way
+            const { CENTRE, TURNED, TURN_FRAMES, REPROMPT_MS } = HeadTurnChallenge;
 
-            if (this.baseline === null) { this.baseline = ear; this.openFrames = 1; return this.blinked; }
-
-            const closedThreshold = this.baseline * 0.72;
-            const openThreshold = this.baseline * 0.88;
-
-            // Need a couple of open-eye frames first so the baseline is trustworthy.
-            if (!this.closed && ear < closedThreshold && this.openFrames >= 2) {
-                this.closed = true;
-                this.closedAt = Date.now();
-                if (this.onClosed) this.onClosed();
-            } else if (this.closed && ear > openThreshold) {
-                if (Date.now() - this.closedAt < 8000) this.blinked = true;
-                this.closed = false;
+            if (this.stage === 'centre') {
+                this.frontalFrames = Math.abs(y) < CENTRE ? this.frontalFrames + 1 : 0;
+                if (this.frontalFrames >= 2) { this.stage = 'turn'; this.promptAt = Date.now(); }
+            } else if (this.stage === 'turn') {
+                this.wrongWay = toward < -TURNED;
+                this.turnFrames = toward > TURNED ? this.turnFrames + 1 : 0;
+                if (this.turnFrames >= TURN_FRAMES) {
+                    this.stage = 'return';
+                    if (this.onTurned) this.onTurned();
+                } else if (Date.now() - this.promptAt > REPROMPT_MS) {
+                    const keep = this.onTurned;
+                    this.reset(); // new random side; must face the camera again first
+                    this.onTurned = keep;
+                }
+            } else if (this.stage === 'return' && Math.abs(y) < CENTRE) {
+                this.stage = 'done';
             }
-
-            if (!this.closed && ear > openThreshold) this.openFrames++;
-
-            if (!this.closed && ear > closedThreshold) {
-                this.baseline = this.baseline * 0.85 + ear * 0.15;
-            }
-            return this.blinked;
+            return this.passed;
         }
 
-        eyesOpen() {
-            return this.lastEar !== null && this.baseline !== null && this.lastEar > this.baseline * 0.85;
+        /** Short instruction for the current stage. */
+        prompt() {
+            const side = this.direction.toUpperCase();
+            switch (this.stage) {
+                case 'centre': return 'Look straight at the camera.';
+                case 'turn': return this.wrongWay
+                    ? `Other way — turn your head to your ${side}.`
+                    : `Slowly turn your head to your ${side} and hold until the beep.`;
+                case 'return': return 'Turn ✓ — now look straight at the camera.';
+                default: return 'Liveness confirmed ✓';
+            }
         }
     }
 
@@ -199,7 +223,7 @@
             count >= total ? 'Face captured ✓' : (hint || 'Hold still with eyes open…');
     }
 
-    /** Short confirmation tone (no audio file needed). Used when closed eyes are detected. */
+    /** Short confirmation tone (no audio file needed). Used when the head turn is confirmed. */
     let audioCtx = null;
     function beep(freq = 880, ms = 180) {
         try {
@@ -223,6 +247,6 @@
 
     global.FaceUtils = {
         DEBUG, loadModels, detectFast, describe, checkQuality, captureAverageDescriptor,
-        averageDescriptors, euclidean, eyeAspectRatio, averageEar, BlinkDetector, showProgress, fpsMeter, beep,
+        averageDescriptors, euclidean, eyeAspectRatio, averageEar, yaw, HeadTurnChallenge, showProgress, fpsMeter, beep,
     };
 })(window);

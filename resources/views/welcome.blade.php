@@ -340,6 +340,8 @@
         }
         @keyframes scanSweep { 0% { top: 10%; opacity: 0; } 10% { opacity: 1; } 50% { top: 90%; } 90% { opacity: 1; } 100% { top: 10%; opacity: 0; } }
 
+        /* Mirrored like a mirror, so "turn to your left" moves the face to the left on screen. */
+        #video, #overlay-canvas { transform: scaleX(-1); }
         #video { width: 100%; height: 100%; object-fit: cover; border-radius: 28px; background: #e2e8f0; }
         #overlay-canvas { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 8; width: 100%; height: 100%; }
 
@@ -544,7 +546,7 @@
                     <span class="badge">Patient check-in</span>
                     <h1 class="section-headline" id="hero-title">Check in with <span>your face</span></h1>
                     <p class="section-desc">
-                        Look at the camera, close your eyes until the beep, and your pharmacist will have your records ready. No card or password needed.
+                        Look at the camera, turn your head when asked, and your pharmacist will have your records ready. No card or password needed.
                     </p>
 
                     <button type="button" class="btn-start" id="btn-start-verification">
@@ -582,13 +584,13 @@
                     </div>
                     <div class="step-card">
                         <div class="step-number">2</div>
-                        <h3 class="step-title">Close Your Eyes</h3>
-                        <p class="step-desc">Close your eyes until you hear a beep, then open them. This proves a real person is in front of the camera.</p>
+                        <h3 class="step-title">Turn Your Head</h3>
+                        <p class="step-desc">Turn your head to the side shown on screen until you hear a beep, then look back at the camera. This proves a real person is in front of the camera.</p>
                     </div>
                     <div class="step-card">
                         <div class="step-number">3</div>
                         <h3 class="step-title">AI Verification</h3>
-                        <p class="step-desc">Hold still with your eyes open while our facial recognition model matches your profile.</p>
+                        <p class="step-desc">Hold still while our facial recognition model matches your profile.</p>
                     </div>
                     <div class="step-card">
                         <div class="step-number">4</div>
@@ -709,7 +711,7 @@
 
                 <ol class="kiosk-steps">
                     <li class="kiosk-step"><span class="kiosk-step-num" aria-hidden="true">1</span>Face the camera directly</li>
-                    <li class="kiosk-step"><span class="kiosk-step-num" aria-hidden="true">2</span>Close your eyes until the beep, then open them</li>
+                    <li class="kiosk-step"><span class="kiosk-step-num" aria-hidden="true">2</span>Turn your head to the side shown, then look back</li>
                     <li class="kiosk-step"><span class="kiosk-step-num" aria-hidden="true">3</span>Records retrieved instantly</li>
                 </ol>
             </div>
@@ -771,7 +773,7 @@
     function loadFaceLibs() {
         if (!faceLibsPromise) {
             faceLibsPromise = loadScript('{{ asset("js/face-api.min.js") }}')
-                .then(() => loadScript('{{ asset("js/face-utils.js") }}'))
+                .then(() => loadScript('{{ asset("js/face-utils.js") }}?v={{ filemtime(public_path('js/face-utils.js')) }}'))
                 .catch((e) => { faceLibsPromise = null; throw e; }); // allow a retry after a network error
         }
         return faceLibsPromise;
@@ -909,17 +911,17 @@
             faceapi.matchDimensions(canvas, displaySize);
 
             // Liveness + identification state
-            const blink = new FaceUtils.BlinkDetector(() => FaceUtils.beep()); // beep = "you can open your eyes"
-            const REQUIRED_FRAMES = 3;          // eyes-open frames sent to the server together
+            const challenge = new FaceUtils.HeadTurnChallenge(() => FaceUtils.beep()); // beep = "turn confirmed, look back"
+            const REQUIRED_FRAMES = 3;          // frontal frames sent to the server together
             const tick = FaceUtils.fpsMeter();
-            let phase = 'liveness';             // 'liveness' (fast models, wait for blink) -> 'describe' (fingerprint frames)
+            let phase = 'liveness';             // 'liveness' (fast models, head-turn challenge) -> 'describe' (fingerprint frames)
             let recent = [];                    // descriptors collected in the 'describe' phase
             let describeAttempts = 0;
             let missedFrames = 0;
 
-            const resetLiveness = () => { blink.reset(); recent = []; describeAttempts = 0; phase = 'liveness'; };
+            const resetLiveness = () => { challenge.reset(); recent = []; describeAttempts = 0; missedFrames = 0; phase = 'liveness'; };
             const debug = (msg) => FaceUtils.DEBUG
-                ? `${msg}  [${tick()} fps, eye ${blink.lastEar?.toFixed(3) ?? '-'} / base ${blink.baseline?.toFixed(3) ?? '-'}]`
+                ? `${msg}  [${tick()} fps, turn ${challenge.lastYaw?.toFixed(2) ?? '-'} (+ = your left), ask ${challenge.direction}, stage ${challenge.stage}]`
                 : msg;
 
             const drawBox = (detection, ok) => {
@@ -939,7 +941,7 @@
             };
 
             let busy = false;
-            // Runs as fast as the PC allows: the cheap 'liveness' phase must be quick enough to catch a blink.
+            // Runs as fast as the PC allows (the 'liveness' phase uses the cheap models).
             const scanId = window._scanInterval = setInterval(async () => {
                 if (isStale()) { clearInterval(scanId); return; }
                 if (busy || !modelsReady || redirecting) return;
@@ -948,8 +950,8 @@
                 try {
                     if (phase === 'liveness') {
                         const detection = await FaceUtils.detectFast(video);
-                        const quality = FaceUtils.checkQuality(detection, video.videoWidth);
-                        const blinkedNow = detection && quality.ok ? blink.update(detection.landmarks) : blink.blinked;
+                        const quality = FaceUtils.checkQuality(detection, video.videoWidth, { allowTurn: true });
+                        const passedNow = detection && quality.ok ? challenge.update(detection.landmarks) : challenge.passed;
 
                         if (!detection) {
                             drawBox(null);
@@ -966,29 +968,35 @@
                             return;
                         }
 
-                        if (blinkedNow) {
+                        if (passedNow) {
                             phase = 'describe';
-                            setStatus(debug('Liveness confirmed ✓ — hold still with eyes open…'), 'info');
-                        } else if (blink.closed) {
-                            setStatus(debug('Eyes closed ✓ — open your eyes now.'), 'info');
+                            missedFrames = 0;
+                            setStatus(debug('Liveness confirmed ✓ — hold still and look at the camera…'), 'info');
                         } else {
-                            setStatus(debug('Close your eyes until you hear a beep, then open them.'), 'info');
+                            setStatus(debug(challenge.prompt()), 'info');
                         }
                         return;
                     }
 
-                    // phase === 'describe': fingerprint a few frames with eyes open.
+                    // phase === 'describe': fingerprint a few frontal frames with eyes open.
                     const result = await FaceUtils.describe(video);
                     describeAttempts++;
+                    if (!result && ++missedFrames > 3) {
+                        // Face left after the challenge: whoever steps in must do it again.
+                        resetLiveness();
+                        drawBox(null);
+                        setStatus(debug('No face detected — please look at the camera.'), 'info');
+                        return;
+                    }
                     const quality = FaceUtils.checkQuality(result, video.videoWidth);
                     drawBox(result, quality.ok);
 
-                    const eyesOpen = result && FaceUtils.averageEar(result.landmarks) > (blink.baseline || 0.25) * 0.85;
+                    const eyesOpen = result && FaceUtils.averageEar(result.landmarks) > 0.18; // skip mid-blink frames
                     if (quality.ok && eyesOpen) {
                         const d = Array.from(result.descriptor);
                         if (recent.length && FaceUtils.euclidean(d, recent[0]) > 0.45) {
                             resetLiveness(); // a different face appeared
-                            setStatus(debug('Face changed — please close your eyes again until the beep.'), 'info');
+                            setStatus(debug('Face changed — please do the head turn again.'), 'info');
                             return;
                         }
                         recent.push(d);
@@ -997,7 +1005,7 @@
                     if (recent.length < REQUIRED_FRAMES) {
                         if (describeAttempts > 10) {
                             resetLiveness();
-                            setStatus(debug('Could not get a clear view — face the camera and close your eyes again until the beep.'), 'info');
+                            setStatus(debug('Could not get a clear view — face the camera and do the head turn again.'), 'info');
                         } else {
                             setStatus(debug(`Liveness confirmed ✓ — hold still… (${recent.length}/${REQUIRED_FRAMES})`), 'info');
                         }
@@ -1025,7 +1033,7 @@
                         } else if (res.ok) {
                             data = await res.json();
                         } else {
-                            setStatus('Not recognised yet — look straight at the camera, then close your eyes until the beep.', 'info');
+                            setStatus('Not recognised yet — look straight at the camera and do the head turn again.', 'info');
                         }
                     } catch (e) {
                         setStatus('Could not reach the server.', 'error');
@@ -1044,7 +1052,7 @@
 
                         setTimeout(() => { window.location.href = data.redirect; }, 2000);
                     } else {
-                        resetLiveness(); // require a fresh blink before the next attempt
+                        resetLiveness(); // require a fresh head turn before the next attempt
                     }
                 } finally {
                     busy = false;
