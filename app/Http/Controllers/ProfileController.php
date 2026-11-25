@@ -42,6 +42,9 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // Staff accounts own clinical records and patient assignments; only patients may self-delete.
+        abort_unless($request->user()->role === 'patient', 403, 'Staff accounts cannot be deleted from the profile page. Please contact an administrator.');
+
         $request->validateWithBag('userDeletion', [
             'password' => ['required', 'current_password'],
         ]);

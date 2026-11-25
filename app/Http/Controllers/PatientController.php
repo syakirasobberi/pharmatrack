@@ -6,12 +6,15 @@ use App\Models\MedicalHistory;
 use App\Models\Medication;
 use App\Models\Patient;
 use App\Models\User;
+use App\Notifications\PatientAccountSetupNotification;
 use App\Support\HealthSummaryPdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Throwable;
 
@@ -63,18 +66,21 @@ class PatientController extends Controller
             ]
         );
 
-        DB::transaction(function () use ($request, $validated) {
+        // Random, unguessable starting password; the patient sets their own via the emailed link.
+        $temporaryPassword = Str::password(12, symbols: false);
+
+        $patient = DB::transaction(function () use ($request, $validated, $temporaryPassword) {
             $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
-                'password' => Hash::make('password123'),
+                'password' => Hash::make($temporaryPassword),
                 'requires_password_change' => true,
                 'role' => 'patient',
             ]);
 
             $heightInMeters = $validated['height'] / 100;
 
-            Patient::create([
+            return Patient::create([
                 'user_id' => $user->id,
                 'pharmacist_id' => $request->user()->id,
                 'age' => $validated['age'],
@@ -86,8 +92,22 @@ class PatientController extends Controller
             ]);
         });
 
-        return redirect()->route('pharmacist.dashboard')
-                         ->with('success', 'Patient registered successfully!');
+        $redirect = redirect()->route('pharmacist.patients.show', $patient->id);
+
+        try {
+            $user = $patient->user;
+            $user->notify(new PatientAccountSetupNotification(Password::broker()->createToken($user)));
+        } catch (Throwable $exception) {
+            Log::error('Failed to send patient account setup email.', [
+                'patient_id' => $patient->id,
+                'exception' => $exception,
+            ]);
+
+            // Email failed: show the temporary password once so it can be handed to the patient in person.
+            return $redirect->with('error', "Patient registered, but the setup email could not be sent. Give the patient this temporary password in person: {$temporaryPassword} (they must change it on first login).");
+        }
+
+        return $redirect->with('success', "Patient registered. An email has been sent to {$validated['email']} so they can set their own password.");
     }
 
     // 4. Display full patient profile
