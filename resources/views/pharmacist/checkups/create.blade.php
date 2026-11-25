@@ -138,8 +138,13 @@
                                     </svg>
                                     OCR Autofill From Checkup Report
                                 </h3>
+                                @php($smartExtract = config('services.gemini.report_uploads'))
+                                @if ($smartExtract)
                                 <p class="text-sm text-cyan-800 mt-1">Upload a checkup report image or PDF. <strong>Extract Readings</strong> reads it on this computer (digital PDFs are read exactly). <strong>Smart Extract (AI)</strong> is better for phone photos and scans.</p>
                                 <p class="text-xs text-cyan-700 mt-1">Smart Extract sends the report to Google Gemini; the file is not stored. Cover the patient's name and IC first if possible.</p>
+                                @else
+                                <p class="text-sm text-cyan-800 mt-1">Upload a checkup report image or PDF. <strong>Extract Readings</strong> reads it on this computer, so the report never leaves it (digital PDFs are read exactly).</p>
+                                @endif
                             </div>
                             <div class="flex flex-col sm:flex-row gap-3 shrink-0">
                                 <input type="file" id="ocr-image" accept="image/*,.pdf,application/pdf"
@@ -148,15 +153,17 @@
                                     class="rounded-xl bg-cyan-600 px-5 py-2.5 text-sm font-bold text-white shadow hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
                                     Extract Readings
                                 </button>
+                                @if ($smartExtract)
                                 <button type="button" id="ai-extract-btn"
                                     class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
                                     Smart Extract (AI)
                                 </button>
+                                @endif
                             </div>
                         </div>
 
                         <div id="ocr-status" class="mt-4 text-sm font-semibold text-cyan-800">
-                            Choose a report image or PDF, then click Extract Readings or Smart Extract (AI). Please review values before saving.
+                            Choose a report image or PDF, then click Extract Readings{{ $smartExtract ? ' or Smart Extract (AI)' : '' }}. Please review values before saving.
                         </div>
 
                         {{-- Detected values preview --}}
@@ -485,6 +492,7 @@
     const ocrImageInput   = document.getElementById('ocr-image');
     const extractOcrButton = document.getElementById('extract-ocr-btn');
     const aiExtractButton  = document.getElementById('ai-extract-btn');
+    const TRY_AI = aiExtractButton ? 'Try Smart Extract (AI), ' : 'Try ';
     const ocrStatus       = document.getElementById('ocr-status');
     const ocrOutput       = document.getElementById('ocr-output');
 
@@ -665,7 +673,7 @@
             setStatus('ok', `✓ ${source}: filled ${found.join(', ')}. Please review before saving.`, notes);
             generateAiAuto();
         } else {
-            setStatus('warn', `${source} finished, but no clear readings were found. Try Smart Extract (AI) or enter values manually.`, notes);
+            setStatus('warn', `${source} finished, but no clear readings were found. ${TRY_AI}a clearer image, or enter values manually.`, notes);
         }
     }
 
@@ -828,7 +836,7 @@
                 applyReadings(values, notes, source);
             } catch (err) {
                 console.error('OCR Error:', err);
-                setStatus('error', 'Could not read the report. Try Smart Extract (AI), a clearer image, or enter values manually.');
+                setStatus('error', `Could not read the report. ${TRY_AI}a clearer image, or enter values manually.`);
             } finally {
                 setBusy(false);
             }

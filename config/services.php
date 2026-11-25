@@ -24,6 +24,9 @@ return [
 
     'gemini' => [
         'key' => env('GEMINI_API_KEY'),
+        // Smart Extract sends the whole report (name, IC, etc.) to Gemini. On the free
+        // plan Google may use that data, so keep this off unless the key is on a paid plan.
+        'report_uploads' => (bool) env('GEMINI_REPORT_UPLOADS', false),
     ],
 
     // Brevo transactional email API key (MAIL_MAILER=brevo). Create it in Brevo: SMTP & API -> API keys.

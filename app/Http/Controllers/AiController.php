@@ -92,6 +92,13 @@ class AiController extends Controller
      */
     public function extractReport(Request $request): JsonResponse
     {
+        if (! config('services.gemini.report_uploads')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Smart Extract is turned off. Use Extract Readings, which reads the report on this computer.',
+            ], 403);
+        }
+
         $request->validate([
             'report' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
         ], [
