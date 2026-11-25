@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'force_password_change' => ForcePasswordChangeMiddleware::class,
             'kiosk.session' => \App\Http\Middleware\EnsureKioskSession::class,
         ]);
+
+        // Every web request: sign out accounts an admin has deactivated.
+        $middleware->web(append: [\App\Http\Middleware\EnsureAccountActive::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

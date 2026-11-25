@@ -63,7 +63,10 @@ Route::middleware(['auth', 'force_password_change', 'role:admin'])->group(functi
     Route::get('/admin/pharmacists', [AdminController::class, 'pharmacists'])->name('admin.pharmacists.index');
     Route::post('/admin/pharmacists', [AdminController::class, 'storePharmacist'])->name('admin.pharmacists.store');
     Route::patch('/admin/pharmacists/{user}/require-password-change', [AdminController::class, 'requirePasswordChange'])->name('admin.pharmacists.requirePasswordChange');
+    Route::patch('/admin/pharmacists/{user}/deactivate', [AdminController::class, 'deactivatePharmacist'])->name('admin.pharmacists.deactivate');
+    Route::patch('/admin/pharmacists/{user}/reactivate', [AdminController::class, 'reactivatePharmacist'])->name('admin.pharmacists.reactivate');
     Route::get('/admin/patients', [AdminController::class, 'patients'])->name('admin.patients.index');
+    Route::patch('/admin/patients/{patient}/pharmacist', [AdminController::class, 'assignPatient'])->name('admin.patients.assign');
     Route::get('/admin/reports', [AdminController::class, 'reports'])->name('admin.reports.index');
     Route::get('/admin/settings', [AdminController::class, 'settings'])->name('admin.settings.index');
     Route::patch('/admin/settings/app-name', [AdminController::class, 'updateAppName'])->name('admin.settings.updateAppName');

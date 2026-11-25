@@ -49,6 +49,15 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Correct password, but the admin has switched this account off.
+        if (Auth::user()->isDeactivated()) {
+            Auth::guard('web')->logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'This account has been deactivated. Please contact the administrator.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

@@ -198,6 +198,10 @@ class KioskController extends Controller
             return 'This patient has no assigned pharmacist.';
         }
 
+        if ($pharmacist->isDeactivated()) {
+            return 'The assigned pharmacist is no longer active. Please ask staff to reassign this patient.';
+        }
+
         if (! $pharmacist->kiosk_pin) {
             return 'The assigned pharmacist has not set a kiosk PIN yet (Profile → Kiosk PIN).';
         }

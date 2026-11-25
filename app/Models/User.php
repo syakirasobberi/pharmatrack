@@ -49,11 +49,23 @@ class User extends Authenticatable
             'password' => 'hashed',
             'kiosk_pin' => 'hashed',
             'requires_password_change' => 'boolean',
+            'deactivated_at' => 'datetime',
         ];
     }
 
     public function assignedPatients()
     {
         return $this->hasMany(Patient::class, 'pharmacist_id');
+    }
+
+    /** Deactivated accounts cannot log in, are signed out, and cannot approve kiosk updates. */
+    public function isDeactivated(): bool
+    {
+        return $this->deactivated_at !== null;
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereNull('deactivated_at');
     }
 }

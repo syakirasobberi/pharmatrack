@@ -7,7 +7,10 @@ use App\Models\User;
 use App\Models\Patient;
 use App\Models\HealthCheckup;
 use App\Models\Medication;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
 {
@@ -44,23 +47,91 @@ class AdminController extends Controller
 
         $totalPharmacists = User::where('role', 'pharmacist')->count();
         $passwordPrompts = User::where('role', 'pharmacist')->where('requires_password_change', true)->count();
+        $deactivatedCount = User::where('role', 'pharmacist')->whereNotNull('deactivated_at')->count();
+        // Candidates to take over a deactivated pharmacist's patients.
+        $activePharmacists = User::where('role', 'pharmacist')->active()->orderBy('name')->get(['id', 'name']);
 
-        return view('admin.pharmacists.index', compact('pharmacists', 'search', 'totalPharmacists', 'passwordPrompts'));
+        return view('admin.pharmacists.index', compact(
+            'pharmacists', 'search', 'totalPharmacists', 'passwordPrompts', 'deactivatedCount', 'activePharmacists'
+        ));
+    }
+
+    /**
+     * Switch a pharmacist's account off (no deletion: check-ups keep pointing at them).
+     * Their patients must move to another active pharmacist so nobody is left unmanaged.
+     */
+    public function deactivatePharmacist(Request $request, User $user)
+    {
+        abort_unless($user->role === 'pharmacist', 404);
+
+        if ($user->isDeactivated()) {
+            return back()->with('success', "{$user->name} is already deactivated.");
+        }
+
+        $patientCount = $user->assignedPatients()->count();
+
+        $validated = $request->validate([
+            'transfer_to' => [
+                $patientCount > 0 ? 'required' : 'nullable',
+                'integer',
+                Rule::notIn([$user->id]),
+                Rule::exists('users', 'id')->where('role', 'pharmacist')->whereNull('deactivated_at'),
+            ],
+        ], [
+            'transfer_to.required' => "{$user->name} has {$patientCount} patient(s). Choose who takes them over before deactivating.",
+            'transfer_to.exists' => 'Please choose an active pharmacist to take over the patients.',
+            'transfer_to.not_in' => 'Choose a different pharmacist to take over the patients.',
+        ]);
+
+        $to = $patientCount > 0 ? User::find($validated['transfer_to']) : null;
+
+        DB::transaction(function () use ($user, $to) {
+            if ($to) {
+                $user->assignedPatients()->update(['pharmacist_id' => $to->id]);
+            }
+            $user->forceFill(['deactivated_at' => now()])->save();
+        });
+
+        Log::info('Pharmacist deactivated by admin.', [
+            'pharmacist_id' => $user->id,
+            'patients_moved' => $patientCount,
+            'moved_to_pharmacist_id' => $to?->id,
+            'admin_id' => $request->user()->id,
+        ]);
+
+        return back()->with('success', "{$user->name} has been deactivated and can no longer log in."
+            . ($to ? " Their {$patientCount} patient(s) now belong to {$to->name}." : ''));
+    }
+
+    public function reactivatePharmacist(Request $request, User $user)
+    {
+        abort_unless($user->role === 'pharmacist', 404);
+
+        $user->forceFill(['deactivated_at' => null])->save();
+
+        Log::info('Pharmacist reactivated by admin.', ['pharmacist_id' => $user->id, 'admin_id' => $request->user()->id]);
+
+        return back()->with('success', "{$user->name} has been reactivated and can log in again. Patients are not moved back automatically.");
     }
 
     public function patients(Request $request)
     {
         $search = $request->string('search')->toString();
+        $onlyUnassigned = $request->boolean('unassigned');
 
         $patients = Patient::with(['user', 'pharmacist', 'healthCheckups'])
             ->when($search, function ($query) use ($search) {
-                $query->whereHas('user', function ($userQuery) use ($search) {
-                    $userQuery->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                })->orWhereHas('pharmacist', function ($pharmacistQuery) use ($search) {
-                    $pharmacistQuery->where('name', 'like', "%{$search}%");
+                // Grouped so it combines correctly with the "unassigned only" filter.
+                $query->where(function ($inner) use ($search) {
+                    $inner->whereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    })->orWhereHas('pharmacist', function ($pharmacistQuery) use ($search) {
+                        $pharmacistQuery->where('name', 'like', "%{$search}%");
+                    });
                 });
             })
+            ->when($onlyUnassigned, fn ($query) => $query->whereNull('pharmacist_id'))
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -68,8 +139,43 @@ class AdminController extends Controller
         $totalPatients = Patient::count();
         $patientsWithBiometrics = Patient::whereNotNull('face_descriptor')->where('face_descriptor', '!=', '')->count();
         $unassignedPatients = Patient::whereNull('pharmacist_id')->count();
+        // Only active pharmacists can receive patients.
+        $activePharmacists = User::where('role', 'pharmacist')->active()->orderBy('name')->get(['id', 'name']);
 
-        return view('admin.patients.index', compact('patients', 'search', 'totalPatients', 'patientsWithBiometrics', 'unassignedPatients'));
+        return view('admin.patients.index', compact(
+            'patients', 'search', 'onlyUnassigned', 'totalPatients', 'patientsWithBiometrics', 'unassignedPatients', 'activePharmacists'
+        ));
+    }
+
+    // Assign (or move) one patient to an active pharmacist.
+    public function assignPatient(Request $request, Patient $patient)
+    {
+        $validated = $request->validate([
+            'pharmacist_id' => ['required', 'integer', Rule::exists('users', 'id')
+                ->where('role', 'pharmacist')->whereNull('deactivated_at')],
+        ], [
+            'pharmacist_id.exists' => 'Please choose an active pharmacist.',
+        ]);
+
+        $patient->load(['user', 'pharmacist']);
+        $from = $patient->pharmacist?->name ?? 'Unassigned';
+
+        if ((int) $patient->pharmacist_id === (int) $validated['pharmacist_id']) {
+            return back()->with('success', "{$patient->user->name} is already assigned to {$from}.");
+        }
+
+        $fromId = $patient->pharmacist_id;
+        $patient->update(['pharmacist_id' => $validated['pharmacist_id']]);
+        $to = User::find($validated['pharmacist_id'])->name;
+
+        Log::info('Patient reassigned by admin.', [
+            'patient_id' => $patient->id,
+            'from_pharmacist_id' => $fromId,
+            'to_pharmacist_id' => (int) $validated['pharmacist_id'],
+            'admin_id' => $request->user()->id,
+        ]);
+
+        return back()->with('success', "{$patient->user->name} moved from {$from} to {$to}.");
     }
 
     public function reports()

@@ -11,6 +11,22 @@
                 <p class="text-sm text-slate-500 mt-1">View patient coverage, pharmacist assignment, biometric readiness, and latest check-up status.</p>
             </div>
 
+            @if(session('success'))
+                <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-4 rounded-2xl font-bold">{{ session('success') }}</div>
+            @endif
+
+            @if($errors->any())
+                <div class="bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-2xl font-bold">
+                    @foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach
+                </div>
+            @endif
+
+            @if($activePharmacists->isEmpty())
+                <div class="bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 rounded-2xl font-bold">
+                    There are no active pharmacists, so patients cannot be assigned. Add or reactivate a pharmacist first.
+                </div>
+            @endif
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
                     <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Total Patients</p>
@@ -20,16 +36,19 @@
                     <p class="text-xs font-bold uppercase tracking-wide text-emerald-700">Biometrics Registered</p>
                     <p class="text-3xl font-extrabold text-emerald-700 mt-2">{{ $patientsWithBiometrics }}</p>
                 </div>
-                <div class="bg-white border border-amber-200 rounded-2xl p-6 shadow-sm">
+                <a href="{{ route('admin.patients.index', $onlyUnassigned ? [] : ['unassigned' => 1]) }}"
+                   class="block bg-white border rounded-2xl p-6 shadow-sm hover:bg-amber-50 {{ $onlyUnassigned ? 'border-amber-400 ring-2 ring-amber-200' : 'border-amber-200' }}">
                     <p class="text-xs font-bold uppercase tracking-wide text-amber-700">Unassigned Patients</p>
                     <p class="text-3xl font-extrabold text-amber-700 mt-2">{{ $unassignedPatients }}</p>
-                </div>
+                    <p class="text-xs font-bold text-amber-700 mt-1">{{ $onlyUnassigned ? 'Showing only these — click to show all' : 'Click to show only these' }}</p>
+                </a>
             </div>
 
             <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                 <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <h2 class="text-lg font-extrabold text-slate-800">Patient Directory</h2>
                     <form method="GET" action="{{ route('admin.patients.index') }}" class="flex gap-2">
+                        @if($onlyUnassigned)<input type="hidden" name="unassigned" value="1">@endif
                         <input type="search" name="search" value="{{ $search }}" placeholder="Search patient or pharmacist..." class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
                         <button class="px-4 py-2 rounded-xl bg-slate-800 text-white text-sm font-bold">Search</button>
                     </form>
@@ -56,7 +75,29 @@
                                         <p class="font-bold text-slate-800">{{ $patient->user->name }}</p>
                                         <p class="text-xs text-slate-500 mt-1">{{ $patient->user->email }}</p>
                                     </td>
-                                    <td class="py-4 px-6 text-slate-600">{{ $patient->pharmacist?->name ?? 'Unassigned' }}</td>
+                                    <td class="py-4 px-6 text-slate-600">
+                                        <p class="font-semibold {{ $patient->pharmacist ? 'text-slate-700' : 'text-amber-700' }}">
+                                            {{ $patient->pharmacist?->name ?? 'Unassigned' }}
+                                            @if($patient->pharmacist?->isDeactivated())
+                                                <span class="ml-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[11px] font-bold">Deactivated</span>
+                                            @endif
+                                        </p>
+                                        @if($activePharmacists->isNotEmpty())
+                                            <form method="POST" action="{{ route('admin.patients.assign', $patient) }}" class="mt-2 flex items-center gap-2">
+                                                @csrf
+                                                @method('PATCH')
+                                                <label for="assign-{{ $patient->id }}" class="sr-only">Assign {{ $patient->user->name }} to</label>
+                                                <select id="assign-{{ $patient->id }}" name="pharmacist_id" required
+                                                        class="rounded-lg border-slate-300 text-xs py-1.5 focus:border-emerald-500 focus:ring-emerald-200">
+                                                    <option value="">{{ $patient->pharmacist ? 'Move to…' : 'Assign to…' }}</option>
+                                                    @foreach($activePharmacists as $option)
+                                                        <option value="{{ $option->id }}" @selected($option->id === $patient->pharmacist_id)>{{ $option->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <button type="submit" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">Save</button>
+                                            </form>
+                                        @endif
+                                    </td>
                                     <td class="py-4 px-6 text-slate-600">
                                         {{ $patient->gender }}, {{ $patient->age }} years<br>
                                         <span class="text-xs">BMI {{ number_format($patient->bmi, 1) }}</span>

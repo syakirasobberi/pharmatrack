@@ -31,7 +31,7 @@
                 </div>
             @endif
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
                     <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Total Pharmacists</p>
                     <p class="text-3xl font-extrabold text-slate-900 mt-2">{{ $totalPharmacists }}</p>
@@ -39,6 +39,10 @@
                 <div class="bg-white border border-amber-200 rounded-2xl p-6 shadow-sm">
                     <p class="text-xs font-bold uppercase tracking-wide text-amber-700">Password Prompts Active</p>
                     <p class="text-3xl font-extrabold text-amber-700 mt-2">{{ $passwordPrompts }}</p>
+                </div>
+                <div class="bg-white border border-red-200 rounded-2xl p-6 shadow-sm">
+                    <p class="text-xs font-bold uppercase tracking-wide text-red-700">Deactivated</p>
+                    <p class="text-3xl font-extrabold text-red-700 mt-2">{{ $deactivatedCount }}</p>
                 </div>
             </div>
 
@@ -91,18 +95,65 @@
                                     <td class="py-4 px-6 font-bold text-slate-700">{{ $staff->assigned_patients_count }}</td>
                                     <td class="py-4 px-6 text-slate-600">{{ $staff->created_at->format('d M Y') }}</td>
                                     <td class="py-4 px-6">
-                                        @if($staff->requires_password_change)
+                                        @if($staff->isDeactivated())
+                                            <span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold">Deactivated</span>
+                                            <p class="text-[11px] text-slate-400 mt-1">since {{ $staff->deactivated_at->format('d M Y') }}</p>
+                                        @elseif($staff->requires_password_change)
                                             <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold">Password Change Required</span>
                                         @else
                                             <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">Active</span>
                                         @endif
                                     </td>
-                                    <td class="py-4 px-6 text-right">
-                                        <form method="POST" action="{{ route('admin.pharmacists.requirePasswordChange', $staff) }}" class="inline">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button class="px-3 py-1.5 border border-slate-300 text-slate-600 hover:bg-slate-100 font-bold rounded-lg text-xs">Require Password Change</button>
-                                        </form>
+                                    <td class="py-4 px-6 text-right align-top">
+                                        <div class="flex flex-col items-end gap-2">
+                                            @if($staff->isDeactivated())
+                                                <form method="POST" action="{{ route('admin.pharmacists.reactivate', $staff) }}" class="inline">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button class="px-3 py-1.5 border border-emerald-300 text-emerald-700 hover:bg-emerald-50 font-bold rounded-lg text-xs">Reactivate</button>
+                                                </form>
+                                            @else
+                                                <form method="POST" action="{{ route('admin.pharmacists.requirePasswordChange', $staff) }}" class="inline">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button class="px-3 py-1.5 border border-slate-300 text-slate-600 hover:bg-slate-100 font-bold rounded-lg text-xs">Require Password Change</button>
+                                                </form>
+
+                                                {{-- Two-step: open the panel, choose who takes over the patients, then confirm. --}}
+                                                @php $others = $activePharmacists->where('id', '!=', $staff->id); @endphp
+                                                <details class="text-left">
+                                                    <summary class="list-none cursor-pointer px-3 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 font-bold rounded-lg text-xs text-right">Deactivate…</summary>
+                                                    <form method="POST" action="{{ route('admin.pharmacists.deactivate', $staff) }}"
+                                                          class="mt-2 w-72 rounded-xl border border-red-200 bg-red-50 p-3 space-y-2">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <p class="text-xs text-red-800 font-semibold">
+                                                            {{ $staff->name }} will no longer be able to log in or approve kiosk updates. Nothing is deleted, and you can reactivate later.
+                                                        </p>
+                                                        @if($staff->assigned_patients_count > 0)
+                                                            @if($others->isEmpty())
+                                                                <p class="text-xs text-red-800 font-bold">
+                                                                    Their {{ $staff->assigned_patients_count }} patient(s) need another active pharmacist. Add one first.
+                                                                </p>
+                                                            @else
+                                                                <label for="transfer-{{ $staff->id }}" class="block text-xs font-bold text-slate-700">
+                                                                    Move their {{ $staff->assigned_patients_count }} patient(s) to:
+                                                                </label>
+                                                                <select id="transfer-{{ $staff->id }}" name="transfer_to" required class="w-full rounded-lg border-slate-300 text-xs">
+                                                                    <option value="">Choose a pharmacist…</option>
+                                                                    @foreach($others as $option)
+                                                                        <option value="{{ $option->id }}">{{ $option->name }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            @endif
+                                                        @endif
+                                                        @if($staff->assigned_patients_count === 0 || $others->isNotEmpty())
+                                                            <button type="submit" class="w-full px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs">Confirm deactivation</button>
+                                                        @endif
+                                                    </form>
+                                                </details>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
