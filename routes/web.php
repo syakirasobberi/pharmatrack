@@ -33,6 +33,10 @@ Route::middleware('kiosk.session')->prefix('kiosk/summary/{id}')->whereNumber('i
     Route::post('/checkups', [KioskController::class, 'storeCheckup'])
         ->middleware('throttle:kiosk-write')
         ->name('kiosk.checkups.store');
+    Route::post('/medications/{medication}/dose', [KioskController::class, 'logDose'])
+        ->whereNumber('medication')
+        ->middleware('throttle:kiosk-write')
+        ->name('kiosk.medications.dose');
 });
 
 Route::get('/dashboard', function () {
@@ -106,6 +110,8 @@ Route::middleware(['auth', 'force_password_change', 'role:pharmacist'])->group(f
     Route::patch('/pharmacist/medications/{medication}', [MedicationController::class, 'update'])->whereNumber('medication')->name('pharmacist.medication.update');
     Route::patch('/pharmacist/medications/{medication}/stop', [MedicationController::class, 'stop'])->whereNumber('medication')->name('pharmacist.medication.stop');
     Route::patch('/pharmacist/medications/{medication}/resume', [MedicationController::class, 'resume'])->whereNumber('medication')->name('pharmacist.medication.resume');
+    Route::post('/pharmacist/medications/{medication}/doses', [MedicationController::class, 'logDose'])->whereNumber('medication')->name('pharmacist.medication.doses.store');
+    Route::delete('/pharmacist/medications/{medication}/doses', [MedicationController::class, 'removeDose'])->whereNumber('medication')->name('pharmacist.medication.doses.destroy');
     Route::patch('/pharmacist/patients/{id}/archive', [PatientController::class, 'archive'])->name('pharmacist.patients.archive');
     Route::patch('/pharmacist/patients/{id}/restore', [PatientController::class, 'restore'])->name('pharmacist.patients.restore');
     Route::post('/pharmacist/patients/{id}/send-reminder', [PatientController::class, 'sendCheckupReminder'])->name('pharmacist.patients.sendReminder');
@@ -131,6 +137,8 @@ Route::middleware(['auth', 'force_password_change', 'role:patient'])->group(func
     Route::get('/patient/medications', [PatientPortalController::class, 'medications'])->name('patient.medications');
     Route::post('/patient/medications', [PatientPortalController::class, 'storeMedication'])->name('patient.medications.store');
     Route::patch('/patient/medications/{medication}', [PatientPortalController::class, 'updateMedication'])->name('patient.medications.update');
+    Route::post('/patient/medications/{medication}/doses', [PatientPortalController::class, 'logDose'])->name('patient.medications.doses.store');
+    Route::delete('/patient/medications/{medication}/doses', [PatientPortalController::class, 'removeDose'])->name('patient.medications.doses.destroy');
     Route::get('/patient/checkups', [PatientPortalController::class, 'checkups'])->name('patient.checkups');
     Route::get('/patient/download-summary', [PatientPortalController::class, 'downloadSummary'])->name('patient.summary.download');
     Route::post('/patient/email-summary', [PatientPortalController::class, 'emailSummary'])->name('patient.summary.email');

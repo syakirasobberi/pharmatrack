@@ -81,6 +81,16 @@
                         </div>
                     @endif
 
+                    @if(session('error'))
+                        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl font-bold">{{ session('error') }}</div>
+                    @endif
+
+                    @if($errors->dose->any())
+                        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl font-bold">
+                            @foreach($errors->dose->all() as $error)<p>{{ $error }}</p>@endforeach
+                        </div>
+                    @endif
+
                     @if($errors->any())
                         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl">
                             <p class="font-bold mb-2">Please fix these items before saving:</p>
@@ -107,10 +117,15 @@
                     @endif
 
                     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                            <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Total Medications</p>
-                            <p class="mt-3 text-3xl font-extrabold text-slate-800">{{ $totalMedications }}</p>
-                            <p class="mt-1 text-sm text-slate-500">All active records for this patient.</p>
+                        @php $adhTone = \App\Support\Adherence::classes($adherence['status']); @endphp
+                        <div class="rounded-2xl border {{ $adhTone['border'] }} bg-white p-5">
+                            <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Adherence · {{ \App\Support\Adherence::WINDOW_DAYS }} days</p>
+                            <p class="mt-3 text-3xl font-extrabold {{ $adhTone['text'] }}">{{ $adherence['percent'] !== null ? $adherence['percent'] . '%' : '—' }}</p>
+                            <p class="mt-1 text-sm text-slate-500">
+                                {{ $adherence['label'] }}
+                                @if($adherence['tracking_since']) · logging since {{ $adherence['tracking_since']->format('d M Y') }} @endif
+                                · {{ $totalMedications }} current {{ \Illuminate\Support\Str::plural('medication', $totalMedications) }}
+                            </p>
                         </div>
 
                         <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
@@ -209,6 +224,7 @@
                                         <th class="py-4 px-6">How To Take</th>
                                         <th class="py-4 px-6">Treatment Period</th>
                                         <th class="py-4 px-6">Latest Dose Date</th>
+                                        <th class="py-4 px-6">Adherence (last 7 days)</th>
                                         <th class="py-4 px-6">Notes</th>
                                         <th class="py-4 px-6 text-right">Status</th>
                                         <th class="py-4 px-6 text-right"><span class="sr-only">Actions</span></th>
@@ -255,6 +271,14 @@
                                             <td class="py-4 px-6 text-slate-600">
                                                 {{ $lastTaken?->format('d M Y') ?? 'Not recorded' }}
                                             </td>
+                                            <td class="py-4 px-6">
+                                                @php $medAdh = $adherence['medications'][$medication->id]; @endphp
+                                                @include('medications.partials.dose-dots', ['last7' => $medAdh['last7']])
+                                                <span class="mt-1.5 inline-block px-2 py-0.5 rounded-full border text-[11px] font-bold {{ \App\Support\Adherence::classes($medAdh['status'])['badge'] }}"
+                                                      @if($medAdh['expected']) title="{{ $medAdh['taken'] }} of {{ $medAdh['expected'] }} expected doses logged" @endif>
+                                                    {{ $medAdh['percent'] !== null ? $medAdh['percent'] . '% · ' : '' }}{{ $medAdh['label'] }}
+                                                </span>
+                                            </td>
                                             <td class="py-4 px-6 text-slate-500">
                                                 {{ $medication->notes ?: 'No notes recorded' }}
                                             </td>
@@ -271,6 +295,34 @@
                                                     <a href="{{ route('pharmacist.medication.edit', $medication->id) }}"
                                                        class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-blue-600 hover:bg-blue-50"
                                                        aria-label="Edit {{ $medication->name }}">Edit</a>
+                                                    {{-- Dose the patient reports at the counter / by phone. --}}
+                                                    <details class="text-left">
+                                                        <summary class="list-none cursor-pointer px-3 py-1.5 rounded-lg border border-emerald-200 text-xs font-bold text-emerald-700 hover:bg-emerald-50 text-right">Log dose…</summary>
+                                                        <div class="mt-2 w-64 rounded-xl border border-emerald-200 bg-emerald-50 p-3 space-y-3">
+                                                            <form method="POST" action="{{ route('pharmacist.medication.doses.store', $medication->id) }}" class="space-y-2">
+                                                                @csrf
+                                                                <label for="dose-date-{{ $medication->id }}" class="block text-xs font-bold text-slate-700">Patient took {{ $medication->name }} on</label>
+                                                                <input id="dose-date-{{ $medication->id }}" type="date" name="taken_on" required
+                                                                       value="{{ today()->toDateString() }}" max="{{ today()->toDateString() }}" min="{{ \App\Support\Adherence::windowStart()->toDateString() }}"
+                                                                       class="w-full rounded-lg border-slate-300 text-xs">
+                                                                <button type="submit" class="w-full px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs">Log dose</button>
+                                                            </form>
+                                                            @php $loggedDays = $medication->doses->sortByDesc('taken_on'); @endphp
+                                                            @if($loggedDays->isNotEmpty())
+                                                                <form method="POST" action="{{ route('pharmacist.medication.doses.destroy', $medication->id) }}" class="space-y-2 border-t border-emerald-200 pt-3">
+                                                                    @csrf
+                                                                    @method('DELETE')
+                                                                    <label for="dose-remove-{{ $medication->id }}" class="block text-xs font-bold text-slate-700">Remove a dose logged by mistake</label>
+                                                                    <select id="dose-remove-{{ $medication->id }}" name="taken_on" class="w-full rounded-lg border-slate-300 text-xs">
+                                                                        @foreach($loggedDays as $dose)
+                                                                            <option value="{{ $dose->taken_on->toDateString() }}">{{ $dose->taken_on->format('D d M') }} ({{ $dose->source }})</option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                    <button type="submit" class="w-full px-3 py-1.5 border border-slate-300 bg-white text-slate-700 font-bold rounded-lg text-xs hover:bg-slate-50">Remove</button>
+                                                                </form>
+                                                            @endif
+                                                        </div>
+                                                    </details>
                                                     {{-- Two-step stop: open the panel, give a reason, confirm. --}}
                                                     <details class="text-left">
                                                         <summary class="list-none cursor-pointer px-3 py-1.5 rounded-lg border border-red-200 text-xs font-bold text-red-600 hover:bg-red-50 text-right">Stop…</summary>
@@ -291,7 +343,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="7" class="py-14 text-center text-slate-500">
+                                            <td colspan="8" class="py-14 text-center text-slate-500">
                                                 <div class="flex flex-col items-center justify-center">
                                                     <p class="font-bold text-slate-700 text-lg">No medications recorded yet.</p>
                                                     <p class="text-sm mt-1">Use the Add Medication button to create the first prescription for this patient.</p>

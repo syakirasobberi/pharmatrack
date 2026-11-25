@@ -108,7 +108,9 @@
         $systolic = (int) explode('/', $latestCheckup->blood_pressure)[0];
     }
     $radarBp        = $systolic > 0 ? min(round(($systolic / 180) * 100), 100) : 0;
-    $radarAdherence = $activeMedCount > 0 && $latestCheckup ? min($activeMedCount * 15, 100) : 0;
+    // Real adherence from the dose log (last 30 days); 0 on the chart when not tracked yet.
+    $radarAdherence = $adherence['percent'] ?? 0;
+    $radarAdherenceLabel = $adherence['percent'] !== null ? 'Med. Adherence' : 'Med. Adherence (not tracked)';
     $hasRadarData   = ($radarBmi + $radarSugar + $radarCholest + $radarBp) > 0;
 
     $readingBadge = function($value, string $type): array {
@@ -574,9 +576,17 @@
                     </svg>
                     <h3 class="font-bold text-base">Current Medications</h3>
                 </div>
-                <div class="p-6">
+                <div class="p-6" id="medications">
+                    @if(session('kiosk_dose_success'))
+                        <div class="mb-4 p-3 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm font-semibold">{{ session('kiosk_dose_success') }}</div>
+                    @endif
+                    @if($adherence['percent'] !== null)
+                        <p class="mb-4 text-sm text-slate-600">Your adherence (last {{ \App\Support\Adherence::WINDOW_DAYS }} days):
+                            <strong class="{{ \App\Support\Adherence::classes($adherence['status'])['text'] }}">{{ $adherence['percent'] }}% · {{ $adherence['label'] }}</strong></p>
+                    @endif
                     @forelse($patient->currentMedications as $med)
-                        <div class="flex items-center gap-4 p-3 mb-3 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-sm transition-shadow">
+                        @php $medAdh = $adherence['medications'][$med->id] ?? null; @endphp
+                        <div class="flex flex-wrap items-center gap-4 p-3 mb-3 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-sm transition-shadow">
                             <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center shadow-sm text-white shrink-0">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -586,6 +596,19 @@
                                 <p class="font-bold text-slate-800 text-sm">{{ $med->name }}</p>
                                 <p class="text-xs text-slate-500 mt-0.5">{{ $med->dosage }}{{ $med->frequency ? ' · ' . $med->frequency : '' }}</p>
                             </div>
+                            @if($medAdh)
+                                <div class="ml-auto flex items-center gap-3">
+                                    @include('medications.partials.dose-dots', ['last7' => $medAdh['last7']])
+                                    @if($medAdh['taken_today'])
+                                        <span class="rounded-xl bg-emerald-100 px-3 py-2 text-xs font-extrabold text-emerald-800">&#10003; Taken today</span>
+                                    @else
+                                        <form method="POST" action="{{ route('kiosk.medications.dose', [$patient->id, $med->id]) }}">
+                                            @csrf
+                                            <button type="submit" class="rounded-xl bg-teal-600 px-3 py-2 text-xs font-extrabold text-white hover:bg-teal-700">I took it today</button>
+                                        </form>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
                     @empty
                         <p class="text-sm text-slate-400 italic">No active medications recorded.</p>
@@ -754,7 +777,7 @@ document.addEventListener('DOMContentLoaded', function () {
         new Chart(radarCanvas.getContext('2d'), {
             type: 'radar',
             data: {
-                labels: ['BMI', 'Blood Sugar', 'Blood Pressure', 'Cholesterol', 'Med. Adherence'],
+                labels: ['BMI', 'Blood Sugar', 'Blood Pressure', 'Cholesterol', @json($radarAdherenceLabel)],
                 datasets: [{
                     label: 'Health Profile',
                     data: [{{ $radarBmi }}, {{ $radarSugar }}, {{ $radarBp }}, {{ $radarCholest }}, {{ $radarAdherence }}],

@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\HealthCheckup;
 use App\Models\MedicalHistory;
+use App\Models\Medication;
 use App\Models\Patient;
 use App\Models\User;
+use App\Support\Adherence;
 use App\Support\FaceMatch;
 use App\Support\HealthSummaryPdf;
 use Illuminate\Http\JsonResponse;
@@ -75,8 +77,25 @@ class KioskController extends Controller
 
         // Same ML risk estimate the pharmacist sees (PHP decision tree), worded for the patient in the view.
         $prediction = app(HealthRiskPredictionController::class)->predictForPatient($patient);
+        $adherence = Adherence::forPatient($patient, $patient->currentMedications);
 
-        return view('kiosk.summary', compact('patient', 'prediction'));
+        return view('kiosk.summary', compact('patient', 'prediction', 'adherence'));
+    }
+
+    /**
+     * "I took it today" from the kiosk. Self-reported by the face-matched patient, like the
+     * portal button, so no pharmacist PIN is needed (it does not change clinical records).
+     */
+    public function logDose(int $id, int $medication): RedirectResponse
+    {
+        $med = Medication::where('patient_id', $id)->findOrFail($medication);
+
+        if ($med->isCurrent()) {
+            $med->recordDose(today(), 'kiosk');
+        }
+
+        return redirect()->to(route('kiosk.summary', $id) . '#medications')
+            ->with('kiosk_dose_success', "Logged: {$med->name} taken today.");
     }
 
     public function download(int $id)

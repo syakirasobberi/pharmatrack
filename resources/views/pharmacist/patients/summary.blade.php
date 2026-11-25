@@ -242,8 +242,10 @@
         }
 
         $carePoints = $carePoints->unique()->take(5)->values();
-        // Medication adherence proxy: if medications exist and recent check-up exists → higher score
-        $radarAdherence  = $activeMedCount > 0 && $latestCheckup ? min($activeMedCount * 15, 100) : 0;
+        // Real adherence from the dose log (last 30 days); 0 on the chart when not tracked yet.
+        $adherence       = \App\Support\Adherence::forPatient($patient, $medications);
+        $radarAdherence  = $adherence['percent'] ?? 0;
+        $radarAdherenceLabel = $adherence['percent'] !== null ? 'Med. Adherence' : 'Med. Adherence (not tracked)';
 
         $hasRadarData    = ($radarBmi + $radarSugar + $radarCholest + $radarBp) > 0;
 
@@ -875,7 +877,7 @@
                 new Chart(radarCanvas.getContext('2d'), {
                     type: 'radar',
                     data: {
-                        labels: ['BMI', 'Blood Sugar', 'Blood Pressure', 'Cholesterol', 'Med. Adherence'],
+                        labels: ['BMI', 'Blood Sugar', 'Blood Pressure', 'Cholesterol', @json($radarAdherenceLabel)],
                         datasets: [{
                             label: 'Patient Health Profile',
                             data: [

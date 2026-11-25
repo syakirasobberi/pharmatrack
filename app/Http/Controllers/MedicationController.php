@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Medication;
 use App\Models\Patient;
+use App\Support\Adherence;
 use App\Support\DrugSafety;
 use Illuminate\Support\Facades\Log;
 
@@ -46,8 +47,9 @@ class MedicationController extends Controller
         // Problems already present in the current list (e.g. added by the patient, or resumed).
         $safetyWarnings = DrugSafety::review($medications, $patient->medicalHistory);
         $drugAllergies = DrugSafety::allergyEntries($patient->medicalHistory);
+        $adherence = Adherence::forPatient($patient, $medications);
 
-        return view('medications.index', compact('patient', 'medications', 'pastMedications', 'safetyWarnings', 'drugAllergies'));
+        return view('medications.index', compact('patient', 'medications', 'pastMedications', 'safetyWarnings', 'drugAllergies', 'adherence'));
     }
 
     public function store(Request $request, $id)
@@ -180,6 +182,43 @@ class MedicationController extends Controller
 
         return redirect()->route('pharmacist.medication.index', $medication->patient_id)
             ->with('success', $medication->name . ' resumed.' . $note);
+    }
+
+    /** Log a dose the patient reports (e.g. at the counter or by phone), up to 30 days back. */
+    public function logDose(Request $request, $medicationId)
+    {
+        $medication = $this->findOwnMedication($medicationId);
+        if (! $medication->isCurrent()) {
+            return back()->with('error', "{$medication->name} is no longer current, so doses can't be logged for it.");
+        }
+
+        $day = $this->validatedDoseDay($request);
+        $medication->recordDose($day, 'pharmacist', $request->user());
+
+        return redirect()->route('pharmacist.medication.index', $medication->patient_id)
+            ->with('success', "Dose of {$medication->name} logged for {$day->format('d M Y')}.");
+    }
+
+    public function removeDose(Request $request, $medicationId)
+    {
+        $medication = $this->findOwnMedication($medicationId);
+        $day = $this->validatedDoseDay($request);
+        $medication->removeDose($day);
+
+        return redirect()->route('pharmacist.medication.index', $medication->patient_id)
+            ->with('success', "Removed the {$medication->name} dose for {$day->format('d M Y')}.");
+    }
+
+    private function validatedDoseDay(Request $request): \Carbon\Carbon
+    {
+        $validated = $request->validateWithBag('dose', [
+            'taken_on' => ['required', 'date', 'before_or_equal:today', 'after_or_equal:' . Adherence::windowStart()->toDateString()],
+        ], [
+            'taken_on.after_or_equal' => 'Doses can only be logged for the last ' . Adherence::WINDOW_DAYS . ' days.',
+            'taken_on.before_or_equal' => 'A dose cannot be logged in the future.',
+        ]);
+
+        return \Carbon\Carbon::parse($validated['taken_on'])->startOfDay();
     }
 
     /**

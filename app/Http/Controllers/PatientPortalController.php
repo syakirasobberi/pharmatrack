@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Medication;
 use App\Models\Patient;
+use App\Support\Adherence;
 use App\Support\DrugSafety;
 use App\Support\HealthSummaryPdf;
 use Carbon\Carbon;
@@ -74,7 +75,9 @@ class PatientPortalController extends Controller
         $needsMedicationUpdate = $patient->medications->isNotEmpty()
             && (! $latestMedicationUpdate || Carbon::parse($latestMedicationUpdate)->lt(Carbon::today()->subMonths(6)));
 
-        return view('patient.medications', compact('patient', 'latestMedicationUpdate', 'needsMedicationUpdate'));
+        $adherence = Adherence::forPatient($patient, $patient->medications->filter->isCurrent()->values());
+
+        return view('patient.medications', compact('patient', 'latestMedicationUpdate', 'needsMedicationUpdate', 'adherence'));
     }
 
     public function storeMedication(Request $request)
@@ -138,14 +141,74 @@ class PatientPortalController extends Controller
             'notes' => 'nullable|string|max:255',
         ]);
 
-        $medication->update([
-            'last_taken' => $validated['last_taken'] ?? null,
-            'notes' => $validated['notes'] ?? null,
-        ]);
+        // Doses are logged with the "I took it" buttons now; the date field is only
+        // applied if a form still sends it, so a notes-only update keeps last_taken.
+        $medication->update(array_merge(
+            ['notes' => $validated['notes'] ?? null],
+            $request->filled('last_taken') ? ['last_taken' => $validated['last_taken']] : [],
+        ));
 
         return redirect()
             ->route('patient.medications')
             ->with('success', 'Medication update saved.');
+    }
+
+    /** "I took it" — log a dose for today or one of the previous 6 days. */
+    public function logDose(Request $request, Medication $medication)
+    {
+        $medication = $this->ownCurrentMedication($request, $medication);
+        if (! $medication instanceof Medication) {
+            return $medication;
+        }
+
+        $day = $this->validatedDoseDay($request);
+        $medication->recordDose($day, 'patient', $request->user());
+
+        return redirect()->route('patient.medications')
+            ->with('success', $day->isToday()
+                ? "Logged: you took {$medication->name} today."
+                : "Logged: you took {$medication->name} on {$day->format('d M')}.");
+    }
+
+    /** Undo a dose logged by mistake. */
+    public function removeDose(Request $request, Medication $medication)
+    {
+        $medication = $this->ownCurrentMedication($request, $medication);
+        if (! $medication instanceof Medication) {
+            return $medication;
+        }
+
+        $day = $this->validatedDoseDay($request);
+        $medication->removeDose($day);
+
+        return redirect()->route('patient.medications')
+            ->with('success', "Removed the {$medication->name} dose for {$day->format('d M')}.");
+    }
+
+    /** The patient's own medication that is still current, or a redirect explaining why not. */
+    private function ownCurrentMedication(Request $request, Medication $medication): Medication|\Illuminate\Http\RedirectResponse
+    {
+        $patient = Patient::where('user_id', $request->user()->id)->firstOrFail();
+        abort_unless($medication->patient_id === $patient->id, 403);
+
+        if (! $medication->isCurrent()) {
+            return redirect()->route('patient.medications')
+                ->with('error', "{$medication->name} is no longer current, so doses can't be logged for it.");
+        }
+
+        return $medication;
+    }
+
+    private function validatedDoseDay(Request $request): Carbon
+    {
+        $validated = $request->validate([
+            'taken_on' => ['nullable', 'date', 'before_or_equal:today', 'after_or_equal:' . today()->subDays(6)->toDateString()],
+        ], [
+            'taken_on.after_or_equal' => 'You can only log doses for the past 7 days.',
+            'taken_on.before_or_equal' => 'You cannot log a dose in the future.',
+        ]);
+
+        return Carbon::parse($validated['taken_on'] ?? today())->startOfDay();
     }
 
     public function checkups(Request $request)

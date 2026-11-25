@@ -60,14 +60,26 @@
         $medicationAlertCount = (clone $medicationAlertQuery)->count();
         $medicationAlerts = $medicationAlertQuery->with('patient.user')->latest()->take(5)->get();
 
+        // Adherence below 80% (only patients who log doses; never-tracked patients are not flagged).
+        $trackingMap = \App\Support\Adherence::trackingSinceMany($assignedPatientIds);
+        $adherenceAlertsAll = \App\Models\Patient::assignedTo($pharmacist)
+            ->whereIn('id', array_keys($trackingMap))
+            ->with(['user', 'currentMedications.doses' => fn ($q) => $q->whereDate('taken_on', '>=', \App\Support\Adherence::windowStart())])
+            ->get()
+            ->map(fn ($p) => (object) ['patient' => $p, 'adherence' => \App\Support\Adherence::forPatient($p, $p->currentMedications, $trackingMap[$p->id] ?? null)])
+            ->filter(fn ($a) => $a->adherence['percent'] !== null && $a->adherence['percent'] < \App\Support\Adherence::GOOD)
+            ->sortBy(fn ($a) => $a->adherence['percent'])
+            ->values();
+        $adherenceAlerts = $adherenceAlertsAll->take(3);
+
         // Due = no check-up in the last 90 days.
         $dueQuery = \App\Models\Patient::assignedTo($pharmacist)
             ->whereDoesntHave('healthCheckups', fn ($query) => $query->whereDate('checkup_date', '>=', today()->subDays(90)));
         $dueCount = (clone $dueQuery)->count();
         $patientsNeedingCheckup = $dueQuery->with(['user', 'latestCheckup'])->take(5)->get();
 
-        $workflowAlerts = $healthAlertsAll->count() + $medicationAlertCount + $dueCount;
-        $shownAlerts = $healthAlerts->count() + $medicationAlerts->count() + $patientsNeedingCheckup->count();
+        $workflowAlerts = $healthAlertsAll->count() + $medicationAlertCount + $adherenceAlertsAll->count() + $dueCount;
+        $shownAlerts = $healthAlerts->count() + $medicationAlerts->count() + $adherenceAlerts->count() + $patientsNeedingCheckup->count();
 
         $bmiBadge = function ($bmi) {
             if (! is_numeric($bmi) || $bmi <= 0) return ['—', 'bg-slate-100 text-slate-500', 'bg-slate-400', 'Not recorded'];
@@ -284,7 +296,7 @@
                         <span class="ml-auto rounded-full px-2.5 py-0.5 text-xs font-extrabold {{ $workflowAlerts > 0 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700' }}">{{ $workflowAlerts }}</span>
                     </h3>
                     <p class="text-xs text-slate-400 font-medium mb-5">
-                        {{ $healthAlertsAll->count() }} health · {{ $medicationAlertCount }} medication · {{ $dueCount }} check-up due
+                        {{ $healthAlertsAll->count() }} health · {{ $medicationAlertCount }} medication · {{ $adherenceAlertsAll->count() }} adherence · {{ $dueCount }} check-up due
                         @if($shownAlerts < $workflowAlerts) — showing {{ $shownAlerts }} @endif
                     </p>
 
@@ -319,6 +331,24 @@
                                 Review Case <span aria-hidden="true">&rarr;</span>
                             </a>
                         </div>
+                        @endforeach
+
+                        <!-- Adherence Alerts (dose log, last 30 days) -->
+                        @foreach($adherenceAlerts as $alert)
+                            @php $poor = $alert->adherence['status'] === 'poor'; @endphp
+                            <div class="p-4 border {{ $poor ? 'border-rose-200/60 bg-rose-50/50' : 'border-amber-200/60 bg-amber-50/50' }} rounded-2xl group shadow-sm">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4 {{ $poor ? 'text-rose-500' : 'text-amber-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <h4 class="font-bold text-sm text-slate-800">{{ $alert->patient->user->name ?? 'Unknown' }}</h4>
+                                    <span class="ml-auto px-2 py-1 bg-white rounded-md text-[10px] font-bold {{ $poor ? 'text-rose-600 border-rose-100' : 'text-amber-600 border-amber-100' }} shadow-sm border">{{ $alert->adherence['percent'] }}%</span>
+                                </div>
+                                <p class="text-xs {{ $poor ? 'text-rose-800' : 'text-amber-800' }} font-medium bg-white/60 p-2.5 rounded-xl border {{ $poor ? 'border-rose-100/50' : 'border-amber-100/50' }}">
+                                    Adherence {{ strtolower($alert->adherence['label']) }} — {{ $alert->adherence['percent'] }}% of expected doses logged in the last {{ \App\Support\Adherence::WINDOW_DAYS }} days.
+                                </p>
+                                <a href="{{ route('pharmacist.medication.index', $alert->patient->id) }}" class="mt-3 text-xs font-bold {{ $poor ? 'text-rose-600 hover:text-rose-800' : 'text-amber-600 hover:text-amber-800' }} flex items-center gap-1 group-hover:gap-2 transition-all">
+                                    Review Adherence <span aria-hidden="true">&rarr;</span>
+                                </a>
+                            </div>
                         @endforeach
 
                         <!-- Medication Alerts -->

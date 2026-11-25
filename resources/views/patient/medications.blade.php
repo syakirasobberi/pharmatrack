@@ -72,6 +72,35 @@
                 </div>
             @endif
 
+            @if($adherence['status'] !== 'no_meds')
+                @php $tone = \App\Support\Adherence::classes($adherence['status']); @endphp
+                <div class="rounded-3xl border {{ $tone['border'] }} bg-white p-6 shadow-sm">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-xs font-bold uppercase tracking-wide {{ $tone['text'] }}">My Adherence (last {{ \App\Support\Adherence::WINDOW_DAYS }} days)</p>
+                            @if($adherence['percent'] !== null)
+                                <p class="mt-1 text-3xl font-extrabold text-gray-900">{{ $adherence['percent'] }}% <span class="text-base font-bold {{ $tone['text'] }}">{{ $adherence['label'] }}</span></p>
+                                <p class="mt-1 text-sm text-gray-500">
+                                    @if($adherence['status'] === 'good')
+                                        Well done — keep tapping "I took it" each day.
+                                    @else
+                                        Some doses were not logged. If you are missing doses, talk to your pharmacist — they can help.
+                                    @endif
+                                </p>
+                            @else
+                                <p class="mt-1 text-lg font-extrabold text-gray-900">Start tracking today</p>
+                                <p class="mt-1 text-sm text-gray-500">Tap <strong>"I took it today"</strong> under each medicine after you take it. Your pharmacist uses this to see how your treatment is going.</p>
+                            @endif
+                        </div>
+                        @if($adherence['percent'] !== null)
+                            <div class="h-3 w-full sm:w-56 rounded-full bg-gray-100 overflow-hidden" role="progressbar" aria-valuenow="{{ $adherence['percent'] }}" aria-valuemin="0" aria-valuemax="100">
+                                <div class="h-3 rounded-full {{ $tone['bar'] }}" style="width: {{ $adherence['percent'] }}%"></div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
             <div class="rounded-3xl border border-indigo-100 bg-white p-6 shadow-sm">
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div>
@@ -187,6 +216,54 @@
                                 </div>
                             </div>
 
+                            @if($medication->isCurrent() && ($medAdherence = $adherence['medications'][$medication->id] ?? null))
+                                @php $medTone = \App\Support\Adherence::classes($medAdherence['status']); @endphp
+                                <div class="flex flex-col gap-4 border-b border-gray-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+                                    <div class="flex items-center gap-4">
+                                        @include('medications.partials.dose-dots', ['last7' => $medAdherence['last7']])
+                                        <span class="px-2.5 py-1 rounded-full border text-xs font-bold {{ $medTone['badge'] }}">
+                                            {{ $medAdherence['percent'] !== null ? $medAdherence['percent'] . '% · ' : '' }}{{ $medAdherence['label'] }}
+                                        </span>
+                                    </div>
+
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        @if($medAdherence['taken_today'])
+                                            <span class="inline-flex items-center gap-1 rounded-xl bg-emerald-100 px-4 py-2.5 text-sm font-extrabold text-emerald-800">&#10003; Taken today</span>
+                                            <form method="POST" action="{{ route('patient.medications.doses.destroy', $medication) }}">
+                                                @csrf
+                                                @method('DELETE')
+                                                <input type="hidden" name="taken_on" value="{{ today()->toDateString() }}">
+                                                <button type="submit" class="rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-50">Undo</button>
+                                            </form>
+                                        @else
+                                            <form method="POST" action="{{ route('patient.medications.doses.store', $medication) }}">
+                                                @csrf
+                                                <button type="submit" class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-extrabold text-white shadow-sm hover:bg-emerald-700">I took it today</button>
+                                            </form>
+                                        @endif
+
+                                        {{-- Forgot to log? Pick one of the previous 6 days. --}}
+                                        @if(collect(array_slice($medAdherence['last7'], 0, 6))->contains('taken', false))
+                                        <details class="relative">
+                                            <summary class="list-none cursor-pointer rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-50">Earlier day…</summary>
+                                            <form method="POST" action="{{ route('patient.medications.doses.store', $medication) }}" class="absolute right-0 z-10 mt-2 w-56 space-y-2 rounded-xl border border-gray-200 bg-white p-3 shadow-lg">
+                                                @csrf
+                                                <label for="taken_on_{{ $medication->id }}" class="block text-xs font-bold text-gray-700">I also took it on</label>
+                                                <select id="taken_on_{{ $medication->id }}" name="taken_on" class="w-full rounded-lg border-gray-300 text-sm">
+                                                    @foreach(array_slice($medAdherence['last7'], 0, 6) as $day)
+                                                        @unless($day['taken'])
+                                                            <option value="{{ $day['date']->toDateString() }}">{{ $day['date']->format('D, d M') }}</option>
+                                                        @endunless
+                                                    @endforeach
+                                                </select>
+                                                <button type="submit" class="w-full rounded-lg bg-indigo-600 px-3 py-2 text-xs font-bold text-white hover:bg-indigo-700">Log dose</button>
+                                            </form>
+                                        </details>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
+
                             <div class="grid gap-6 p-6 lg:grid-cols-[1fr_320px]">
                                 <div class="grid gap-3 sm:grid-cols-2">
                                     <div class="rounded-2xl border border-gray-100 bg-gray-50 p-4">
@@ -215,16 +292,6 @@
 
                                     <h3 class="font-extrabold text-indigo-950">Quick Update</h3>
                                     <p class="mt-1 text-xs font-semibold text-indigo-700">Keep this short. Your pharmacist can review it later.</p>
-
-                                    <label class="mt-4 block text-sm font-bold text-indigo-950" for="last_taken_{{ $medication->id }}">Latest taken date</label>
-                                    <input
-                                        id="last_taken_{{ $medication->id }}"
-                                        type="date"
-                                        name="last_taken"
-                                        value="{{ old('last_taken', $medication->last_taken?->format('Y-m-d') ?? now()->format('Y-m-d')) }}"
-                                        max="{{ now()->format('Y-m-d') }}"
-                                        class="mt-1 w-full rounded-xl border-indigo-200 bg-white text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                    >
 
                                     <label class="mt-4 block text-sm font-bold text-indigo-950" for="notes_{{ $medication->id }}">Note or question</label>
                                     <textarea
