@@ -81,6 +81,46 @@ class AiController extends Controller
         return $text;
     }
 
+    /**
+     * The one prompt used by both the check-up form and the patient summary.
+     * Missing readings become "Not recorded" so the AI never assumes they are normal.
+     *
+     * @param  array<string, mixed>  $m  keys: bmi, weight, height, bp, heart_rate, haemoglobin,
+     *                                   sugar, hba1c, cholesterol, ldl, hdl, sodium, ggt
+     */
+    private function buildPrompt(array $m): string
+    {
+        $v = fn (string $key) => (isset($m[$key]) && trim((string) $m[$key]) !== '' && $m[$key] !== 'Not specified')
+            ? trim((string) $m[$key])
+            : 'Not recorded';
+
+        return <<<PROMPT
+            You are an expert clinical pharmacist supporting a community pharmacy health screening workflow. A patient has the following health metrics:
+            - BMI: {$v('bmi')}
+            - Weight from patient profile: {$v('weight')} kg
+            - Height from patient profile: {$v('height')} cm
+            - Blood Pressure: {$v('bp')} mmHg
+            - Heart Rate: {$v('heart_rate')} bpm
+            - Haemoglobin: {$v('haemoglobin')} g/dL
+            - Blood Sugar: {$v('sugar')} mmol/L
+            - HbA1c: {$v('hba1c')}
+            - Cholesterol: {$v('cholesterol')} mmol/L
+            - LDL: {$v('ldl')}
+            - HDL: {$v('hdl')}
+            - Sodium: {$v('sodium')}
+            - Gamma glutamyl transferase: {$v('ggt')}
+
+            Base your advice only on the recorded values; ignore any metric marked 'Not recorded' and do not assume it is normal. Provide short, practical recommendations for pharmacist review.
+            You MUST strictly format your response into exactly 4 numbered points:
+            1. Food: (Give one specific dietary recommendation)
+            2. Exercise: (Give one suitable physical activity or lifestyle recommendation)
+            3. Follow-up: (Give one monitoring or referral recommendation)
+            4. Medication review: (Give one pharmacist review consideration, but do not prescribe or name a medicine unless the patient is already prescribed it)
+
+            Keep each point one sentence. Do not use markdown symbols or bold text. Do not claim to diagnose disease.
+            PROMPT;
+    }
+
     public function generateSuggestion(Request $request)
     {
         $validated = $request->validate([
@@ -99,43 +139,21 @@ class AiController extends Controller
             'ggt' => 'nullable|string|max:50',
         ]);
 
-        $bmi = $validated['bmi'] ?? 'Not recorded';
-        $weight = $validated['weight'] ?? 'Not specified';
-        $height = $validated['height'] ?? 'Not specified';
-        $bp = $validated['bp'] ?? 'Not recorded';
-        $sugar = $validated['sugar'] ?? 'Not recorded';
-        $cholesterol = $validated['cholesterol'] ?? 'Not recorded';
-        $hba1c = $validated['hba1c'] ?? 'Not specified';
-        $ldl = $validated['ldl'] ?? 'Not specified';
-        $hdl = $validated['hdl'] ?? 'Not specified';
-        $heartRate = $validated['heart_rate'] ?? 'Not specified';
-        $haemoglobin = $validated['haemoglobin'] ?? 'Not specified';
-        $sodium = $validated['sodium'] ?? 'Not specified';
-        $ggt = $validated['ggt'] ?? 'Not specified';
-
-        $prompt = "You are an expert clinical pharmacist supporting a community pharmacy health screening workflow. A patient has the following health metrics:
-                   - BMI: {$bmi}
-                   - Weight from patient profile: {$weight} kg
-                   - Height from patient profile: {$height} cm
-                   - Blood Pressure: {$bp} mmHg
-                   - Heart Rate: {$heartRate} bpm
-                   - Haemoglobin: {$haemoglobin} g/dL
-                   - Blood Sugar: {$sugar} mmol/L
-                   - HbA1c: {$hba1c}
-                   - Cholesterol: {$cholesterol} mmol/L
-                   - LDL: {$ldl}
-                   - HDL: {$hdl}
-                   - Sodium: {$sodium}
-                   - Gamma glutamyl transferase: {$ggt}
-                   
-                   Base your advice only on the recorded values; ignore any metric marked 'Not recorded' or 'Not specified' and do not assume it is normal. Provide short, practical recommendations for pharmacist review.
-                   You MUST strictly format your response into exactly 4 numbered points:
-                   1. Food: (Give one specific dietary recommendation)
-                   2. Exercise: (Give one suitable physical activity or lifestyle recommendation)
-                   3. Follow-up: (Give one monitoring or referral recommendation)
-                   4. Medication review: (Give one pharmacist review consideration, but do not prescribe or name a medicine unless the patient is already prescribed it)
-                   
-                   Keep each point one sentence. Do not use markdown symbols or bold text. Do not claim to diagnose disease.";
+        $prompt = $this->buildPrompt([
+            'bmi' => $validated['bmi'] ?? null,
+            'weight' => $validated['weight'] ?? null,
+            'height' => $validated['height'] ?? null,
+            'bp' => $validated['bp'] ?? null,
+            'heart_rate' => $validated['heart_rate'] ?? null,
+            'haemoglobin' => $validated['haemoglobin'] ?? null,
+            'sugar' => $validated['sugar'] ?? null,
+            "hba1c" => $validated["hba1c"] ?? null,
+            'cholesterol' => $validated['cholesterol'] ?? null,
+            'ldl' => $validated['ldl'] ?? null,
+            'hdl' => $validated['hdl'] ?? null,
+            'sodium' => $validated['sodium'] ?? null,
+            'ggt' => $validated['ggt'] ?? null,
+        ]);
 
         $aiText = $this->askGemini($prompt, 'checkup-form suggestion');
 
@@ -162,43 +180,21 @@ class AiController extends Controller
             ], 422);
         }
 
-        $bmi = $patient->bmi ?? 'Not recorded';
-        $weight = $patient->weight ?? 'Not specified';
-        $height = $patient->height ?? 'Not specified';
-        $bp = $latest->blood_pressure ?? 'Not specified';
-        $sugar = $latest->blood_sugar ?? 'Not specified';
-        $cholesterol = $latest->cholesterol ?? 'Not specified';
-        $hba1c = $latest->hba1c ?? 'Not specified';
-        $ldl = $latest->ldl ?? 'Not specified';
-        $hdl = $latest->hdl ?? 'Not specified';
-        $heartRate = $latest->heart_rate ?? 'Not specified';
-        $haemoglobin = $latest->haemoglobin ?? 'Not specified';
-        $sodium = $latest->sodium ?? 'Not specified';
-        $ggt = $latest->gamma_glutamyl_transferase ?? 'Not specified';
-
-        $prompt = "You are an expert clinical pharmacist supporting a community pharmacy health screening workflow. A patient has the following health metrics:
-                   - BMI: {$bmi}
-                   - Weight from patient profile: {$weight} kg
-                   - Height from patient profile: {$height} cm
-                   - Blood Pressure: {$bp} mmHg
-                   - Heart Rate: {$heartRate} bpm
-                   - Haemoglobin: {$haemoglobin} g/dL
-                   - Blood Sugar: {$sugar} mmol/L
-                   - HbA1c: {$hba1c}
-                   - Cholesterol: {$cholesterol} mmol/L
-                   - LDL: {$ldl}
-                   - HDL: {$hdl}
-                   - Sodium: {$sodium}
-                   - Gamma glutamyl transferase: {$ggt}
-                   
-                   Base your advice only on the recorded values; ignore any metric marked 'Not recorded' or 'Not specified' and do not assume it is normal. Provide short, practical recommendations for pharmacist review.
-                   You MUST strictly format your response into exactly 4 numbered points:
-                   1. Food: (Give one specific dietary recommendation)
-                   2. Exercise: (Give one suitable physical activity or lifestyle recommendation)
-                   3. Follow-up: (Give one monitoring or referral recommendation)
-                   4. Medication review: (Give one pharmacist review consideration, but do not prescribe or name a medicine unless the patient is already prescribed it)
-                   
-                   Keep each point one sentence. Do not use markdown symbols or bold text. Do not claim to diagnose disease.";
+        $prompt = $this->buildPrompt([
+            'bmi' => $patient->bmi,
+            'weight' => $patient->weight,
+            'height' => $patient->height,
+            'bp' => $latest->blood_pressure,
+            'heart_rate' => $latest->heart_rate,
+            'haemoglobin' => $latest->haemoglobin,
+            'sugar' => $latest->blood_sugar,
+            "hba1c" => $latest->hba1c,
+            'cholesterol' => $latest->cholesterol,
+            'ldl' => $latest->ldl,
+            'hdl' => $latest->hdl,
+            'sodium' => $latest->sodium,
+            'ggt' => $latest->gamma_glutamyl_transferase,
+        ]);
 
         $suggestion = $this->askGemini($prompt, "patient {$patient->id} summary");
 

@@ -11,7 +11,6 @@ use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientPortalController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
-use App\Models\Patient;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -71,22 +70,8 @@ Route::middleware(['auth', 'force_password_change', 'role:admin'])->group(functi
 });
 
 Route::middleware(['auth', 'force_password_change', 'role:pharmacist'])->group(function () {
-    Route::get('/pharmacist/dashboard', function () {
-        $search = request('search');
-        $totalPatients = Patient::assignedTo(request()->user())->count();
-
-        $patients = Patient::assignedTo(request()->user())->with(['user', 'pharmacist'])
-            ->when($search, function ($query, $searchTerm) {
-                $query->whereHas('user', function ($userQuery) use ($searchTerm) {
-                    $userQuery->where('name', 'like', "%{$searchTerm}%")
-                        ->orWhere('email', 'like', "%{$searchTerm}%");
-                });
-            })
-            ->latest()
-            ->get();
-
-        return view('pharmacist.dashboard', compact('patients', 'totalPatients'));
-    })->name('pharmacist.dashboard');
+    // The dashboard view loads its own small, limited queries (recent patients, alerts).
+    Route::view('/pharmacist/dashboard', 'pharmacist.dashboard')->name('pharmacist.dashboard');
 
     Route::get('/pharmacist/patients', [PatientController::class, 'index'])->name('pharmacist.patients.index');
     Route::get('/pharmacist/patients/create', [PatientController::class, 'create'])->name('pharmacist.patients.create');

@@ -158,7 +158,13 @@
                         </tbody>
                     </table>
                 </div>
-                
+
+                @if($patients->hasPages())
+                    <div class="px-6 py-4 border-t border-slate-100">
+                        {{ $patients->links() }}
+                    </div>
+                @endif
+
             </div>
         </div>
     </div>

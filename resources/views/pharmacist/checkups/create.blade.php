@@ -900,6 +900,14 @@
                     'follow-up':        'border-amber-100 bg-amber-50 text-amber-900',
                     'medication review':'border-purple-100 bg-purple-50 text-purple-900',
                 };
+                // AI text is untrusted: escape it before it goes into HTML.
+                const escapeHtml = (value) => String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+
                 const cards = data.suggestion
                     .replace(/\*/g, '')
                     .split('\n')
@@ -911,8 +919,8 @@
                         const body  = rest.join(':').trim() || cleaned;
                         const style = styles[title.toLowerCase()] || 'border-indigo-100 bg-white text-indigo-900';
                         return `<div class="rounded-xl border ${style} p-4">
-                            <p class="text-xs font-extrabold uppercase tracking-wide">${title}</p>
-                            <p class="mt-1 text-sm font-medium leading-6">${body}</p>
+                            <p class="text-xs font-extrabold uppercase tracking-wide">${escapeHtml(title)}</p>
+                            <p class="mt-1 text-sm font-medium leading-6">${escapeHtml(body)}</p>
                         </div>`;
                     }).join('');
                 responseArea.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">${cards}</div>`;
@@ -921,7 +929,10 @@
                     suggestionInput.value = '';
                 }
 
-                responseArea.innerHTML = `<span class="text-red-500">Error: ${data.message}</span>`;
+                const errorLine = document.createElement('span');
+                errorLine.className = 'text-red-500';
+                errorLine.textContent = 'Error: ' + (data.message || 'Unable to generate suggestion.');
+                responseArea.replaceChildren(errorLine);
             }
         })
         .catch(() => {

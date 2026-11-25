@@ -37,15 +37,12 @@
                             ->take(5)
                             ->get();
 
+        // Due = no check-up in the last 90 days. Filtered in the database, so only 5 patients load.
         $patientsNeedingCheckup = \App\Models\Patient::assignedTo(auth()->user())
+                            ->whereDoesntHave('healthCheckups', fn ($query) => $query->whereDate('checkup_date', '>=', today()->subDays(90)))
                             ->with(['user', 'healthCheckups' => fn ($query) => $query->latest('checkup_date')])
-                            ->get()
-                            ->filter(function ($patient) {
-                                $latest = $patient->healthCheckups->first();
-
-                                return ! $latest || \Carbon\Carbon::parse($latest->checkup_date)->lt(today()->subDays(90));
-                            })
-                            ->take(5);
+                            ->take(5)
+                            ->get();
 
         $workflowAlerts = $healthAlerts->count() + $medicationAlerts->count() + $patientsNeedingCheckup->count();
     @endphp

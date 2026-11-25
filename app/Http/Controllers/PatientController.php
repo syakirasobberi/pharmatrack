@@ -37,7 +37,8 @@ class PatientController extends Controller
                 });
             })
             ->latest()
-            ->get();
+            ->paginate(15)
+            ->withQueryString(); // keep ?search= on page links
 
         return view('pharmacist.patients.index', compact('patients', 'search'));
     }
