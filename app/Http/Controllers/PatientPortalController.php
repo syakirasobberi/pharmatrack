@@ -110,6 +110,11 @@ class PatientPortalController extends Controller
 
         abort_unless($medication->patient_id === $patient->id, 403);
 
+        if ($medication->stopped_at) {
+            return redirect()->route('patient.medications')
+                ->with('error', "{$medication->name} was stopped by your pharmacist, so it can no longer be updated. Please contact them if you are still taking it.");
+        }
+
         $validated = $request->validate([
             'last_taken' => 'nullable|date|before_or_equal:today',
             'notes' => 'nullable|string|max:255',
@@ -167,7 +172,7 @@ class PatientPortalController extends Controller
             'user',
             'healthCheckups' => fn ($query) => $query->latest('checkup_date'),
             'medicalHistory',
-            'medications',
+            'currentMedications',
         ])->where('user_id', $request->user()->id)->firstOrFail();
     }
 }

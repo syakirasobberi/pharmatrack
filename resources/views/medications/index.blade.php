@@ -191,6 +191,7 @@
                                         <th class="py-4 px-6">Latest Dose Date</th>
                                         <th class="py-4 px-6">Notes</th>
                                         <th class="py-4 px-6 text-right">Status</th>
+                                        <th class="py-4 px-6 text-right"><span class="sr-only">Actions</span></th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
@@ -241,10 +242,32 @@
                                                     <span class="text-[11px] text-slate-400">{{ $statusHint }}</span>
                                                 </div>
                                             </td>
+                                            <td class="py-4 px-6 text-right align-top">
+                                                <div class="flex flex-col items-end gap-2">
+                                                    <a href="{{ route('pharmacist.medication.edit', $medication->id) }}"
+                                                       class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-blue-600 hover:bg-blue-50"
+                                                       aria-label="Edit {{ $medication->name }}">Edit</a>
+                                                    {{-- Two-step stop: open the panel, give a reason, confirm. --}}
+                                                    <details class="text-left">
+                                                        <summary class="list-none cursor-pointer px-3 py-1.5 rounded-lg border border-red-200 text-xs font-bold text-red-600 hover:bg-red-50 text-right">Stop…</summary>
+                                                        <form method="POST" action="{{ route('pharmacist.medication.stop', $medication->id) }}"
+                                                              class="mt-2 w-64 rounded-xl border border-red-200 bg-red-50 p-3 space-y-2">
+                                                            @csrf
+                                                            @method('PATCH')
+                                                            <label for="stop-reason-{{ $medication->id }}" class="block text-xs font-bold text-slate-700">Why is {{ $medication->name }} being stopped?</label>
+                                                            <input id="stop-reason-{{ $medication->id }}" type="text" name="stopped_reason" required maxlength="255"
+                                                                   placeholder="e.g. side effects, switched to another drug"
+                                                                   class="w-full rounded-lg border-slate-300 text-xs">
+                                                            <p class="text-[11px] text-red-800">It moves to Past Medications and is no longer shown as current. You can resume it later.</p>
+                                                            <button type="submit" class="w-full px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs">Confirm stop</button>
+                                                        </form>
+                                                    </details>
+                                                </div>
+                                            </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="6" class="py-14 text-center text-slate-500">
+                                            <td colspan="7" class="py-14 text-center text-slate-500">
                                                 <div class="flex flex-col items-center justify-center">
                                                     <p class="font-bold text-slate-700 text-lg">No medications recorded yet.</p>
                                                     <p class="text-sm mt-1">Use the Add Medication button to create the first prescription for this patient.</p>
@@ -255,6 +278,48 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        {{-- History: stopped by a pharmacist, or past their end date. --}}
+                        @if($pastMedications->isNotEmpty())
+                            <div class="border-t border-slate-200">
+                                <h3 class="px-6 pt-5 pb-3 text-sm font-extrabold uppercase tracking-wide text-slate-500">Past Medications ({{ $pastMedications->count() }})</h3>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm text-left">
+                                        <tbody class="divide-y divide-slate-100">
+                                            @foreach($pastMedications as $past)
+                                                <tr class="text-slate-500">
+                                                    <td class="py-3 px-6">
+                                                        <p class="font-bold text-slate-600">{{ $past->name }}</p>
+                                                        <p class="text-xs">{{ $past->dosage }}</p>
+                                                    </td>
+                                                    <td class="py-3 px-6 text-xs">
+                                                        {{ $past->start_date?->format('d M Y') ?? '—' }} – {{ $past->end_date?->format('d M Y') ?? '—' }}
+                                                    </td>
+                                                    <td class="py-3 px-6 text-xs">
+                                                        @if($past->status() === 'Stopped')
+                                                            <span class="px-2.5 py-1 rounded-full bg-red-100 text-red-700 font-bold">Stopped {{ $past->stopped_at->format('d M Y') }}</span>
+                                                            <p class="mt-1">Reason: {{ $past->stopped_reason }}</p>
+                                                        @else
+                                                            <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 font-bold">Completed</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="py-3 px-6 text-right whitespace-nowrap">
+                                                        <a href="{{ route('pharmacist.medication.edit', $past->id) }}" class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-blue-600 hover:bg-blue-50">Edit</a>
+                                                        @if($past->status() === 'Stopped')
+                                                            <form method="POST" action="{{ route('pharmacist.medication.resume', $past->id) }}" class="inline">
+                                                                @csrf
+                                                                @method('PATCH')
+                                                                <button class="ml-1 px-3 py-1.5 rounded-lg border border-emerald-300 bg-white text-xs font-bold text-emerald-700 hover:bg-emerald-50">Resume</button>
+                                                            </form>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

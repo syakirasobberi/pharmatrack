@@ -70,7 +70,7 @@ class KioskController extends Controller
             'user',
             'healthCheckups' => fn ($q) => $q->latest('checkup_date'),
             'medicalHistory',
-            'medications',
+            'currentMedications',
         ])->findOrFail($id);
 
         return view('kiosk.summary', compact('patient'));
@@ -83,7 +83,7 @@ class KioskController extends Controller
             'pharmacist',
             'healthCheckups' => fn ($query) => $query->latest('checkup_date'),
             'medicalHistory',
-            'medications',
+            'currentMedications',
         ])->findOrFail($id);
 
         $filename = 'kiosk-health-summary-' . $patient->id . '-' . now()->format('Y-m-d') . '.pdf';

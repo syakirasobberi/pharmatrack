@@ -102,6 +102,12 @@ Route::middleware(['auth', 'force_password_change', 'role:pharmacist'])->group(f
     Route::delete('/pharmacist/patients/{id}/face', [PatientController::class, 'deleteExistingFace'])->name('pharmacist.patients.deleteFace');
     Route::get('/pharmacist/patients/{id}/medications', [MedicationController::class, 'index'])->name('pharmacist.medication.index');
     Route::post('/pharmacist/patients/{id}/medications', [MedicationController::class, 'store'])->name('pharmacist.medication.store');
+    Route::get('/pharmacist/medications/{medication}/edit', [MedicationController::class, 'edit'])->whereNumber('medication')->name('pharmacist.medication.edit');
+    Route::patch('/pharmacist/medications/{medication}', [MedicationController::class, 'update'])->whereNumber('medication')->name('pharmacist.medication.update');
+    Route::patch('/pharmacist/medications/{medication}/stop', [MedicationController::class, 'stop'])->whereNumber('medication')->name('pharmacist.medication.stop');
+    Route::patch('/pharmacist/medications/{medication}/resume', [MedicationController::class, 'resume'])->whereNumber('medication')->name('pharmacist.medication.resume');
+    Route::patch('/pharmacist/patients/{id}/archive', [PatientController::class, 'archive'])->name('pharmacist.patients.archive');
+    Route::patch('/pharmacist/patients/{id}/restore', [PatientController::class, 'restore'])->name('pharmacist.patients.restore');
     Route::post('/pharmacist/patients/{id}/send-reminder', [PatientController::class, 'sendCheckupReminder'])->name('pharmacist.patients.sendReminder');
 
     Route::post('/api/generate-ai-suggestion', [AiController::class, 'generateSuggestion'])->name('api.ai.suggestion');
@@ -112,7 +118,7 @@ Route::middleware(['auth', 'force_password_change', 'role:pharmacist'])->group(f
 
 Route::middleware(['auth', 'force_password_change', 'role:patient'])->group(function () {
     Route::get('/patient/dashboard', function () {
-        $patient = \App\Models\Patient::with(['medications', 'healthCheckups', 'medicalHistory'])
+        $patient = \App\Models\Patient::with(['currentMedications', 'healthCheckups', 'medicalHistory'])
             ->where('user_id', auth()->id())
             ->first();
 

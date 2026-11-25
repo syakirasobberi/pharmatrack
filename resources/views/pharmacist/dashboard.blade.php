@@ -28,6 +28,7 @@
 
         $medicationAlerts = \App\Models\Medication::with('patient.user')
                             ->whereIn('patient_id', $assignedPatientIds)
+                            ->current() // stopped or finished medications need no follow-up
                             ->where(function ($query) {
                                 $query->whereNull('last_taken')
                                     ->orWhereDate('last_taken', '<', today()->subDays(7))

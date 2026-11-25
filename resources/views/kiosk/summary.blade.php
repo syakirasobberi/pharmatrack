@@ -72,7 +72,7 @@
 @php
     $latestCheckup  = $patient->healthCheckups->first();
     $medicalHistory = $patient->medicalHistory;
-    $activeMedCount = $patient->medications->count();
+    $activeMedCount = $patient->currentMedications->count();
     $bmi            = (float) $patient->bmi;
     $patientName    = $patient->user->name ?: ('Patient #' . $patient->id);
 
@@ -521,7 +521,7 @@
                     <h3 class="font-bold text-base">Current Medications</h3>
                 </div>
                 <div class="p-6">
-                    @forelse($patient->medications as $med)
+                    @forelse($patient->currentMedications as $med)
                         <div class="flex items-center gap-4 p-3 mb-3 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-sm transition-shadow">
                             <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center shadow-sm text-white shrink-0">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

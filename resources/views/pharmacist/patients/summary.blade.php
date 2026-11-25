@@ -2,7 +2,7 @@
     @php
         $latestCheckup   = $patient->healthCheckups->first();
         $medicalHistory  = $patient->medicalHistory;
-        $medications     = $patient->medications;
+        $medications     = $patient->currentMedications;
         $activeMedCount  = $medications->count();
         $bmi             = (float) $patient->bmi;
         $patientName     = $patient->user->name ?: ('Patient #' . $patient->id);

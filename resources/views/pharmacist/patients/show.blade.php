@@ -90,7 +90,7 @@
                 $latestCheckup  = $patient->healthCheckups->first();
                 $allCheckups    = $patient->healthCheckups->sortByDesc('checkup_date');
                 $medicalHistory = $patient->medicalHistory;
-                $medications    = $patient->medications;
+                $medications    = $patient->currentMedications;
                 $activeMedCount = $medications->count();
 
                 $bmi = (float) $patient->bmi;
@@ -559,7 +559,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse($patient->medications as $medication)
+                                    @forelse($patient->currentMedications as $medication)
                                         <tr class="border-b last:border-0 hover:bg-gray-50">
                                             <td class="py-4 px-4 font-bold text-gray-800">{{ $medication->name }}</td>
                                             <td class="py-4 px-4 text-gray-600">{{ $medication->dosage }}</td>
@@ -601,6 +601,31 @@
                         </form>
                     </div>
                 </div>
+            </div>
+
+            {{-- ── ARCHIVE (two-step, reversible) ── --}}
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                <details>
+                    <summary class="list-none cursor-pointer inline-flex items-center gap-2 text-sm font-bold text-red-600 hover:text-red-700">
+                        Archive patient…
+                    </summary>
+                    <form method="POST" action="{{ route('pharmacist.patients.archive', $patient->id) }}"
+                          class="mt-4 max-w-xl rounded-xl border border-red-200 bg-red-50 p-4 space-y-3">
+                        @csrf
+                        @method('PATCH')
+                        <p class="text-sm text-red-800 font-semibold">
+                            Archiving {{ $patient->user->name }} hides them from your patient list, Quick Scan, the kiosk and reminders,
+                            and they can no longer log in. Nothing is deleted — you can restore them from "Archived patients" at any time.
+                        </p>
+                        <div>
+                            <label for="archive_reason" class="block text-xs font-bold text-gray-700 mb-1">Reason (optional)</label>
+                            <input id="archive_reason" type="text" name="archive_reason" maxlength="255"
+                                   placeholder="e.g. moved away, transferred to another pharmacy"
+                                   class="w-full rounded-lg border-gray-300 text-sm">
+                        </div>
+                        <button type="submit" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-bold">Confirm archive</button>
+                    </form>
+                </details>
             </div>
         </div>
     </div>

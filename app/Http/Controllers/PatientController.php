@@ -24,8 +24,11 @@ class PatientController extends Controller
     public function index(Request $request)
     {
         $search = $request->string('search')->toString();
+        $showArchived = $request->boolean('archived');
 
-        $patients = Patient::assignedTo($request->user())
+        // Archived patients are hidden by default; ?archived=1 lists only them (with Restore).
+        $patients = ($showArchived ? Patient::onlyArchived() : Patient::query())
+            ->assignedTo($request->user())
             ->with(['user', 'pharmacist'])
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($patientQuery) use ($search) {
@@ -40,7 +43,53 @@ class PatientController extends Controller
             ->paginate(15)
             ->withQueryString(); // keep ?search= on page links
 
-        return view('pharmacist.patients.index', compact('patients', 'search'));
+        $archivedCount = Patient::onlyArchived()->assignedTo($request->user())->count();
+
+        return view('pharmacist.patients.index', compact('patients', 'search', 'showArchived', 'archivedCount'));
+    }
+
+    /**
+     * Archive: the patient is hidden from lists, Quick Scan, the kiosk and reminders, and
+     * cannot log in. Nothing is deleted; Restore brings everything back.
+     */
+    public function archive(Request $request, $id)
+    {
+        $patient = Patient::assignedTo($request->user())->with('user')->findOrFail($id);
+
+        $validated = $request->validate(['archive_reason' => 'nullable|string|max:255']);
+
+        DB::transaction(function () use ($patient) {
+            $patient->forceFill(['archived_at' => now()])->save();
+            if ($patient->user?->exists) {
+                $patient->user->forceFill(['deactivated_at' => now()])->save();
+            }
+        });
+
+        Log::info('Patient archived.', [
+            'patient_id' => $patient->id,
+            'archived_by' => $request->user()->id,
+            'reason' => $validated['archive_reason'] ?? null,
+        ]);
+
+        return redirect()->route('pharmacist.patients.index')
+            ->with('success', "{$patient->user->name} has been archived. Find them under \"Archived patients\" to restore.");
+    }
+
+    public function restore(Request $request, $id)
+    {
+        $patient = Patient::onlyArchived()->assignedTo($request->user())->with('user')->findOrFail($id);
+
+        DB::transaction(function () use ($patient) {
+            $patient->forceFill(['archived_at' => null])->save();
+            if ($patient->user?->exists) {
+                $patient->user->forceFill(['deactivated_at' => null])->save();
+            }
+        });
+
+        Log::info('Patient restored.', ['patient_id' => $patient->id, 'restored_by' => $request->user()->id]);
+
+        return redirect()->route('pharmacist.patients.show', $patient->id)
+            ->with('success', "{$patient->user->name} has been restored and can log in again.");
     }
     
     // 2. Display the registration form (Includes Camera UI)
@@ -125,7 +174,7 @@ class PatientController extends Controller
             'healthCheckups' => fn ($q) => $q->latest('checkup_date'),
             'healthCheckups.editor', // "Edited <date> by <name>" in the history table
             'medicalHistory',
-            'medications',
+            'currentMedications',
         ])->findOrFail($id);
         return view('pharmacist.patients.show', compact('patient'));
     }
@@ -232,7 +281,7 @@ class PatientController extends Controller
             'pharmacist',
             'healthCheckups' => fn ($query) => $query->latest('checkup_date'),
             'medicalHistory',
-            'medications',
+            'currentMedications',
         ])->findOrFail($id);
     }
 

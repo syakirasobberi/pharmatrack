@@ -23,6 +23,10 @@
                 </div>
             </div>
 
+            @if(session('success'))
+                <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-4 rounded-2xl font-bold">{{ session('success') }}</div>
+            @endif
+
             <!-- TABLE CONTAINER -->
             <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
 
@@ -30,9 +34,15 @@
                 <div class="px-6 py-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
                         <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                        Patient Directory
+                        {{ $showArchived ? 'Archived Patients' : 'Patient Directory' }}
                     </h3>
+                    @if($showArchived)
+                        <a href="{{ route('pharmacist.patients.index') }}" class="text-sm font-bold text-blue-600 hover:text-blue-800">&larr; Back to active patients</a>
+                    @elseif($archivedCount > 0)
+                        <a href="{{ route('pharmacist.patients.index', ['archived' => 1]) }}" class="text-sm font-bold text-slate-500 hover:text-slate-800">Archived patients ({{ $archivedCount }})</a>
+                    @endif
                     <form method="GET" action="{{ route('pharmacist.patients.index') }}" class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                        @if($showArchived)<input type="hidden" name="archived" value="1">@endif
                         <label for="patient-search" class="sr-only">Search patients</label>
                         <input id="patient-search" type="search" name="search" value="{{ $search }}" placeholder="Search patient name, email, or ID..." class="w-full sm:w-72 rounded-xl border-slate-300 text-sm focus:border-blue-500 focus:ring-blue-200">
                         <div class="flex gap-2">
@@ -122,6 +132,14 @@
 
                                 <!-- ACTION BUTTONS -->
                                 <td class="py-4 px-6 text-right space-x-2">
+                                    @if($showArchived)
+                                        <span class="text-xs text-slate-400 mr-2">Archived {{ $pt->archived_at?->format('d M Y') }}</span>
+                                        <form method="POST" action="{{ route('pharmacist.patients.restore', $pt->id) }}" class="inline">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg">Restore</button>
+                                        </form>
+                                    @else
                                     <!-- Profile -->
                                     <a href="{{ route('pharmacist.patients.show', $pt->id) }}"
                                        title="View Profile"
@@ -145,13 +163,14 @@
                                         <svg class="w-4 h-4 mr-1.5 {{ $pt->face_descriptor ? 'text-emerald-500' : 'text-slate-300' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8v4l3-3m6-3V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M21 8v4l-3-3m-6-3V4a1 1 0 011-1h4a1 1 0 011 1v3m-9 13v-3a1 1 0 011-1h4a1 1 0 011 1v3m-5-4h2"></path></svg>
                                         {{ $pt->face_descriptor ? 'Face' : 'Add Face' }}
                                     </a>
+                                    @endif
                                 </td>
 
                             </tr>
                             @empty
                             <tr>
                                 <td colspan="6" class="py-8 text-center text-slate-500">
-                                    {{ $search ? 'No matching patients found.' : 'No patients registered yet.' }}
+                                    {{ $search ? 'No matching patients found.' : ($showArchived ? 'No archived patients.' : 'No patients registered yet.') }}
                                 </td>
                             </tr>
                             @endforelse

@@ -17,7 +17,7 @@ class SendMedicationUpdateReminders extends Command
     {
         $this->info('Starting medication update reminder scan...');
 
-        $patients = Patient::with(['user', 'medications'])->get();
+        $patients = Patient::with(['user', 'currentMedications'])->get();
         $sentCount = 0;
         $skippedCount = 0;
 
@@ -29,11 +29,11 @@ class SendMedicationUpdateReminders extends Command
                 continue;
             }
 
-            if ($patient->medications->isEmpty()) {
+            if ($patient->currentMedications->isEmpty()) {
                 continue;
             }
 
-            $latestMedicationUpdate = $patient->medications->max('updated_at');
+            $latestMedicationUpdate = $patient->currentMedications->max('updated_at');
             $isDue = ! $latestMedicationUpdate
                 || Carbon::parse($latestMedicationUpdate)->lt(Carbon::today()->subMonths(6));
 

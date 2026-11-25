@@ -68,7 +68,7 @@ class AdminController extends Controller
             return back()->with('success', "{$user->name} is already deactivated.");
         }
 
-        $patientCount = $user->assignedPatients()->count();
+        $patientCount = $user->assignedPatients()->withArchived()->count(); // archived ones move too
 
         $validated = $request->validate([
             'transfer_to' => [
@@ -87,7 +87,7 @@ class AdminController extends Controller
 
         DB::transaction(function () use ($user, $to) {
             if ($to) {
-                $user->assignedPatients()->update(['pharmacist_id' => $to->id]);
+                $user->assignedPatients()->withArchived()->update(['pharmacist_id' => $to->id]);
             }
             $user->forceFill(['deactivated_at' => now()])->save();
         });
@@ -186,6 +186,7 @@ class AdminController extends Controller
         $totalCheckups = HealthCheckup::count();
 
         $highRiskCheckups = HealthCheckup::with('patient.user')
+            ->whereHas('patient') // skip archived patients
             ->where(function ($query) {
                 $query->where('blood_sugar', '<', 3.9)
                     ->orWhere('blood_sugar', '>', 6.0)
@@ -196,6 +197,8 @@ class AdminController extends Controller
             ->get();
 
         $medicationFollowUps = Medication::with('patient.user')
+            ->whereHas('patient') // skip archived patients
+            ->current()
             ->where(function ($query) {
                 $query->whereNull('last_taken')
                     ->orWhereDate('last_taken', '<', today()->subDays(7))

@@ -166,7 +166,7 @@
 
     <div class="section">
         <h2>Medication Summary</h2>
-        @if($patient->medications->isNotEmpty())
+        @if($patient->currentMedications->isNotEmpty())
             <table>
                 <thead>
                     <tr>
@@ -176,7 +176,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($patient->medications as $medication)
+                    @foreach($patient->currentMedications as $medication)
                         <tr>
                             <td>{{ $medication->name }}</td>
                             <td>{{ $medication->dosage ?: 'N/A' }}</td>

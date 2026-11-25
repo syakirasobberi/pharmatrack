@@ -23,14 +23,14 @@
 
                     $needsFaceRegistration = blank($patient->face_descriptor);
 
-                    $medicationAlerts = $patient->medications->filter(function ($medication) use ($today) {
+                    $medicationAlerts = $patient->currentMedications->filter(function ($medication) use ($today) {
                         if (! $medication->last_taken) {
                             return true;
                         }
 
                         return \Carbon\Carbon::parse($medication->last_taken)->diffInDays($today) > 7;
                     });
-                    $endingSoonMedications = $patient->medications->filter(function ($medication) use ($today) {
+                    $endingSoonMedications = $patient->currentMedications->filter(function ($medication) use ($today) {
                         if (! $medication->end_date) {
                             return false;
                         }
@@ -290,7 +290,7 @@
                                     💊 Active Medications
                                 </h3>
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full">{{ $patient->medications->count() }} Prescriptions</span>
+                                    <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full">{{ $patient->currentMedications->count() }} Prescriptions</span>
                                     <a href="{{ route('patient.medications') }}" class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-indigo-700">
                                         Add / Update Medication
                                     </a>
@@ -298,7 +298,7 @@
                             </div>
 
                             <div class="space-y-4">
-                                @forelse($patient->medications as $med)
+                                @forelse($patient->currentMedications as $med)
                                     <div class="flex items-start p-5 border border-gray-100 rounded-2xl hover:border-indigo-200 hover:bg-indigo-50/30 transition-all shadow-sm">
                                         <div class="flex-shrink-0 w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center text-2xl shadow-inner mr-4">
                                             💊

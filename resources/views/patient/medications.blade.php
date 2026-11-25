@@ -17,6 +17,12 @@
                 </div>
             @endif
 
+            @if(session('error'))
+                <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-800">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             @if($errors->any())
                 <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
                     <p class="font-bold">Please check your medication update.</p>
@@ -146,7 +152,12 @@
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                     <div>
                                         <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">Medication</p>
-                                        <h2 class="mt-1 text-xl font-extrabold text-gray-900">{{ $medication->name }}</h2>
+                                        <h2 class="mt-1 text-xl font-extrabold text-gray-900">
+                                            {{ $medication->name }}
+                                            @if($medication->status() !== 'Active')
+                                                <span class="ml-2 align-middle px-2.5 py-1 rounded-full text-xs font-bold {{ $medication->status() === 'Stopped' ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-600' }}">{{ $medication->status() }}</span>
+                                            @endif
+                                        </h2>
                                         <p class="mt-1 text-sm text-gray-600">
                                             {{ $medication->dosage ?: 'Dosage not specified' }}
                                             @if($medication->frequency)

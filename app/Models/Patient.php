@@ -23,6 +23,35 @@ class Patient extends Model
         'face_descriptor',
     ];
 
+    protected $casts = [
+        'archived_at' => 'datetime',
+    ];
+
+    /**
+     * Archived patients are hidden from EVERY query by default (lists, dashboard, kiosk and
+     * Quick Scan matching, reminders, admin counts). Use Patient::withArchived() or
+     * ->onlyArchived() on the few screens that manage archived patients.
+     */
+    protected static function booted(): void
+    {
+        static::addGlobalScope('notArchived', fn (Builder $query) => $query->whereNull('patients.archived_at'));
+    }
+
+    public function scopeWithArchived(Builder $query): Builder
+    {
+        return $query->withoutGlobalScope('notArchived');
+    }
+
+    public function scopeOnlyArchived(Builder $query): Builder
+    {
+        return $query->withoutGlobalScope('notArchived')->whereNotNull('patients.archived_at');
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->archived_at !== null;
+    }
+
     // 3. Hubungan (Relationship): Seorang pesakit mempunyai satu akaun User
     public function user()
     {
@@ -61,5 +90,11 @@ class Patient extends Model
     public function medications()
     {
         return $this->hasMany(Medication::class);
+    }
+
+    /** Medications the patient is taking now (not stopped, not past their end date). */
+    public function currentMedications()
+    {
+        return $this->hasMany(Medication::class)->current();
     }
 }
