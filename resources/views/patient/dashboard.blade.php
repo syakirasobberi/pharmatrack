@@ -15,11 +15,15 @@
                     $checkupAlertMessage = null;
 
                     if (! $latestCheckup) {
-                        $checkupAlertMessage = 'You have not completed any health checkup yet. Please visit the pharmacy counter for your first checkup.';
+                        $checkupAlertMessage = 'You have not had a health check-up yet. Visit the pharmacy counter and your pharmacist will do your first one.';
                     } elseif (\Carbon\Carbon::parse($latestCheckup->checkup_date)->lt($today->copy()->subDays(90))) {
-                        $lastCheckupDate = \Carbon\Carbon::parse($latestCheckup->checkup_date)->format('d M Y');
-                        $checkupAlertMessage = "Your last health checkup was on {$lastCheckupDate}. Please schedule a follow-up checkup soon.";
+                        $lastCheckup = \Carbon\Carbon::parse($latestCheckup->checkup_date);
+                        $checkupAlertMessage = "Your last check-up was {$lastCheckup->diffForHumans()} ({$lastCheckup->format('d M Y')}). We recommend one every 3 months — visit the pharmacy counter when you can.";
                     }
+
+                    $hour = now()->hour;
+                    $greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening');
+                    $displayName = \Illuminate\Support\Str::title(\Illuminate\Support\Str::lower(auth()->user()->name));
 
                     $needsFaceRegistration = blank($patient->face_descriptor);
 
@@ -42,15 +46,25 @@
                 @endphp
 
                 <!-- Hero Section -->
-                <div class="bg-gradient-to-br from-teal-600 to-purple-700 rounded-3xl p-8 shadow-2xl text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
+                <div class="bg-gradient-to-br from-teal-600 to-cyan-700 rounded-3xl p-6 sm:p-8 shadow-lg text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
                     <!-- Decorative background elements -->
                     <div class="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl"></div>
-                    <div class="absolute bottom-0 left-20 w-48 h-48 bg-purple-400 opacity-20 rounded-full blur-2xl"></div>
-                    
+                    <div class="absolute bottom-0 left-20 w-48 h-48 bg-cyan-300 opacity-20 rounded-full blur-2xl"></div>
+
                     <div class="relative z-10">
-                        <p class="text-teal-200 text-sm font-semibold tracking-wider uppercase mb-1">Welcome back</p>
-                        <h1 class="text-4xl font-extrabold mb-2">{{ auth()->user()->name }}!</h1>
-                        <p class="text-teal-100 text-base">Here is a quick overview of your health records and active medications.</p>
+                        <p class="text-teal-100 text-sm font-semibold mb-1">{{ $greeting }},</p>
+                        <h1 class="text-2xl sm:text-3xl font-extrabold mb-2">{{ $displayName }}</h1>
+                        <p class="text-teal-50 text-sm sm:text-base">Your health records, medicines and check-ups in one place.</p>
+                        <div class="mt-5 flex flex-wrap gap-2">
+                            <a href="{{ route('patient.medications') }}" class="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-teal-700 shadow-sm hover:bg-teal-50">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                Log today's medicine
+                            </a>
+                            <a href="{{ route('patient.checkups') }}" class="inline-flex items-center gap-2 rounded-xl bg-white/15 px-4 py-2.5 text-sm font-bold text-white ring-1 ring-white/30 hover:bg-white/25">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                My check-up results
+                            </a>
+                        </div>
                     </div>
                     <div class="relative z-10 flex gap-4">
                         <div class="bg-white/10 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20 text-center">
@@ -136,21 +150,21 @@
                 @endif
 
                 @if($checkupAlertMessage)
-                    <div class="bg-red-50 border border-red-200 rounded-3xl p-6 shadow-sm">
+                    <div class="bg-amber-50 border border-amber-200 rounded-3xl p-6 shadow-sm">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <div class="flex items-start gap-4">
-                                <span class="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-600">
+                                <span class="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                     </svg>
                                 </span>
                                 <div>
-                                    <h3 class="font-extrabold text-lg text-red-900">Checkup Reminder</h3>
-                                    <p class="text-sm text-red-800 mt-1">{{ $checkupAlertMessage }}</p>
+                                    <h3 class="font-extrabold text-lg text-amber-900">Time for a check-up</h3>
+                                    <p class="text-sm text-amber-800 mt-1">{{ $checkupAlertMessage }}</p>
                                 </div>
                             </div>
-                            <a href="{{ route('patient.checkups') }}" class="inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700">
-                                View Checkup Records
+                            <a href="{{ route('patient.checkups') }}" class="inline-flex shrink-0 items-center justify-center rounded-xl border border-amber-300 bg-white px-4 py-2.5 text-sm font-bold text-amber-800 hover:bg-amber-100">
+                                See my last results
                             </a>
                         </div>
                     </div>
@@ -254,18 +268,30 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                             </svg>
                         </div>
-                        <p class="text-xs font-bold uppercase opacity-80 tracking-wide">BMI Index</p>
+                        @php
+                            $bmiLabel = match (true) {
+                                ! $patient->bmi => null,
+                                $patient->bmi < 18.5 => 'Underweight',
+                                $patient->bmi < 25 => 'Healthy range',
+                                $patient->bmi < 30 => 'Overweight',
+                                default => 'Obese range',
+                            };
+                        @endphp
+                        <p class="text-xs font-bold uppercase opacity-80 tracking-wide">BMI</p>
                         <h4 class="text-2xl font-black mt-1">{{ number_format($patient->bmi, 1) }}</h4>
+                        @if($bmiLabel)
+                            <p class="mt-0.5 text-xs font-bold">{{ $bmiLabel }}</p>
+                        @endif
                     </div>
                 </div>
 
 
                 <!-- Recent Checkups -->
                 <div class="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm">
-                    <h3 class="font-extrabold text-xl text-gray-800 flex items-center gap-2 mb-6">
-                        Recent Checkups
+                    <h3 class="font-extrabold text-xl text-gray-800 flex items-center gap-2">
+                        Recent Check-ups
                     </h3>
-                    <p class="mb-5 text-sm text-gray-500">Synced from the health checkup form saved by your pharmacist.</p>
+                    <p class="mt-1 mb-5 text-sm text-gray-500">Results recorded by your pharmacist. Only tests that were done are shown.</p>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
                         @forelse($patient->healthCheckups->take(3) as $checkup)
                             @include('patient.partials.checkup-card', ['checkup' => $checkup, 'compact' => true])
@@ -286,13 +312,16 @@
                     <div class="space-y-6">
                         <div class="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm">
                             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
-                                <h3 class="font-extrabold text-2xl text-gray-800 flex items-center gap-2">
-                                    💊 Active Medications
+                                <h3 class="font-extrabold text-xl text-gray-800 flex items-center gap-2">
+                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-teal-100 text-teal-600">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.5 20.5l10-10a4.95 4.95 0 10-7-7l-10 10a4.95 4.95 0 107 7zM8.5 8.5l7 7" /></svg>
+                                    </span>
+                                    Current Medications
                                 </h3>
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <span class="bg-teal-100 text-teal-800 text-xs font-bold px-3 py-1 rounded-full">{{ $patient->currentMedications->count() }} Prescriptions</span>
+                                    <span class="bg-teal-100 text-teal-800 text-xs font-bold px-3 py-1 rounded-full">{{ $patient->currentMedications->count() }} {{ \Illuminate\Support\Str::plural('medicine', $patient->currentMedications->count()) }}</span>
                                     <a href="{{ route('patient.medications') }}" class="inline-flex items-center justify-center rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-teal-700">
-                                        Add / Update Medication
+                                        Open My Medications
                                     </a>
                                 </div>
                             </div>
@@ -300,8 +329,8 @@
                             <div class="space-y-4">
                                 @forelse($patient->currentMedications as $med)
                                     <div class="flex items-start p-5 border border-gray-100 rounded-2xl hover:border-teal-200 hover:bg-teal-50/30 transition-all shadow-sm">
-                                        <div class="flex-shrink-0 w-12 h-12 bg-teal-100 text-teal-600 rounded-xl flex items-center justify-center text-2xl shadow-inner mr-4">
-                                            💊
+                                        <div class="flex-shrink-0 w-12 h-12 bg-teal-100 text-teal-600 rounded-xl flex items-center justify-center mr-4">
+                                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10.5 20.5l10-10a4.95 4.95 0 10-7-7l-10 10a4.95 4.95 0 107 7zM8.5 8.5l7 7" /></svg>
                                         </div>
                                         <div class="flex-grow">
                                             <h4 class="text-lg font-bold text-gray-900">{{ $med->name }}</h4>
@@ -314,8 +343,8 @@
                                     </div>
                                 @empty
                                     <div class="p-8 border border-dashed border-gray-300 rounded-2xl text-center">
-                                        <p class="text-gray-500 italic mb-2">No active medications recorded.</p>
-                                        <p class="text-sm text-gray-400">You can add medication from the medication page if you are currently taking any.</p>
+                                        <p class="font-semibold text-gray-600 mb-1">No current medications.</p>
+                                        <p class="text-sm text-gray-500">Taking something your pharmacist doesn't know about? Add it on <a href="{{ route('patient.medications') }}" class="font-bold text-teal-700 hover:underline">My Medications</a>.</p>
                                     </div>
                                 @endforelse
                             </div>
@@ -323,9 +352,11 @@
 
                         <!-- Medical History Summary -->
                         <div class="bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-100 rounded-3xl p-8 shadow-sm relative overflow-hidden">
-                            <div class="absolute top-0 right-0 p-6 opacity-20 text-6xl">🏥</div>
                             <h3 class="font-extrabold text-xl text-teal-900 flex items-center gap-2 mb-6">
-                                🏥 Medical History
+                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-white text-teal-600 ring-1 ring-teal-100">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                                </span>
+                                Medical History
                             </h3>
                             @if($patient->medicalHistory)
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 relative z-10">
@@ -366,16 +397,5 @@
         </div>
     </div>
 
-    @if(isset($needsFaceRegistration) && $needsFaceRegistration)
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const alertKey = 'face-registration-alert-{{ $patient->id }}';
-
-                if (!sessionStorage.getItem(alertKey)) {
-                    alert('Your face has not been registered yet. Please ask your pharmacist to register your face for Quick Scan.');
-                    sessionStorage.setItem(alertKey, 'shown');
-                }
-            });
-        </script>
-    @endif
+    {{-- Face registration is shown as the amber banner above; no blocking alert() popup. --}}
 </x-app-layout>

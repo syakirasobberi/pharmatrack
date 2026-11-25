@@ -1,5 +1,8 @@
 @php
     $compact = $compact ?? false;
+    // collapsible: render as <details> (used for older check-ups); open: start expanded.
+    $collapsible = $collapsible ?? false;
+    $open = $open ?? true;
 
     $sourceLabels = [
         'klinik_kesihatan' => 'Klinik Kesihatan (KKM)',
@@ -112,40 +115,83 @@
     ];
 
     $hasMonitorFlag = $hasMonitorFlag($checkup);
+
+    // Only show tests that were actually done; skip whole sections with nothing recorded.
+    $sections = collect($sections)
+        ->map(fn ($metrics) => array_values(array_filter($metrics, fn ($m) => $m['value'] !== null && $m['value'] !== '')))
+        ->filter(fn ($metrics) => count($metrics) > 0);
+
+    // Say the result in words as well as colour.
+    $lowerBounds = ['heart_rate' => 60, 'haemoglobin' => 12.0, 'blood_sugar' => 3.9, 'alkaline_phosphatase' => 38, 'alanine_transaminase' => 10, 'sodium' => 135, 'renal_glucose' => 3.9];
+    $metricStatusLabel = function ($key, $value, $class) use ($lowerBounds) {
+        if (str_contains($class, 'emerald')) {
+            return 'Normal';
+        }
+        if (! str_contains($class, 'red') && ! str_contains($class, 'amber')) {
+            return null;
+        }
+        if ($key === 'hdl' || (isset($lowerBounds[$key]) && is_numeric($value) && (float) $value < $lowerBounds[$key])) {
+            return 'Low';
+        }
+        return 'High';
+    };
+
+    $flaggedCount = $sections->flatten(1)->filter(fn ($m) => in_array($metricStatusLabel($m['key'], $m['value'], $metricStatusClass($m['key'], $m['value'])), ['High', 'Low'], true))->count();
+    $sourceLabel = $sourceLabels[$checkup->report_source] ?? ($checkup->report_source ?: null);
+    $wrapper = $collapsible ? 'details' : 'article';
 @endphp
 
-<article class="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-    <div class="flex flex-col gap-3 border-b border-gray-100 bg-gray-50 px-5 py-4 sm:flex-row sm:items-start sm:justify-between">
+<{{ $wrapper }} class="group rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden" @if($collapsible && $open) open @endif>
+    @if($collapsible)<summary class="list-none cursor-pointer [&::-webkit-details-marker]:hidden">@endif
+    <div class="flex items-start justify-between gap-3 border-b border-gray-100 bg-gray-50 px-5 py-4">
         <div>
-            <p class="text-xs font-bold uppercase tracking-wide text-teal-600">Health Checkup</p>
+            <p class="text-xs font-bold uppercase tracking-wide text-teal-600">Health Check-up</p>
             <h4 class="mt-1 text-base font-extrabold text-gray-900">
                 {{ \Carbon\Carbon::parse($checkup->checkup_date)->format('d M Y') }}
+                <span class="{{ $compact ? 'block mt-0.5' : 'ml-1' }} text-xs font-semibold text-gray-400">{{ \Carbon\Carbon::parse($checkup->checkup_date)->diffForHumans() }}</span>
             </h4>
-            <p class="mt-1 text-xs font-semibold text-gray-500">
-                Source: {{ $sourceLabels[$checkup->report_source] ?? ($checkup->report_source ?: 'Not recorded') }}
-            </p>
+            @if($sourceLabel)
+                <p class="mt-1 text-xs font-semibold text-gray-500">Source: {{ $sourceLabel }}</p>
+            @endif
         </div>
-        <span class="inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-bold {{ $hasMonitorFlag ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700' }}">
-            {{ $hasMonitorFlag ? 'Monitor' : 'Normal' }}
-        </span>
+        <div class="flex shrink-0 items-center gap-2">
+            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold {{ $flaggedCount ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-700' }}">
+                {{ $flaggedCount ? $flaggedCount . ' ' . \Illuminate\Support\Str::plural('result', $flaggedCount) . ' to watch' : 'All normal' }}
+            </span>
+            @if($collapsible)
+                <svg class="h-5 w-5 text-gray-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            @endif
+        </div>
     </div>
+    @if($collapsible)</summary>@endif
 
     <div class="space-y-5 p-5">
-        @foreach($sections as $sectionTitle => $metrics)
+        @forelse($sections as $sectionTitle => $metrics)
             <section>
                 <h5 class="text-xs font-extrabold uppercase tracking-wide text-gray-500">{{ $sectionTitle }}</h5>
-                <div class="mt-3 grid grid-cols-1 gap-3 {{ $compact ? 'sm:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-3' }}">
+                <div class="mt-3 grid grid-cols-1 gap-3 {{ $compact ? '' : 'sm:grid-cols-2 lg:grid-cols-3' }}">
                     @foreach($metrics as $metric)
+                        @php
+                            $statusClass = $metricStatusClass($metric['key'], $metric['value']);
+                            $statusLabel = $metricStatusLabel($metric['key'], $metric['value'], $statusClass);
+                        @endphp
                         <div class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
                             <p class="text-xs font-semibold text-gray-500">{{ $metric['label'] }}</p>
-                            <p class="mt-1 text-sm font-extrabold {{ $metricStatusClass($metric['key'], $metric['value']) }}">
-                                {{ $valueWithUnit($metric['value'], $metric['unit'], $metric['decimals']) }}
-                            </p>
+                            <div class="mt-1 flex flex-wrap items-baseline justify-between gap-x-2">
+                                <p class="text-sm font-extrabold {{ $statusClass }}">
+                                    {{ $valueWithUnit($metric['value'], $metric['unit'], $metric['decimals']) }}
+                                </p>
+                                @if($statusLabel)
+                                    <span class="text-[11px] font-bold uppercase tracking-wide {{ $statusLabel === 'Normal' ? 'text-emerald-600' : ($statusClass === 'text-red-600' ? 'text-red-600' : 'text-amber-700') }}">{{ $statusLabel }}</span>
+                                @endif
+                            </div>
                         </div>
                     @endforeach
                 </div>
             </section>
-        @endforeach
+        @empty
+            <p class="text-sm text-gray-500">No test results were recorded for this check-up.</p>
+        @endforelse
 
         @if(filled($checkup->notes))
             <section class="rounded-xl border border-teal-100 bg-teal-50 px-4 py-3">
@@ -154,4 +200,4 @@
             </section>
         @endif
     </div>
-</article>
+</{{ $wrapper }}>

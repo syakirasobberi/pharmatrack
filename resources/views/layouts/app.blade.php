@@ -236,7 +236,8 @@
                     </div>
                 </header>
 
-                <main class="min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-gray-50/50">
+                {{-- Patients get extra bottom space so the floating "Contact Us" button never covers content. --}}
+                <main class="min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-gray-50/50 {{ Auth::user()->role == 'patient' ? 'pb-24' : '' }}">
                     @if(session('summary_success'))
                         <div class="mx-auto mt-5 max-w-5xl px-4 sm:px-6 lg:px-8">
                             <div class="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 font-semibold text-green-800 shadow-sm">

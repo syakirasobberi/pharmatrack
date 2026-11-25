@@ -12,10 +12,10 @@
                 $checkupAlertMessage = null;
 
                 if (! $latestCheckup) {
-                    $checkupAlertMessage = 'You have not completed any health checkup yet. Please visit the pharmacy counter for your first checkup.';
+                    $checkupAlertMessage = 'You have not had a health check-up yet. Visit the pharmacy counter and your pharmacist will do your first one.';
                 } elseif (\Carbon\Carbon::parse($latestCheckup->checkup_date)->lt(\Carbon\Carbon::today()->subDays(90))) {
-                    $lastCheckupDate = \Carbon\Carbon::parse($latestCheckup->checkup_date)->format('d M Y');
-                    $checkupAlertMessage = "Your last health checkup was on {$lastCheckupDate}. Please schedule a follow-up checkup soon.";
+                    $lastCheckup = \Carbon\Carbon::parse($latestCheckup->checkup_date);
+                    $checkupAlertMessage = "Your last check-up was {$lastCheckup->diffForHumans()} ({$lastCheckup->format('d M Y')}). We recommend one every 3 months — visit the pharmacy counter when you can.";
                 }
             @endphp
 
@@ -23,8 +23,8 @@
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
                         <p class="text-sm font-bold uppercase tracking-wide text-teal-600">Health Records</p>
-                        <h1 class="text-3xl font-extrabold text-gray-900 mt-1">All Checkups</h1>
-                        <p class="text-sm text-gray-500 mt-2">Review every health checkup field recorded by your pharmacist.</p>
+                        <h1 class="text-3xl font-extrabold text-gray-900 mt-1">My Check-ups</h1>
+                        <p class="text-sm text-gray-500 mt-2">Your test results from each visit, newest first.</p>
                     </div>
                     <div class="flex flex-col gap-2 sm:flex-row">
                         <a href="{{ route('patient.summary.download') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-teal-700">
@@ -47,24 +47,31 @@
             </div>
 
             @if($checkupAlertMessage)
-                <div class="bg-red-50 border border-red-200 rounded-3xl p-6 shadow-sm">
+                <div class="bg-amber-50 border border-amber-200 rounded-3xl p-6 shadow-sm">
                     <div class="flex items-start gap-4">
-                        <span class="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-600">
+                        <span class="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
                         </span>
                         <div>
-                            <h2 class="font-extrabold text-lg text-red-900">Checkup Reminder</h2>
-                            <p class="text-sm text-red-800 mt-1">{{ $checkupAlertMessage }}</p>
+                            <h2 class="font-extrabold text-lg text-amber-900">Time for a check-up</h2>
+                            <p class="text-sm text-amber-800 mt-1">{{ $checkupAlertMessage }}</p>
                         </div>
                     </div>
                 </div>
             @endif
 
-            <div class="space-y-5">
+            @if($patient->healthCheckups->isNotEmpty())
+                <p class="text-sm text-gray-500">
+                    {{ $patient->healthCheckups->count() }} {{ \Illuminate\Support\Str::plural('check-up', $patient->healthCheckups->count()) }} on record.
+                    Only tests that were done are shown. Tap an older check-up to open it.
+                </p>
+            @endif
+
+            <div class="space-y-4">
                 @forelse($patient->healthCheckups as $checkup)
-                    @include('patient.partials.checkup-card', ['checkup' => $checkup])
+                    @include('patient.partials.checkup-card', ['checkup' => $checkup, 'collapsible' => true, 'open' => $loop->first])
                 @empty
                     <div class="bg-white border border-dashed border-gray-300 rounded-3xl p-12 text-center shadow-sm">
                         <h2 class="text-xl font-extrabold text-gray-800">No Checkup Records Yet</h2>

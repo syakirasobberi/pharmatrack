@@ -3,11 +3,11 @@
 
     <div class="min-h-screen bg-gray-50 py-10">
         <div class="mx-auto max-w-5xl space-y-6 px-4 sm:px-6 lg:px-8">
-            <div class="rounded-3xl bg-gradient-to-br from-teal-600 to-violet-700 p-8 text-white shadow-lg">
-                <p class="text-xs font-bold uppercase tracking-wide text-teal-100">Your Active Prescriptions</p>
-                <h1 class="mt-2 text-3xl font-extrabold">Medication Schedule</h1>
+            <div class="rounded-3xl bg-gradient-to-br from-teal-600 to-cyan-700 p-6 sm:p-8 text-white shadow-lg">
+                <p class="text-xs font-bold uppercase tracking-wide text-teal-100">My Medications</p>
+                <h1 class="mt-2 text-2xl sm:text-3xl font-extrabold">Your medicines</h1>
                 <p class="mt-2 max-w-2xl text-sm text-teal-100">
-                    Review your medication list and update the latest date you took each medication.
+                    Tap <strong>"I took it today"</strong> after each dose, ask for a refill when you are running low, and leave your pharmacist a note.
                 </p>
             </div>
 
@@ -53,7 +53,7 @@
                         <div>
                             <h2 class="text-lg font-extrabold text-amber-900">Medication Update Needed</h2>
                             <p class="mt-1 text-sm text-amber-800">
-                                Please review your medication list. Medication records should be updated at least once every 6 months.
+                                Please check that your list below is still correct. It should be reviewed at least every 6 months; leave a note on anything that has changed.
                             </p>
                             @if($latestMedicationUpdate)
                                 <p class="mt-1 text-xs font-semibold text-amber-700">
@@ -61,9 +61,7 @@
                                 </p>
                             @endif
                         </div>
-                        <span class="inline-flex w-fit items-center rounded-xl bg-amber-100 px-4 py-2 text-sm font-bold text-amber-800">
-                            Review today
-                        </span>
+                        <a href="#medication-list" class="inline-flex w-fit shrink-0 items-center rounded-xl border border-amber-300 bg-white px-4 py-2 text-sm font-bold text-amber-800 hover:bg-amber-100">Review my list</a>
                     </div>
                 </div>
             @else
@@ -101,94 +99,18 @@
                 </div>
             @endif
 
-            <div class="rounded-3xl border border-teal-100 bg-white p-6 shadow-sm">
-                <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                        <p class="text-xs font-bold uppercase tracking-wide text-teal-600">Add Medication</p>
-                        <h2 class="mt-1 text-xl font-extrabold text-gray-900">Record Your Medication</h2>
-                        <p class="mt-1 text-sm text-gray-500">Add medication you are currently taking so your record stays complete.</p>
-                    </div>
-                    <span class="inline-flex w-fit rounded-full bg-teal-100 px-3 py-1 text-xs font-bold text-teal-700">
-                        Patient entry
-                    </span>
+            @php
+                $currentMeds = $patient ? $patient->medications->filter->isCurrent()->values() : collect();
+                $pastMeds = $patient ? $patient->medications->reject->isCurrent()->values() : collect();
+            @endphp
+
+            <section id="medication-list" class="space-y-5 scroll-mt-6">
+                <div class="flex items-end justify-between gap-3">
+                    <h2 class="text-lg font-extrabold text-gray-900">Taking now <span class="text-sm font-bold text-gray-400">({{ $currentMeds->count() }})</span></h2>
+                    <a href="#add-medication" onclick="document.getElementById('add-medication').open = true" class="text-sm font-bold text-teal-700 hover:text-teal-900">+ Add medication</a>
                 </div>
 
-                <form method="POST" action="{{ route('patient.medications.store') }}" class="mt-5 grid gap-4 lg:grid-cols-4">
-                    @csrf
-
-                    <div class="lg:col-span-2">
-                        <label for="new_medication_name" class="block text-sm font-bold text-gray-700">Medication name</label>
-                        <input
-                            id="new_medication_name"
-                            type="text"
-                            name="name"
-                            value="{{ old('name') }}"
-                            placeholder="Example: Metformin"
-                            required
-                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                        >
-                    </div>
-
-                    <div>
-                        <label for="new_medication_dosage" class="block text-sm font-bold text-gray-700">Dosage</label>
-                        <input
-                            id="new_medication_dosage"
-                            type="text"
-                            name="dosage"
-                            value="{{ old('dosage') }}"
-                            placeholder="Example: 500mg"
-                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                        >
-                    </div>
-
-                    <div>
-                        <label for="new_medication_last_taken" class="block text-sm font-bold text-gray-700">Latest taken</label>
-                        <input
-                            id="new_medication_last_taken"
-                            type="date"
-                            name="last_taken"
-                            value="{{ old('last_taken', now()->format('Y-m-d')) }}"
-                            max="{{ now()->format('Y-m-d') }}"
-                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                        >
-                    </div>
-
-                    <div class="lg:col-span-2">
-                        <label for="new_medication_frequency" class="block text-sm font-bold text-gray-700">How to take</label>
-                        <input
-                            id="new_medication_frequency"
-                            type="text"
-                            name="frequency"
-                            value="{{ old('frequency') }}"
-                            placeholder="Example: Once daily after meal"
-                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                        >
-                    </div>
-
-                    <div class="lg:col-span-2">
-                        <label for="new_medication_notes" class="block text-sm font-bold text-gray-700">Note</label>
-                        <input
-                            id="new_medication_notes"
-                            type="text"
-                            name="notes"
-                            value="{{ old('notes') }}"
-                            maxlength="255"
-                            placeholder="Optional question or note"
-                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                        >
-                    </div>
-
-                    <div class="lg:col-span-4">
-                        <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-teal-600 px-5 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-teal-700 sm:w-auto">
-                            Add Medication
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            @if($patient && $patient->medications->count() > 0)
-                <div class="space-y-5">
-                    @foreach($patient->medications as $medication)
+                @forelse($currentMeds as $medication)
                         <article class="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
                             <div class="border-b border-gray-100 bg-gray-50 px-6 py-5">
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -328,14 +250,131 @@
                                 </form>
                             </div>
                         </article>
-                    @endforeach
-                </div>
-            @else
-                <div class="rounded-3xl border-2 border-dashed border-gray-300 bg-white p-12 text-center shadow-sm">
-                    <h2 class="text-xl font-extrabold text-gray-800">No Medications on Record</h2>
-                    <p class="mt-2 text-sm text-gray-500">Use the form above to add medication you are currently taking.</p>
-                </div>
+                @empty
+                    <div class="rounded-3xl border-2 border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
+                        <h3 class="text-lg font-extrabold text-gray-800">No current medications</h3>
+                        <p class="mt-2 text-sm text-gray-500">Your pharmacist has no medicine recorded for you right now. If you are taking something, add it below.</p>
+                    </div>
+                @endforelse
+            </section>
+
+            @if($pastMeds->isNotEmpty())
+                <details class="group rounded-3xl border border-gray-200 bg-white shadow-sm">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-4 [&::-webkit-details-marker]:hidden">
+                        <span>
+                            <span class="block text-base font-extrabold text-gray-900">Past medications ({{ $pastMeds->count() }})</span>
+                            <span class="block text-xs font-semibold text-gray-500">Finished or stopped. Kept for your record.</span>
+                        </span>
+                        <svg class="h-5 w-5 text-gray-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </summary>
+                    <div class="space-y-3 border-t border-gray-100 p-4 sm:p-6">
+                        @foreach($pastMeds as $medication)
+                            <div class="flex flex-col gap-2 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <p class="font-bold text-gray-900">
+                                        {{ $medication->name }}
+                                        <span class="ml-1 rounded-full px-2 py-0.5 text-[11px] font-bold {{ $medication->status() === 'Stopped' ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-600' }}">{{ $medication->status() }}</span>
+                                    </p>
+                                    <p class="text-sm text-gray-600">{{ $medication->dosage ?: 'Dosage not specified' }}@if($medication->frequency) · {{ $medication->frequency }}@endif</p>
+                                    @if($medication->notes)
+                                        <p class="mt-1 text-xs text-gray-500">Note: {{ $medication->notes }}</p>
+                                    @endif
+                                </div>
+                                <p class="text-xs font-semibold text-gray-500 sm:text-right">
+                                    {{ $medication->start_date ? $medication->start_date->format('d M Y') : '—' }} → {{ $medication->end_date ? $medication->end_date->format('d M Y') : '—' }}
+                                </p>
+                            </div>
+                        @endforeach
+                    </div>
+                </details>
             @endif
+
+            <details id="add-medication" class="group rounded-3xl border border-teal-100 bg-white p-6 shadow-sm scroll-mt-6" @if(($errors->any() && old('name') !== null) || ! $patient?->medications->count()) open @endif>
+                <summary class="flex cursor-pointer list-none items-start justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wide text-teal-600">Add Medication</p>
+                        <h2 class="mt-1 text-xl font-extrabold text-gray-900">Taking something not listed?</h2>
+                        <p class="mt-1 text-sm text-gray-500">Add it here, including vitamins or medicine from another clinic, so your pharmacist can check it is safe with your other medicines.</p>
+                    </div>
+                    <span class="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-teal-600 px-4 py-2 text-sm font-bold text-white group-open:bg-gray-100 group-open:text-gray-700">
+                        <svg class="h-4 w-4 transition-transform group-open:rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                        <span class="group-open:hidden">Add</span><span class="hidden group-open:inline">Close</span>
+                    </span>
+                </summary>
+
+                <form method="POST" action="{{ route('patient.medications.store') }}" class="mt-5 grid gap-4 lg:grid-cols-4">
+                    @csrf
+
+                    <div class="lg:col-span-2">
+                        <label for="new_medication_name" class="block text-sm font-bold text-gray-700">Medication name</label>
+                        <input
+                            id="new_medication_name"
+                            type="text"
+                            name="name"
+                            value="{{ old('name') }}"
+                            placeholder="Example: Metformin"
+                            required
+                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="new_medication_dosage" class="block text-sm font-bold text-gray-700">Dosage</label>
+                        <input
+                            id="new_medication_dosage"
+                            type="text"
+                            name="dosage"
+                            value="{{ old('dosage') }}"
+                            placeholder="Example: 500mg"
+                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="new_medication_last_taken" class="block text-sm font-bold text-gray-700">Latest taken</label>
+                        <input
+                            id="new_medication_last_taken"
+                            type="date"
+                            name="last_taken"
+                            value="{{ old('last_taken', now()->format('Y-m-d')) }}"
+                            max="{{ now()->format('Y-m-d') }}"
+                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                        >
+                    </div>
+
+                    <div class="lg:col-span-2">
+                        <label for="new_medication_frequency" class="block text-sm font-bold text-gray-700">How to take</label>
+                        <input
+                            id="new_medication_frequency"
+                            type="text"
+                            name="frequency"
+                            value="{{ old('frequency') }}"
+                            placeholder="Example: Once daily after meal"
+                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                        >
+                    </div>
+
+                    <div class="lg:col-span-2">
+                        <label for="new_medication_notes" class="block text-sm font-bold text-gray-700">Note</label>
+                        <input
+                            id="new_medication_notes"
+                            type="text"
+                            name="notes"
+                            value="{{ old('notes') }}"
+                            maxlength="255"
+                            placeholder="Optional question or note"
+                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                        >
+                    </div>
+
+                    <div class="lg:col-span-4">
+                        <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-teal-600 px-5 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-teal-700 sm:w-auto">
+                            Add Medication
+                        </button>
+                    </div>
+                </form>
+            </details>
+
         </div>
     </div>
 </x-app-layout>
