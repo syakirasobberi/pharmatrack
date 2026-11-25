@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Medication;
 use App\Models\Patient;
+use App\Support\DrugSafety;
 use App\Support\HealthSummaryPdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -90,6 +91,9 @@ class PatientPortalController extends Controller
 
         $dosage = filled($validated['dosage'] ?? null) ? $validated['dosage'] : 'Not specified';
 
+        // Check against what they already take before saving (the new record is not in the list yet).
+        $warnings = DrugSafety::checkNew($validated['name'], $patient->currentMedications()->get(), $patient->medicalHistory);
+
         Medication::create([
             'patient_id' => $patient->id,
             'name' => $validated['name'],
@@ -98,6 +102,20 @@ class PatientPortalController extends Controller
             'last_taken' => $validated['last_taken'] ?? null,
             'notes' => $validated['notes'] ?? null,
         ]);
+
+        // Patients may record what they take, so it is saved, but they are warned and the
+        // decision is left to the pharmacist (who sees the same warnings on the medication page).
+        if ($warnings !== []) {
+            Log::warning('Patient added a medication with safety warnings.', [
+                'patient_id' => $patient->id,
+                'medication' => $validated['name'],
+                'warnings' => array_column($warnings, 'title'),
+            ]);
+
+            return redirect()
+                ->route('patient.medications')
+                ->with('patient_drug_warnings', ['name' => $validated['name'], 'warnings' => $warnings]);
+        }
 
         return redirect()
             ->route('patient.medications')

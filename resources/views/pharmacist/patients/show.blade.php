@@ -108,6 +108,9 @@
                 if ($activeMedCount === 0) $alerts->push(['No active medications recorded.', 'review']);
                 if ($activeMedCount >= 5)  $alerts->push(['Polypharmacy detected (' . $activeMedCount . ' meds). Review recommended.', 'review']);
                 if (filled(optional($medicalHistory)->drug_allergies)) $alerts->push(['Drug allergies: ' . $medicalHistory->drug_allergies, 'critical']);
+                $drugSafety = collect(\App\Support\DrugSafety::review($medications, $medicalHistory));
+                foreach ($drugSafety->where('severity', 'major') as $w) $alerts->push(['Medication safety: ' . $w['title'] . '.', 'critical']);
+                if (($moderateCount = $drugSafety->where('severity', 'moderate')->count()) > 0) $alerts->push([$moderateCount . ' moderate medication ' . \Illuminate\Support\Str::plural('caution', $moderateCount) . ' — see the Medications page.', 'review']);
                 if (filled(optional($medicalHistory)->allergies))      $alerts->push(['General allergies: ' . $medicalHistory->allergies, 'review']);
                 if (filled(optional($medicalHistory)->others) && str_contains(strtolower(optional($medicalHistory)->others ?? ''), 'hypertension')) $alerts->push(['Hypertension noted: ' . $medicalHistory->others, 'critical']);
                 elseif (filled(optional($medicalHistory)->others)) $alerts->push(['Other condition: ' . $medicalHistory->others, 'review']);

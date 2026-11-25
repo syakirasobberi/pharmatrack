@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Medication;
 use App\Models\Patient;
+use App\Support\DrugSafety;
 use Illuminate\Support\Facades\Log;
 
 class MedicationController extends Controller
@@ -35,14 +36,18 @@ class MedicationController extends Controller
 
     public function index($id)
     {
-        $patient = Patient::assignedTo(request()->user())->with('user')->findOrFail($id);
+        $patient = Patient::assignedTo(request()->user())->with(['user', 'medicalHistory'])->findOrFail($id);
         $all = $patient->medications()->latest()->get();
 
         // Current first (what the patient takes now), then stopped/completed as history.
         $medications = $all->filter->isCurrent()->values();
         $pastMedications = $all->reject->isCurrent()->values();
 
-        return view('medications.index', compact('patient', 'medications', 'pastMedications'));
+        // Problems already present in the current list (e.g. added by the patient, or resumed).
+        $safetyWarnings = DrugSafety::review($medications, $patient->medicalHistory);
+        $drugAllergies = DrugSafety::allergyEntries($patient->medicalHistory);
+
+        return view('medications.index', compact('patient', 'medications', 'pastMedications', 'safetyWarnings', 'drugAllergies'));
     }
 
     public function store(Request $request, $id)
@@ -51,7 +56,13 @@ class MedicationController extends Controller
 
         $validated = $request->validate(self::rules($request, editing: false), self::MESSAGES);
 
-        Medication::create([
+        $patient->loadMissing('medicalHistory');
+        $warnings = DrugSafety::checkNew($validated['name'], $patient->currentMedications()->get(), $patient->medicalHistory);
+        if ($blocked = $this->requireAcknowledgement($request, $validated['name'], $warnings)) {
+            return $blocked;
+        }
+
+        $medication = Medication::create([
             'patient_id' => $patient->id,
             'name' => $validated['name'],
             'dosage' => $validated['dosage'],
@@ -61,6 +72,8 @@ class MedicationController extends Controller
             'end_date' => $validated['end_date'] ?? null,
             'last_taken' => $validated['last_taken'],
         ]);
+
+        $this->logOverride($request, $medication, $warnings);
 
         return redirect()
             ->route('pharmacist.medication.index', $patient->id)
@@ -93,7 +106,20 @@ class MedicationController extends Controller
                 ->with('success', 'No changes were made to ' . $medication->name . '.');
         }
 
+        // Only re-check when the medicine itself changed (not for dose/date corrections),
+        // and only for a medication that is still current.
+        $warnings = [];
+        if (isset($changes['name']) && $medication->isCurrent()) {
+            $medication->loadMissing('patient.medicalHistory');
+            $others = $medication->patient->currentMedications()->whereKeyNot($medication->id)->get();
+            $warnings = DrugSafety::checkNew($validated['name'], $others, $medication->patient->medicalHistory);
+            if ($blocked = $this->requireAcknowledgement($request, $validated['name'], $warnings)) {
+                return $blocked;
+            }
+        }
+
         $medication->save();
+        $this->logOverride($request, $medication, $warnings);
 
         Log::info('Medication edited.', [
             'medication_id' => $medication->id,
@@ -154,6 +180,50 @@ class MedicationController extends Controller
 
         return redirect()->route('pharmacist.medication.index', $medication->patient_id)
             ->with('success', $medication->name . ' resumed.' . $note);
+    }
+
+    /**
+     * When there are safety warnings, send the pharmacist back to the form to review them.
+     * The save goes through only when they ticked "reviewed" for this same medicine name
+     * (so changing the name after acknowledging triggers a fresh check).
+     */
+    private function requireAcknowledgement(Request $request, string $name, array $warnings): ?\Illuminate\Http\RedirectResponse
+    {
+        if ($warnings === []) {
+            return null;
+        }
+
+        $acknowledged = $request->boolean('acknowledge_warnings')
+            && self::normaliseName($request->input('acknowledged_name', '')) === self::normaliseName($name);
+
+        if ($acknowledged) {
+            return null;
+        }
+
+        return back()->withInput()->with([
+            'drug_warnings' => $warnings,
+            'drug_warnings_for' => $name,
+        ]);
+    }
+
+    private function logOverride(Request $request, Medication $medication, array $warnings): void
+    {
+        if ($warnings === []) {
+            return;
+        }
+
+        Log::warning('Medication saved despite safety warnings.', [
+            'medication_id' => $medication->id,
+            'patient_id' => $medication->patient_id,
+            'pharmacist_id' => $request->user()->id,
+            'override_reason' => $request->input('override_reason'),
+            'warnings' => array_column($warnings, 'title'),
+        ]);
+    }
+
+    private static function normaliseName(string $name): string
+    {
+        return strtolower(trim(preg_replace('/\s+/', ' ', $name)));
     }
 
     /** A medication of one of the logged-in pharmacist's own (non-archived) patients, or 404. */

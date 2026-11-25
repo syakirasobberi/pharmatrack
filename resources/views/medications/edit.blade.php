@@ -61,6 +61,10 @@
                         </div>
                     </div>
 
+                    @if(session('drug_warnings'))
+                        @include('medications.partials.safety-warnings', ['warnings' => session('drug_warnings'), 'ackFor' => session('drug_warnings_for')])
+                    @endif
+
                     <div class="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-gray-100">
                         <a href="{{ route('pharmacist.medication.index', $patient->id) }}" class="px-5 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 font-bold hover:bg-gray-50">Cancel</a>
                         <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700">Save Changes</button>

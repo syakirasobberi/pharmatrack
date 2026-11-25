@@ -34,7 +34,8 @@
         }
     @endphp
 
-    <div class="py-8 bg-slate-50 min-h-screen" x-data="{ addModalOpen: false }">
+    {{-- Reopen the Add form after a failed save or a safety check, so the pharmacist sees why. --}}
+    <div class="py-8 bg-slate-50 min-h-screen" x-data="{ addModalOpen: {{ ($errors->any() || session('drug_warnings')) ? 'true' : 'false' }} }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <a href="{{ route('pharmacist.patients.summary', $patient->id) }}" class="inline-flex items-center text-slate-500 hover:text-blue-700 font-bold transition-colors text-sm">
@@ -89,6 +90,20 @@
                                 @endforeach
                             </ul>
                         </div>
+                    @endif
+
+                    <div class="flex flex-wrap items-center gap-2 text-sm">
+                        <span class="font-bold text-slate-600">Drug allergies:</span>
+                        @forelse($drugAllergies as $allergy)
+                            <span class="px-2.5 py-1 rounded-full bg-red-100 text-red-700 font-bold border border-red-200">{{ ucfirst($allergy) }}</span>
+                        @empty
+                            <span class="text-slate-500">None recorded</span>
+                        @endforelse
+                        <a href="{{ route('pharmacist.patients.medical.edit', $patient->id) }}" class="ml-1 text-xs font-bold text-blue-600 hover:text-blue-800">Edit medical history</a>
+                    </div>
+
+                    @if($safetyWarnings)
+                        @include('medications.partials.safety-warnings', ['warnings' => $safetyWarnings])
                     @endif
 
                     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -397,6 +412,12 @@
                         </div>
 
                         <div class="p-6 md:p-8 bg-white">
+                            @if(session('drug_warnings'))
+                                <div class="mb-6">
+                                    @include('medications.partials.safety-warnings', ['warnings' => session('drug_warnings'), 'ackFor' => session('drug_warnings_for')])
+                                </div>
+                            @endif
+
                             <div class="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-6">
                                 <div class="space-y-5">
                                     <div class="rounded-3xl border border-slate-200 bg-slate-50/80 p-5">

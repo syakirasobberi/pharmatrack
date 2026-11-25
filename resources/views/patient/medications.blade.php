@@ -17,6 +17,19 @@
                 </div>
             @endif
 
+            @if($drugAlert = session('patient_drug_warnings'))
+                @php $major = collect($drugAlert['warnings'])->contains('severity', 'major'); @endphp
+                <div class="rounded-2xl border {{ $major ? 'border-red-300 bg-red-50 text-red-900' : 'border-amber-300 bg-amber-50 text-amber-900' }} px-5 py-4 text-sm" role="alert">
+                    <p class="font-extrabold">{{ $drugAlert['name'] }} was saved, but please check with your pharmacist before taking it.</p>
+                    <ul class="mt-2 list-disc space-y-1 pl-5">
+                        @foreach($drugAlert['warnings'] as $warning)
+                            <li><strong>{{ $warning['title'] }}.</strong> {{ $warning['detail'] }}</li>
+                        @endforeach
+                    </ul>
+                    <p class="mt-2 font-semibold">{{ $major ? 'If you have already taken it and feel unwell (rash, swelling, difficulty breathing, unusual bleeding), get medical help straight away.' : 'Your pharmacist will also see this warning on your record.' }}</p>
+                </div>
+            @endif
+
             @if(session('error'))
                 <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-800">
                     {{ session('error') }}
