@@ -38,6 +38,7 @@ class HealthCheckup extends Model
 
     protected $casts = [
         'checkup_date' => 'date',
+        'edited_at' => 'datetime',
         'blood_sugar' => 'decimal:2',
         'cholesterol' => 'decimal:2',
         'haemoglobin' => 'decimal:2',
@@ -63,5 +64,11 @@ class HealthCheckup extends Model
     public function pharmacist()
     {
         return $this->belongsTo(User::class, 'pharmacist_id');
+    }
+
+    // Who last corrected this record (null = never edited). Set only by the edit form.
+    public function editor()
+    {
+        return $this->belongsTo(User::class, 'edited_by');
     }
 }

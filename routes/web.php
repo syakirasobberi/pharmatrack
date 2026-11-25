@@ -88,6 +88,8 @@ Route::middleware(['auth', 'force_password_change', 'role:pharmacist'])->group(f
     Route::post('/pharmacist/patients/{id}/medical', [PatientController::class, 'updateMedical'])->name('pharmacist.patients.medical.update');
     Route::get('/pharmacist/patients/{id}/checkup', [HealthCheckupController::class, 'create'])->name('pharmacist.checkups.create');
     Route::post('/pharmacist/patients/{id}/checkup', [HealthCheckupController::class, 'store'])->name('pharmacist.checkups.store');
+    Route::get('/pharmacist/checkups/{checkup}/edit', [HealthCheckupController::class, 'edit'])->whereNumber('checkup')->name('pharmacist.checkups.edit');
+    Route::patch('/pharmacist/checkups/{checkup}', [HealthCheckupController::class, 'update'])->whereNumber('checkup')->name('pharmacist.checkups.update');
 
     Route::get('/pharmacist/quick-scan', [PatientController::class, 'quickScan'])->name('pharmacist.quickScan');
     Route::post('/pharmacist/quick-scan/identify', [PatientController::class, 'quickScanIdentify'])

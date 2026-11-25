@@ -426,7 +426,7 @@
                     <div class="py-10 text-center text-gray-400 italic text-sm">No check-up records found for this patient.</div>
                 @else
                     <div class="overflow-x-auto rounded-xl border border-gray-100">
-                        <table class="w-full text-sm text-left" style="min-width:1320px">
+                        <table class="w-full text-sm text-left" style="min-width:1400px">
                             <thead class="bg-gray-50 text-gray-600 font-bold text-xs uppercase tracking-wide">
                                 <tr>
                                     <th class="py-3 px-4 rounded-tl-xl">Date</th>
@@ -445,7 +445,8 @@
                                     <th class="py-3 px-4">Total Cholesterol <span class="font-normal normal-case text-gray-400">(mmol/L)</span></th>
                                     <th class="py-3 px-4">LDL</th>
                                     <th class="py-3 px-4">HDL</th>
-                                    <th class="py-3 px-4 rounded-tr-xl">Notes</th>
+                                    <th class="py-3 px-4">Notes</th>
+                                    <th class="py-3 px-4 rounded-tr-xl"><span class="sr-only">Actions</span></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -455,6 +456,12 @@
                                             {{ \Carbon\Carbon::parse($checkup->checkup_date)->format('d M Y') }}
                                             @if($loop->first)
                                                 <span class="ml-1 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">Latest</span>
+                                            @endif
+                                            @if($checkup->edited_at)
+                                                <span class="block mt-0.5 text-[11px] font-semibold text-amber-700"
+                                                      title="Corrected {{ $checkup->edited_at->format('d M Y, g:i a') }} by {{ $checkup->editor?->name ?? 'a removed user' }}">
+                                                    Edited {{ $checkup->edited_at->format('d M Y') }} by {{ $checkup->editor?->name ?? 'a removed user' }}
+                                                </span>
                                             @endif
                                         </td>
                                         <td class="py-3 px-4 font-semibold">
@@ -486,6 +493,13 @@
                                         <td class="py-3 px-4 text-gray-600">{{ $checkup->ldl ?? '—' }}</td>
                                         <td class="py-3 px-4 text-gray-600">{{ $checkup->hdl ?? '—' }}</td>
                                         <td class="py-3 px-4 text-gray-500 text-xs max-w-[140px] truncate">{{ $checkup->notes ?? '—' }}</td>
+                                        <td class="py-3 px-4 whitespace-nowrap">
+                                            <a href="{{ route('pharmacist.checkups.edit', $checkup->id) }}"
+                                               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-gray-200 bg-white text-xs font-bold text-blue-600 hover:bg-blue-50"
+                                               aria-label="Edit check-up of {{ \Carbon\Carbon::parse($checkup->checkup_date)->format('d M Y') }}">
+                                                Edit
+                                            </a>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>

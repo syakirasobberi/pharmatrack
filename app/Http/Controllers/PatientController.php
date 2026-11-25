@@ -123,6 +123,7 @@ class PatientController extends Controller
             'user',
             'pharmacist',
             'healthCheckups' => fn ($q) => $q->latest('checkup_date'),
+            'healthCheckups.editor', // "Edited <date> by <name>" in the history table
             'medicalHistory',
             'medications',
         ])->findOrFail($id);
