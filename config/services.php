@@ -25,6 +25,11 @@ return [
     'gemini' => [
         'key' => env('GEMINI_API_KEY'),
     ],
+
+    // Brevo transactional email API key (MAIL_MAILER=brevo). Create it in Brevo: SMTP & API -> API keys.
+    'brevo' => [
+        'key' => env('BREVO_API_KEY'),
+    ],
     // Public "Contact Us" WhatsApp button on the front page (international format, digits only).
     'pharmacy' => [
         'whatsapp' => env('PHARMACY_WHATSAPP', '60125764231'),

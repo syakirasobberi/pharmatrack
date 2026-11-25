@@ -49,6 +49,11 @@ return [
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 
+        // HTTPS email API (see AppServiceProvider). Used on the live host, which blocks SMTP.
+        'brevo' => [
+            'transport' => 'brevo',
+        ],
+
         'ses' => [
             'transport' => 'ses',
         ],
