@@ -315,28 +315,32 @@ class PatientController extends Controller
         return view('pharmacist.patients.quick-scan', compact('faceCount'));
     }
 
-    // Quick Scan: match one camera frame against this pharmacist's own patients, on the server.
+    // Quick Scan: same rules as the kiosk (several frames, every frame must match), but only
+    // among this pharmacist's own patients. The page asks the pharmacist to confirm the name.
     public function quickScanIdentify(Request $request)
     {
         $validated = $request->validate([
-            'descriptor' => ['required', 'array', 'size:128'],
-            'descriptor.*' => ['required', 'numeric', 'between:-2,2'],
+            'descriptors' => ['required', 'array', 'min:3', 'max:5'],
+            'descriptors.*' => ['required', 'array', 'size:128'],
+            'descriptors.*.*' => ['required', 'numeric', 'between:-2,2'],
         ]);
 
-        $match = FaceMatch::closest(
-            Patient::assignedTo($request->user()),
-            array_map('floatval', array_values($validated['descriptor']))
-        );
+        $frames = array_map(fn ($d) => array_map('floatval', array_values($d)), $validated['descriptors']);
+        $match = FaceMatch::identify(Patient::assignedTo($request->user()), $frames);
 
-        if (! FaceMatch::isConfident($match)) {
-            $ambiguous = $match['id'] !== null && $match['distance'] <= FaceMatch::MATCH_THRESHOLD;
-
-            return response()->json(['matched' => false, 'reason' => $ambiguous ? 'ambiguous' : 'unknown']);
+        if ($match['status'] !== 'matched') {
+            return response()->json(['matched' => false, 'reason' => $match['status']]);
         }
+
+        $patient = Patient::with('user')->findOrFail($match['id']);
 
         return response()->json([
             'matched' => true,
-            'redirect' => route('pharmacist.patients.summary', $match['id']),
+            'name' => $patient->user->name,
+            'patient_id' => $patient->id,
+            // Lower is a closer match; shown so staff can judge borderline matches.
+            'distance' => round($match['distance'], 3),
+            'redirect' => route('pharmacist.patients.summary', $patient->id),
         ]);
     }
 

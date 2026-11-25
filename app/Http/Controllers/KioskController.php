@@ -38,23 +38,15 @@ class KioskController extends Controller
 
         $frames = array_map(fn ($d) => array_map('floatval', array_values($d)), $validated['descriptors']);
 
-        // Find the closest and second-closest registered patients to the averaged face.
-        $match = FaceMatch::closest(Patient::query(), FaceMatch::average($frames));
+        // Averaged face within threshold, every frame matching, and not ambiguous.
+        $match = FaceMatch::identify(Patient::query(), $frames);
 
-        if ($match['id'] === null || $match['distance'] > FaceMatch::MATCH_THRESHOLD) {
-            return response()->json(['matched' => false], 404);
-        }
-
-        // Every individual frame must match too — one lucky frame is not enough.
-        foreach ($frames as $frame) {
-            if (FaceMatch::distance($match['stored'], $frame) > FaceMatch::MATCH_THRESHOLD) {
-                return response()->json(['matched' => false], 404);
-            }
-        }
-
-        // Ambiguous: two patients are almost equally close, so refuse rather than guess.
-        if (! FaceMatch::isConfident($match)) {
+        if ($match['status'] === 'ambiguous') {
             return response()->json(['matched' => false, 'reason' => 'ambiguous'], 404);
+        }
+
+        if ($match['status'] !== 'matched') {
+            return response()->json(['matched' => false], 404);
         }
 
         $patient = Patient::with('user')->findOrFail($match['id']);

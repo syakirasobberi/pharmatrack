@@ -50,6 +50,36 @@ class FaceMatch
         return $best;
     }
 
+    /**
+     * Identify a person from several camera frames (the kiosk and Quick Scan rules):
+     * the averaged face must be within the threshold, EVERY frame must match the same
+     * patient (one lucky frame is not enough), and the runner-up must be clearly further away.
+     *
+     * @param  array<int, array<int, float>>  $frames
+     * @return array{status: 'matched'|'unknown'|'ambiguous', id: int|null, distance: float}
+     */
+    public static function identify(Builder $query, array $frames): array
+    {
+        $match = self::closest($query, self::average($frames));
+        $unknown = ['status' => 'unknown', 'id' => null, 'distance' => $match['distance']];
+
+        if ($match['id'] === null || $match['distance'] > self::MATCH_THRESHOLD) {
+            return $unknown;
+        }
+
+        foreach ($frames as $frame) {
+            if (self::distance($match['stored'], $frame) > self::MATCH_THRESHOLD) {
+                return $unknown;
+            }
+        }
+
+        if (! self::isConfident($match)) {
+            return ['status' => 'ambiguous', 'id' => null, 'distance' => $match['distance']];
+        }
+
+        return ['status' => 'matched', 'id' => $match['id'], 'distance' => $match['distance']];
+    }
+
     /** True when the closest result is a confident, unambiguous match. */
     public static function isConfident(array $result): bool
     {

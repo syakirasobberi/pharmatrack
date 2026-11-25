@@ -20,28 +20,48 @@
                     <video id="video" width="480" height="360" autoplay muted playsinline class="w-full bg-black"></video>
                 </div>
 
+                {{-- Shown after a match: the pharmacist confirms the name before any record opens. --}}
+                <div id="confirm-panel" class="hidden mt-6 rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-5 text-left">
+                    <p class="text-xs font-bold uppercase tracking-wide text-emerald-700">Possible match — please confirm</p>
+                    <p class="mt-1 text-xl font-extrabold text-gray-900" id="confirm-name"></p>
+                    <p class="text-xs text-gray-500" id="confirm-detail"></p>
+                    <div class="mt-4 flex flex-wrap gap-3">
+                        <a id="confirm-open" href="#" class="inline-flex items-center px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700">Yes, open this patient</a>
+                        <button id="confirm-reject" type="button" class="inline-flex items-center px-4 py-2 rounded-xl bg-white border border-gray-300 text-gray-700 font-bold hover:bg-gray-50">Not this patient — scan again</button>
+                    </div>
+                </div>
+
                 <div class="mt-6">
-                    <p class="text-gray-500 text-sm">Please ask the patient to look directly at the camera for automatic recognition.</p>
+                    <p class="text-gray-500 text-sm">Ask the patient to look directly at the camera with eyes open. Always check the name before opening a record.</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="{{ asset('js/face-api.min.js') }}"></script>
+    <script src="{{ asset('js/face-utils.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const video = document.getElementById('video');
             const statusText = document.getElementById('status');
             const videoContainer = document.getElementById('video-container');
             const cameraSelect = document.getElementById('camera-select');
+            const confirmPanel = document.getElementById('confirm-panel');
+
             // Matching happens on the server; this page never receives stored face data.
             const faceCount = {{ (int) $faceCount }};
             const identifyUrl = @json(route('pharmacist.quickScan.identify'));
             const csrfToken = @json(csrf_token());
 
-            let ready = false;
+            // Same rules as the kiosk: several clear, consistent frames before asking the server.
+            const FRAMES_NEEDED = 3;
+            const SAME_FACE_DISTANCE = 0.45;
+
             let canvas = null;
-            let scanInterval = null;
+            let modelsReady = false;
+            let running = false;     // scan loop active
+            let paused = false;      // waiting for the pharmacist to confirm / retry
+            let samples = [];
 
             try {
                 if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
@@ -56,18 +76,14 @@
                     return;
                 }
 
-                await Promise.all([
-                    faceapi.nets.ssdMobilenetv1.loadFromUri('{{ asset("models") }}'),
-                    faceapi.nets.faceLandmark68Net.loadFromUri('{{ asset("models") }}'),
-                    faceapi.nets.faceRecognitionNet.loadFromUri('{{ asset("models") }}'),
-                ]);
-
                 if (faceCount === 0) {
                     setStatus('No usable patient face data found. Please register a face first.', 'error');
                     return;
                 }
 
-                ready = true;
+                // Same detector + landmarks as registration, so the face fingerprints are comparable.
+                await FaceUtils.loadModels(@json(asset('models')));
+                modelsReady = true;
 
                 await populateCameras();
                 await startVideo(cameraSelect.value);
@@ -87,6 +103,11 @@
                     setStatus('Face recognition failed to initialize. Please check camera permission, HTTPS, and model files.', 'error');
                 }
             }
+
+            document.getElementById('confirm-reject').addEventListener('click', () => {
+                confirmPanel.classList.add('hidden');
+                resumeScanning('Scanning again...');
+            });
 
             async function populateCameras() {
                 const permissionStream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -111,7 +132,6 @@
 
             async function startVideo(deviceId) {
                 stopCurrentStream();
-                resetScannerOverlay();
 
                 const constraints = deviceId
                     ? { video: { deviceId: { exact: deviceId } } }
@@ -120,7 +140,8 @@
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 window.stream = stream;
                 video.srcObject = stream;
-                setStatus('System live: scanning for faces...', 'info');
+                confirmPanel.classList.add('hidden');
+                resumeScanning('System live: scanning for faces...');
             }
 
             function stopCurrentStream() {
@@ -130,21 +151,15 @@
                 }
             }
 
-            function resetScannerOverlay() {
-                if (scanInterval) {
-                    clearInterval(scanInterval);
-                    scanInterval = null;
-                }
-
-                if (canvas) {
-                    canvas.remove();
-                    canvas = null;
-                }
+            function resumeScanning(message) {
+                samples = [];
+                paused = false;
+                setStatus(message, 'info');
             }
 
             function setStatus(message, state = 'info') {
                 statusText.innerText = message;
-                statusText.classList.remove('text-blue-600', 'text-red-500', 'text-green-600');
+                statusText.classList.remove('text-blue-600', 'text-red-500', 'text-green-600', 'animate-pulse');
 
                 if (state === 'error') {
                     statusText.classList.add('text-red-500');
@@ -159,85 +174,127 @@
                 statusText.classList.add('text-blue-600');
             }
 
-            video.addEventListener('play', () => {
-                resetScannerOverlay();
+            function drawBox(result) {
+                if (!canvas) {
+                    canvas = faceapi.createCanvasFromMedia(video);
+                    canvas.style.position = 'absolute';
+                    canvas.style.top = '0';
+                    canvas.style.left = '0';
+                    canvas.style.width = '100%';
+                    canvas.style.height = '100%';
+                    videoContainer.append(canvas);
+                }
 
-                canvas = faceapi.createCanvasFromMedia(video);
-                canvas.style.position = 'absolute';
-                canvas.style.top = '0';
-                canvas.style.left = '0';
-                videoContainer.append(canvas);
+                const size = { width: video.videoWidth, height: video.videoHeight };
+                faceapi.matchDimensions(canvas, size);
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 
-                const displaySize = { width: video.width, height: video.height };
-                faceapi.matchDimensions(canvas, displaySize);
+                if (result) {
+                    faceapi.draw.drawDetections(canvas, [faceapi.resizeResults(result.detection, size)]);
+                }
+            }
 
-                let isProcessing = false;
+            async function identify(descriptors) {
+                const response = await fetch(identifyUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                    body: JSON.stringify({ descriptors }),
+                });
 
-                scanInterval = setInterval(async () => {
-                    if (isProcessing || !ready) {
-                        return;
+                if (response.status === 429) {
+                    return { matched: false, reason: 'busy' };
+                }
+
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
+                }
+
+                return response.json();
+            }
+
+            function showConfirmation(result) {
+                paused = true;
+                document.getElementById('confirm-name').innerText = result.name;
+                document.getElementById('confirm-detail').innerText =
+                    `Patient ID ${result.patient_id} · match distance ${result.distance} (lower is closer; 0.45 is the limit)`;
+                document.getElementById('confirm-open').href = result.redirect;
+                confirmPanel.classList.remove('hidden');
+                setStatus('Possible match found. Check the name with the patient before opening.', 'success');
+            }
+
+            async function scanLoop() {
+                while (true) {
+                    await new Promise((r) => setTimeout(r, 150));
+
+                    if (!modelsReady || paused || !window.stream || video.readyState < 2) {
+                        continue;
                     }
 
-                    isProcessing = true;
-
                     try {
-                        const detection = await faceapi
-                            .detectSingleFace(video)
-                            .withFaceLandmarks()
-                            .withFaceDescriptor();
+                        const result = await FaceUtils.describe(video);
+                        drawBox(result);
 
-                        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-
-                        if (!detection) {
-                            setStatus('No face detected. Please position the face inside the frame.', 'info');
-                            return;
+                        const quality = FaceUtils.checkQuality(result, video.videoWidth);
+                        if (!quality.ok) {
+                            samples = [];
+                            setStatus(quality.reason, 'info');
+                            continue;
                         }
 
-                        const resizedDetection = faceapi.resizeResults(detection, displaySize);
-                        faceapi.draw.drawDetections(canvas, [resizedDetection]);
-
-                        const response = await fetch(identifyUrl, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': csrfToken,
-                            },
-                            body: JSON.stringify({ descriptor: Array.from(detection.descriptor) }),
-                        });
-
-                        if (response.status === 429) {
-                            setStatus('Too many scans. Please wait a moment...', 'info');
-                            return;
+                        if (FaceUtils.averageEar(result.landmarks) <= 0.18) {
+                            setStatus('Please keep your eyes open.', 'info');
+                            continue;
                         }
 
-                        if (!response.ok) {
-                            setStatus('Recognition service error. Please reload the page.', 'error');
-                            return;
+                        const d = Array.from(result.descriptor);
+
+                        // Frames must agree with each other; a different face restarts the capture.
+                        if (samples.length && FaceUtils.euclidean(d, samples[0]) > SAME_FACE_DISTANCE) {
+                            samples = [];
                         }
 
-                        const result = await response.json();
+                        samples.push(d);
+                        setStatus(`Capturing... ${samples.length}/${FRAMES_NEEDED} — hold still`, 'info');
 
-                        if (result.matched) {
-                            ready = false; // stop scanning; keep isProcessing set while redirecting
-                            setStatus('Patient identified. Redirecting...', 'success');
-                            window.location.href = result.redirect;
-                            return;
+                        if (samples.length < FRAMES_NEEDED) {
+                            continue;
                         }
 
-                        setStatus(result.reason === 'ambiguous'
-                            ? 'Face matches more than one patient closely. Please adjust lighting or angle.'
-                            : 'Face not recognized among your patients.', 'error');
+                        const frames = samples;
+                        samples = [];
+                        paused = true;
+                        setStatus('Checking...', 'info');
+
+                        const response = await identify(frames);
+
+                        if (response.matched) {
+                            showConfirmation(response);
+                            continue;
+                        }
+
+                        const messages = {
+                            ambiguous: 'Face matches more than one patient closely. Adjust lighting or angle and try again.',
+                            busy: 'Too many scans. Please wait a moment...',
+                        };
+                        setStatus(messages[response.reason] || 'Face not recognized among your patients.', 'error');
+                        setTimeout(() => { if (confirmPanel.classList.contains('hidden')) { paused = false; } }, 1500);
                     } catch (error) {
                         console.error(error);
                         setStatus('Recognition failed. Check the connection and try again.', 'error');
-                    } finally {
-                        if (ready) {
-                            isProcessing = false;
-                        }
+                        samples = [];
+                        setTimeout(() => { paused = false; }, 2000);
                     }
-                }, 600);
-            });
+                }
+            }
+
+            if (modelsReady && !running) {
+                running = true;
+                scanLoop();
+            }
         });
     </script>
 </x-app-layout>
