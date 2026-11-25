@@ -80,6 +80,15 @@ class Patient extends Model
         return $this->hasMany(HealthCheckup::class, 'patient_id', 'id')->orderBy('checkup_date', 'desc');
     }
 
+    /** The most recent check-up (by check-up date, then newest entry). */
+    public function latestCheckup()
+    {
+        return $this->hasOne(HealthCheckup::class, 'patient_id', 'id')->ofMany([
+            'checkup_date' => 'max',
+            'id' => 'max',
+        ]);
+    }
+
     // Hubungan: 1 Pesakit ada 1 Sejarah Perubatan Utama
     public function medicalHistory()
     {

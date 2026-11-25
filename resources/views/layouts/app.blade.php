@@ -185,7 +185,11 @@
                             Register Patient
                         </a>
 
-                        
+                        <a href="{{ route('pharmacist.quickScan') }}"
+                           class="flex items-center gap-3 px-4 py-3 mt-2 rounded-lg transition-colors {{ request()->routeIs('pharmacist.quickScan') ? 'bg-blue-700 font-bold border-l-4 border-blue-300' : 'hover:bg-blue-800 text-blue-100' }}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2m8-16h2a2 2 0 012 2v2m-4 12h2a2 2 0 002-2v-2M9 10h.01M15 10h.01M9.5 15a3.5 3.5 0 005 0"/></svg>
+                            Quick Scan
+                        </a>
                     @endif
 
                 </nav>
