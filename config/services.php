@@ -25,12 +25,6 @@ return [
     'gemini' => [
         'key' => env('GEMINI_API_KEY'),
     ],
-
-    // Python interpreter for the ML risk prediction (predict.py). Empty = auto-detect.
-    'python' => [
-        'path' => env('PYTHON_PATH'),
-    ],
-
     // Public "Contact Us" WhatsApp button on the front page (international format, digits only).
     'pharmacy' => [
         'whatsapp' => env('PHARMACY_WHATSAPP', '60125764231'),

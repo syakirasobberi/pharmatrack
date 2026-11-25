@@ -535,6 +535,56 @@
                         {{-- ── RIGHT COLUMN: Alerts + Medication Preview ──────── --}}
                         <div class="space-y-5">
 
+                            {{-- HEALTH RISK (ML decision tree, see App\Support\RiskModel) --}}
+                            @php
+                                $riskStyle = match($prediction['risk']) {
+                                    'High'     => ['chip' => 'bg-red-100 text-red-700 border-red-200', 'bar' => 'bg-red-500'],
+                                    'Moderate' => ['chip' => 'bg-amber-100 text-amber-800 border-amber-200', 'bar' => 'bg-amber-500'],
+                                    'Low'      => ['chip' => 'bg-emerald-100 text-emerald-700 border-emerald-200', 'bar' => 'bg-emerald-500'],
+                                    default    => ['chip' => 'bg-slate-100 text-slate-500 border-slate-200', 'bar' => 'bg-slate-300'],
+                                };
+                            @endphp
+                            <div class="rounded-3xl border border-slate-200 bg-white shadow-sm" id="health-risk">
+                                <div class="px-6 py-5 border-b border-slate-100">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <h2 class="text-lg font-extrabold text-slate-800">Health Risk</h2>
+                                        <span class="text-xs font-bold px-2.5 py-1 rounded-full border {{ $riskStyle['chip'] }}">
+                                            {{ $prediction['risk_label'] }}
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate-400 mt-0.5">ML estimate from BMI and the latest check-up</p>
+                                </div>
+                                <div class="p-5 space-y-3">
+                                    @if($prediction['success'])
+                                        <div>
+                                            <div class="flex items-center justify-between text-xs font-bold text-slate-500 mb-1">
+                                                <span>Confidence</span>
+                                                <span>{{ $prediction['confidence'] }}</span>
+                                            </div>
+                                            <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+                                                <div class="h-full rounded-full {{ $riskStyle['bar'] }}" style="width: {{ (int) $prediction['risk_score'] }}%"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex flex-wrap gap-1.5">
+                                            @foreach($prediction['factors'] as $factor)
+                                                <span class="text-xs font-semibold px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-600">{{ $factor }}</span>
+                                            @endforeach
+                                        </div>
+
+                                        <p class="text-sm text-slate-600 leading-6">{{ $prediction['summary'] }}</p>
+
+                                        <p class="text-[11px] text-slate-400 leading-5">
+                                            Inputs: BMI {{ $prediction['inputs']['bmi'] }} · BP {{ $prediction['inputs']['blood_pressure'] }} ·
+                                            Sugar {{ $prediction['inputs']['blood_sugar'] }} · Cholesterol {{ $prediction['inputs']['cholesterol'] }}.
+                                            Decision support only — confirm with clinical judgement.
+                                        </p>
+                                    @else
+                                        <p class="text-sm text-slate-500">{{ $prediction['summary'] }}</p>
+                                    @endif
+                                </div>
+                            </div>
+
                             {{-- ALERTS --}}
                             <div class="rounded-3xl border border-slate-200 bg-white shadow-sm">
                                 <div class="px-6 py-5 border-b border-slate-100">

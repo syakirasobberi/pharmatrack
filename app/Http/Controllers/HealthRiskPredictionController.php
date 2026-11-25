@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Patient;
+use App\Support\RiskModel;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class HealthRiskPredictionController extends Controller
 {
@@ -33,30 +36,18 @@ class HealthRiskPredictionController extends Controller
             return $this->emptyPrediction('BMI, blood pressure, blood sugar, and cholesterol are required.');
         }
 
-        // Shared hosting often disables shell_exec; say so instead of a vague failure.
-        if (! $this->canRunShell()) {
-            return $this->emptyPrediction('ML prediction is unavailable on this server because running Python (shell_exec) is disabled by the hosting provider.');
+        // Decision tree trained from health_data.csv, in PHP (same results as the old predict.py,
+        // which needed Python + shell_exec — both unavailable on shared hosting).
+        try {
+            $prediction = RiskModel::predict($bmi, $bloodSugar, $bloodPressure, $cholesterol);
+        } catch (Throwable $exception) {
+            Log::error('Risk prediction failed.', ['patient_id' => $patient->id, 'exception' => $exception]);
+
+            return $this->emptyPrediction('Prediction could not be generated. Please check that health_data.csv is present and valid.');
         }
 
-        $scriptPath = base_path('predict.py');
-        $pythonPath = $this->pythonExecutable();
-        $command = escapeshellarg($pythonPath) . ' '
-            . escapeshellarg($scriptPath) . ' '
-            . escapeshellarg((string) $bmi) . ' '
-            . escapeshellarg((string) $bloodSugar) . ' '
-            . escapeshellarg((string) $bloodPressure) . ' '
-            . escapeshellarg((string) $cholesterol)
-            . ' 2>&1';
-
-        $output = shell_exec($command);
-        $prediction = json_decode(trim((string) $output), true);
-
-        if (!is_array($prediction) || isset($prediction['error'])) {
-            return $this->emptyPrediction('Prediction could not be generated. Please check Python, pandas, and scikit-learn installation.');
-        }
-
-        $risk = $prediction['risk'] ?? 'Moderate';
-        $confidence = $prediction['confidence'] ?? '0%';
+        $risk = $prediction['risk'];
+        $confidence = $prediction['confidence'];
         $riskFactors = $this->riskFactors($bmi, $bloodSugar, $bloodPressure, $cholesterol);
 
         return [
@@ -106,34 +97,7 @@ class HealthRiskPredictionController extends Controller
         return (float) preg_replace('/[^0-9.].*/', '', $bloodPressure);
     }
 
-    private function canRunShell(): bool
-    {
-        if (! function_exists('shell_exec')) {
-            return false;
-        }
 
-        $disabled = array_map('trim', explode(',', (string) ini_get('disable_functions')));
-
-        return ! in_array('shell_exec', $disabled, true);
-    }
-
-    private function pythonExecutable(): string
-    {
-        // Read via config, not env(): env() returns null once `php artisan config:cache` has run.
-        $configuredPath = config('services.python.path');
-
-        if ($configuredPath && file_exists($configuredPath)) {
-            return $configuredPath;
-        }
-
-        $laragonPython = 'C:\\laragon\\bin\\python\\python-3.10\\python.exe';
-
-        if (PHP_OS_FAMILY === 'Windows' && file_exists($laragonPython)) {
-            return $laragonPython;
-        }
-
-        return PHP_OS_FAMILY === 'Windows' ? 'python' : 'python3';
-    }
 
     private function riskFactors(float $bmi, float $bloodSugar, float $bloodPressure, float $cholesterol): array
     {

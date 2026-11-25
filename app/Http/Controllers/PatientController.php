@@ -169,11 +169,14 @@ class PatientController extends Controller
     }
 
     public function summary($id)
-{
-    $patient = $this->buildSummaryPatient($id);
+    {
+        $patient = $this->buildSummaryPatient($id);
 
-    return view('pharmacist.patients.summary', compact('patient'));
-}
+        // ML risk estimate (PHP decision tree) from BMI + the latest check-up.
+        $prediction = app(HealthRiskPredictionController::class)->predictForPatient($patient);
+
+        return view('pharmacist.patients.summary', compact('patient', 'prediction'));
+    }
 
     public function downloadSummary($id)
     {
