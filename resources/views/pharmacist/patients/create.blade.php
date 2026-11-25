@@ -165,7 +165,7 @@
             const btnStartCamera = document.getElementById('btn-start-camera');
 
             // Load AI Models from public/models folder
-            FaceUtils.loadModels('/models').then(() => {
+            FaceUtils.loadModels('{{ asset("models") }}').then(() => {
                 statusText.innerText = "AI Models ready. Face capture is optional. Click 'Start Camera' if you want to add face data.";
                 btnStartCamera.disabled = false;
                 btnStartCamera.innerText = "Start Camera";

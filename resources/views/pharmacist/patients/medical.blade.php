@@ -19,6 +19,14 @@
                 <form action="{{ route('pharmacist.patients.medical.update', $patient->id) }}" method="POST" class="p-8">
                     @csrf
 
+                    @if($errors->any())
+                        <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                            @foreach($errors->all() as $error)
+                                <p>{{ $error }}</p>
+                            @endforeach
+                        </div>
+                    @endif
+
                     <h3 class="text-lg font-extrabold text-gray-800 mb-4 border-b pb-2">📋 Medical History</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
 

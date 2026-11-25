@@ -6,6 +6,7 @@ use App\Models\HealthCheckup;
 use App\Models\MedicalHistory;
 use App\Models\Patient;
 use App\Models\User;
+use App\Support\FaceMatch;
 use App\Support\HealthSummaryPdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -16,12 +17,6 @@ use Illuminate\Support\Facades\RateLimiter;
 
 class KioskController extends Controller
 {
-    /** Max Euclidean distance between face-api.js descriptors to count as the same person. */
-    private const MATCH_THRESHOLD = 0.45;
-
-    /** Minimum gap between the best and second-best patient; smaller means the match is ambiguous. */
-    private const AMBIGUITY_MARGIN = 0.05;
-
     /** Number of frames the kiosk must send per identification attempt. */
     private const MIN_FRAMES = 3;
 
@@ -42,55 +37,27 @@ class KioskController extends Controller
         ]);
 
         $frames = array_map(fn ($d) => array_map('floatval', array_values($d)), $validated['descriptors']);
-        $probe = self::average($frames);
 
         // Find the closest and second-closest registered patients to the averaged face.
-        $bestId = null;
-        $bestDistance = INF;
-        $bestStored = null;
-        $secondDistance = INF;
+        $match = FaceMatch::closest(Patient::query(), FaceMatch::average($frames));
 
-        Patient::query()
-            ->whereNotNull('face_descriptor')
-            ->where('face_descriptor', '!=', '')
-            ->select(['id', 'face_descriptor'])
-            ->chunkById(200, function ($patients) use ($probe, &$bestId, &$bestDistance, &$bestStored, &$secondDistance) {
-                foreach ($patients as $patient) {
-                    $stored = json_decode($patient->face_descriptor, true);
-                    if (! is_array($stored) || count($stored) !== 128) {
-                        continue;
-                    }
-                    $stored = array_map('floatval', $stored);
-                    $distance = self::distance($stored, $probe);
-
-                    if ($distance < $bestDistance) {
-                        $secondDistance = $bestDistance;
-                        $bestDistance = $distance;
-                        $bestId = $patient->id;
-                        $bestStored = $stored;
-                    } elseif ($distance < $secondDistance) {
-                        $secondDistance = $distance;
-                    }
-                }
-            });
-
-        if ($bestId === null || $bestDistance > self::MATCH_THRESHOLD) {
+        if ($match['id'] === null || $match['distance'] > FaceMatch::MATCH_THRESHOLD) {
             return response()->json(['matched' => false], 404);
         }
 
         // Every individual frame must match too — one lucky frame is not enough.
         foreach ($frames as $frame) {
-            if (self::distance($bestStored, $frame) > self::MATCH_THRESHOLD) {
+            if (FaceMatch::distance($match['stored'], $frame) > FaceMatch::MATCH_THRESHOLD) {
                 return response()->json(['matched' => false], 404);
             }
         }
 
         // Ambiguous: two patients are almost equally close, so refuse rather than guess.
-        if ($secondDistance - $bestDistance < self::AMBIGUITY_MARGIN) {
+        if (! FaceMatch::isConfident($match)) {
             return response()->json(['matched' => false, 'reason' => 'ambiguous'], 404);
         }
 
-        $patient = Patient::with('user')->findOrFail($bestId);
+        $patient = Patient::with('user')->findOrFail($match['id']);
 
         $request->session()->regenerate();
         $request->session()->put([
@@ -227,31 +194,6 @@ class KioskController extends Controller
         return redirect()
             ->route('kiosk.summary', $patient->id)
             ->with('kiosk_checkup_success', 'New check-up recorded successfully.');
-    }
-
-    /** @param array<int, float> $a @param array<int, float> $b */
-    private static function distance(array $a, array $b): float
-    {
-        $sum = 0.0;
-        foreach ($a as $i => $value) {
-            $diff = $value - $b[$i];
-            $sum += $diff * $diff;
-        }
-
-        return sqrt($sum);
-    }
-
-    /** @param array<int, array<int, float>> $frames */
-    private static function average(array $frames): array
-    {
-        $out = array_fill(0, 128, 0.0);
-        foreach ($frames as $frame) {
-            foreach ($frame as $i => $value) {
-                $out[$i] += $value;
-            }
-        }
-
-        return array_map(fn ($v) => $v / count($frames), $out);
     }
 
     /**

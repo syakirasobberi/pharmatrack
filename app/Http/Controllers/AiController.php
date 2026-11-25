@@ -99,12 +99,12 @@ class AiController extends Controller
             'ggt' => 'nullable|string|max:50',
         ]);
 
-        $bmi = $validated['bmi'] ?? 'Normal';
+        $bmi = $validated['bmi'] ?? 'Not recorded';
         $weight = $validated['weight'] ?? 'Not specified';
         $height = $validated['height'] ?? 'Not specified';
-        $bp = $validated['bp'] ?? '120/80';
-        $sugar = $validated['sugar'] ?? '5.0';
-        $cholesterol = $validated['cholesterol'] ?? '4.0';
+        $bp = $validated['bp'] ?? 'Not recorded';
+        $sugar = $validated['sugar'] ?? 'Not recorded';
+        $cholesterol = $validated['cholesterol'] ?? 'Not recorded';
         $hba1c = $validated['hba1c'] ?? 'Not specified';
         $ldl = $validated['ldl'] ?? 'Not specified';
         $hdl = $validated['hdl'] ?? 'Not specified';
@@ -128,7 +128,7 @@ class AiController extends Controller
                    - Sodium: {$sodium}
                    - Gamma glutamyl transferase: {$ggt}
                    
-                   Based on these metrics, provide short, practical recommendations for pharmacist review.
+                   Base your advice only on the recorded values; ignore any metric marked 'Not recorded' or 'Not specified' and do not assume it is normal. Provide short, practical recommendations for pharmacist review.
                    You MUST strictly format your response into exactly 4 numbered points:
                    1. Food: (Give one specific dietary recommendation)
                    2. Exercise: (Give one suitable physical activity or lifestyle recommendation)
@@ -162,7 +162,7 @@ class AiController extends Controller
             ], 422);
         }
 
-        $bmi = $patient->bmi ?? 'Normal';
+        $bmi = $patient->bmi ?? 'Not recorded';
         $weight = $patient->weight ?? 'Not specified';
         $height = $patient->height ?? 'Not specified';
         $bp = $latest->blood_pressure ?? 'Not specified';
@@ -191,7 +191,7 @@ class AiController extends Controller
                    - Sodium: {$sodium}
                    - Gamma glutamyl transferase: {$ggt}
                    
-                   Based on these metrics, provide short, practical recommendations for pharmacist review.
+                   Base your advice only on the recorded values; ignore any metric marked 'Not recorded' or 'Not specified' and do not assume it is normal. Provide short, practical recommendations for pharmacist review.
                    You MUST strictly format your response into exactly 4 numbered points:
                    1. Food: (Give one specific dietary recommendation)
                    2. Exercise: (Give one suitable physical activity or lifestyle recommendation)

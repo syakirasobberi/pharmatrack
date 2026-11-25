@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\MedicalHistory;
-use App\Models\Medication;
 use App\Models\Patient;
 use App\Models\User;
 use App\Notifications\PatientAccountSetupNotification;
+use App\Support\FaceMatch;
 use App\Support\HealthSummaryPdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -59,7 +59,12 @@ class PatientController extends Controller
                 'gender' => ['required', Rule::in(['Male', 'Female'])],
                 'weight' => ['required', 'numeric', 'min:1', 'max:999.99'],
                 'height' => ['required', 'numeric', 'min:1', 'max:999.99'],
-                'face_descriptor' => ['nullable', 'string'],
+                'face_descriptor' => ['nullable', 'string', 'max:10000', function ($attribute, $value, $fail) {
+                    // Must be a face-api.js descriptor, or the kiosk/quick scan can't match it.
+                    if (! FaceMatch::isValid(json_decode($value, true))) {
+                        $fail('The captured face data is invalid. Please scan the face again.');
+                    }
+                }],
             ],
             [
                 'email.unique' => 'This email address is already registered. Please use a different email for the new patient.',
@@ -238,29 +243,29 @@ class PatientController extends Controller
     {
         $patient = Patient::assignedTo($request->user())->findOrFail($id);
 
-        // Update or Create Medical History
+        $validated = $request->validate([
+            'diabetes'       => ['required', 'string', 'max:100'],
+            'allergies'      => ['nullable', 'string', 'max:255'],
+            'drug_allergies' => ['nullable', 'string', 'max:255'],
+            'others'         => ['nullable', 'string', 'max:255'],
+            'others_custom'  => ['nullable', 'required_if:others,Other (specify)', 'string', 'max:255'],
+        ], [
+            'others_custom.required_if' => 'Please describe the other condition.',
+        ]);
+
+        // Medications are added on the Medications page, which records start/end dates.
         MedicalHistory::updateOrCreate(
             ['patient_id' => $patient->id],
             [
                 'hypertension'  => $patient->medicalHistory?->hypertension ?? 'None', // preserved, not editable from form
-                'diabetes'      => $request->diabetes,
-                'allergies'     => $request->allergies,
-                'drug_allergies' => $request->drug_allergies,
-                'others'        => $request->others === 'Other (specify)'
-                                    ? $request->others_custom
-                                    : $request->others,
+                'diabetes'      => $validated['diabetes'],
+                'allergies'     => $validated['allergies'] ?? null,
+                'drug_allergies' => $validated['drug_allergies'] ?? null,
+                'others'        => ($validated['others'] ?? null) === 'Other (specify)'
+                                    ? $validated['others_custom']
+                                    : ($validated['others'] ?? null),
             ]
         );
-
-        // Add New Medication 
-        if ($request->filled('med_name')) {
-            Medication::create([
-                'patient_id' => $patient->id,
-                'name' => $request->med_name,
-                'dosage' => $request->med_dosage,
-                'frequency' => $request->med_frequency,
-            ]);
-        }
 
         return redirect()->route('pharmacist.patients.show', $patient->id)
                          ->with('success', 'Medical records updated successfully!');
@@ -301,24 +306,59 @@ class PatientController extends Controller
 
     public function quickScan()
     {
-        // Ambil hanya pesakit yang benar-benar mempunyai data wajah yang boleh digunakan
-        $patients = Patient::assignedTo(request()->user())->with('user')
+        // Only a count is sent to the page; the face data itself stays on the server.
+        $faceCount = Patient::assignedTo(request()->user())
             ->whereNotNull('face_descriptor')
             ->where('face_descriptor', '!=', '')
-            ->get(['id', 'user_id', 'face_descriptor']);
+            ->count();
 
-        return view('pharmacist.patients.quick-scan', compact('patients'));
+        return view('pharmacist.patients.quick-scan', compact('faceCount'));
+    }
+
+    // Quick Scan: match one camera frame against this pharmacist's own patients, on the server.
+    public function quickScanIdentify(Request $request)
+    {
+        $validated = $request->validate([
+            'descriptor' => ['required', 'array', 'size:128'],
+            'descriptor.*' => ['required', 'numeric', 'between:-2,2'],
+        ]);
+
+        $match = FaceMatch::closest(
+            Patient::assignedTo($request->user()),
+            array_map('floatval', array_values($validated['descriptor']))
+        );
+
+        if (! FaceMatch::isConfident($match)) {
+            $ambiguous = $match['id'] !== null && $match['distance'] <= FaceMatch::MATCH_THRESHOLD;
+
+            return response()->json(['matched' => false, 'reason' => $ambiguous ? 'ambiguous' : 'unknown']);
+        }
+
+        return response()->json([
+            'matched' => true,
+            'redirect' => route('pharmacist.patients.summary', $match['id']),
+        ]);
     }
 
     public function sendCheckupReminder($id)
     {
         $patient = Patient::assignedTo(request()->user())->with('user')->findOrFail($id);
 
-        if ($patient->user) {
-            $patient->user->notify(new \App\Notifications\RoutineCheckupReminderNotification($patient));
-            return redirect()->back()->with('success', 'Routine check-up reminder sent to ' . $patient->user->name . ' via email and system notification.');
+        if (! $patient->user?->exists) {
+            return redirect()->back()->with('error', 'Patient user account not found.');
         }
 
-        return redirect()->back()->with('error', 'Patient user account not found.');
+        try {
+            $patient->user->notify(new \App\Notifications\RoutineCheckupReminderNotification($patient));
+        } catch (Throwable $exception) {
+            Log::error('Failed to send routine check-up reminder.', [
+                'patient_id' => $patient->id,
+                'exception' => $exception,
+            ]);
+
+            return redirect()->back()->with('error', 'The reminder could not be sent right now. Please check the server email configuration and try again.');
+        }
+
+        return redirect()->back()->with('success', 'Routine check-up reminder sent to ' . $patient->user->name . ' via email and system notification.');
     }
 }

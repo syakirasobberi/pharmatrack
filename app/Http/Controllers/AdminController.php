@@ -136,22 +136,33 @@ class AdminController extends Controller
     public function updateAppName(Request $request)
     {
         $validated = $request->validate([
-            'app_name' => 'required|string|max:60',
+            // Plain characters only: $ and \ have special meaning in .env files and in regex replacements.
+            'app_name' => ['required', 'string', 'max:60', "regex:/^[\\pL\\pN .,&'()!_-]+$/u"],
+        ], [
+            'app_name.regex' => 'The application name may only contain letters, numbers, spaces and . , & \' ( ) ! _ -',
         ]);
 
         $envPath = base_path('.env');
-        abort_unless(is_writable($envPath), 500, 'The .env file is not writable.');
 
-        $envContents = file_get_contents($envPath);
-        $appName = $this->formatEnvValue($validated['app_name']);
-
-        if (preg_match('/^APP_NAME=.*$/m', $envContents)) {
-            $envContents = preg_replace('/^APP_NAME=.*$/m', 'APP_NAME=' . $appName, $envContents);
-        } else {
-            $envContents = rtrim($envContents) . PHP_EOL . 'APP_NAME=' . $appName . PHP_EOL;
+        if (! is_writable($envPath)) {
+            return back()->with('error', 'The application name could not be saved because the server does not allow changes to the .env file.');
         }
 
-        file_put_contents($envPath, $envContents);
+        if (app()->configurationIsCached()) {
+            return back()->with('error', 'Configuration is cached on this server, so a new name would not take effect. Run "php artisan config:clear" first.');
+        }
+
+        $envContents = file_get_contents($envPath);
+        $line = 'APP_NAME=' . $this->formatEnvValue($validated['app_name']);
+
+        if (preg_match('/^APP_NAME=.*$/m', $envContents)) {
+            // Callback form: the replacement is inserted literally (no $1 / \1 back-references).
+            $envContents = preg_replace_callback('/^APP_NAME=.*$/m', fn () => $line, $envContents, 1);
+        } else {
+            $envContents = rtrim($envContents) . PHP_EOL . $line . PHP_EOL;
+        }
+
+        file_put_contents($envPath, $envContents, LOCK_EX);
 
         return back()->with('success', 'Application name updated successfully.');
     }

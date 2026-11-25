@@ -7,6 +7,7 @@ use App\Models\HealthCheckup;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class HealthCheckupController extends Controller
 {
@@ -71,9 +72,16 @@ class HealthCheckupController extends Controller
                 ->route('pharmacist.patients.show', $patient->id)
                 ->with('success', 'Health checkup record saved successfully!');
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            // Details (SQL, table names) go to the log only, never to the page.
+            Log::error('Failed to save health check-up.', [
+                'patient_id' => $patient->id,
+                'pharmacist_id' => Auth::id(),
+                'exception' => $e,
+            ]);
+
             return back()
-                ->with('error', 'Failed to save: ' . $e->getMessage())
+                ->with('error', 'The check-up could not be saved. Please try again, or contact the administrator if it keeps happening.')
                 ->withInput();
         }
     }

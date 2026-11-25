@@ -17,6 +17,12 @@
                 </div>
             @endif
 
+            @if(session('error'))
+                <div class="bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-2xl font-bold">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             @if($errors->any())
                 <div class="bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-2xl">
                     <p class="font-bold mb-2">Please fix these items:</p>

@@ -33,6 +33,11 @@ class HealthRiskPredictionController extends Controller
             return $this->emptyPrediction('BMI, blood pressure, blood sugar, and cholesterol are required.');
         }
 
+        // Shared hosting often disables shell_exec; say so instead of a vague failure.
+        if (! $this->canRunShell()) {
+            return $this->emptyPrediction('ML prediction is unavailable on this server because running Python (shell_exec) is disabled by the hosting provider.');
+        }
+
         $scriptPath = base_path('predict.py');
         $pythonPath = $this->pythonExecutable();
         $command = escapeshellarg($pythonPath) . ' '
@@ -101,9 +106,21 @@ class HealthRiskPredictionController extends Controller
         return (float) preg_replace('/[^0-9.].*/', '', $bloodPressure);
     }
 
+    private function canRunShell(): bool
+    {
+        if (! function_exists('shell_exec')) {
+            return false;
+        }
+
+        $disabled = array_map('trim', explode(',', (string) ini_get('disable_functions')));
+
+        return ! in_array('shell_exec', $disabled, true);
+    }
+
     private function pythonExecutable(): string
     {
-        $configuredPath = env('PYTHON_PATH');
+        // Read via config, not env(): env() returns null once `php artisan config:cache` has run.
+        $configuredPath = config('services.python.path');
 
         if ($configuredPath && file_exists($configuredPath)) {
             return $configuredPath;

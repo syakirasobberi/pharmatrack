@@ -105,6 +105,9 @@ Route::middleware(['auth', 'force_password_change', 'role:pharmacist'])->group(f
     Route::post('/pharmacist/patients/{id}/checkup', [HealthCheckupController::class, 'store'])->name('pharmacist.checkups.store');
 
     Route::get('/pharmacist/quick-scan', [PatientController::class, 'quickScan'])->name('pharmacist.quickScan');
+    Route::post('/pharmacist/quick-scan/identify', [PatientController::class, 'quickScanIdentify'])
+        ->middleware('throttle:120,1')
+        ->name('pharmacist.quickScan.identify');
     Route::post('/pharmacist/patients/update-face', [PatientController::class, 'updateExistingFace'])->name('pharmacist.patients.updateFace');
     Route::delete('/pharmacist/patients/{id}/face', [PatientController::class, 'deleteExistingFace'])->name('pharmacist.patients.deleteFace');
     Route::get('/pharmacist/patients/{id}/medications', [MedicationController::class, 'index'])->name('pharmacist.medication.index');

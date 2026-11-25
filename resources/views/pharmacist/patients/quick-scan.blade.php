@@ -34,10 +34,12 @@
             const statusText = document.getElementById('status');
             const videoContainer = document.getElementById('video-container');
             const cameraSelect = document.getElementById('camera-select');
-            const registeredPatients = @json($patients);
-            const matchThreshold = 0.45;
+            // Matching happens on the server; this page never receives stored face data.
+            const faceCount = {{ (int) $faceCount }};
+            const identifyUrl = @json(route('pharmacist.quickScan.identify'));
+            const csrfToken = @json(csrf_token());
 
-            let faceMatcher = null;
+            let ready = false;
             let canvas = null;
             let scanInterval = null;
 
@@ -60,32 +62,12 @@
                     faceapi.nets.faceRecognitionNet.loadFromUri('{{ asset("models") }}'),
                 ]);
 
-                const labeledDescriptors = registeredPatients.flatMap((patient) => {
-                    try {
-                        const parsedDescriptor = JSON.parse(patient.face_descriptor);
-
-                        if (!Array.isArray(parsedDescriptor) || parsedDescriptor.length !== 128) {
-                            return [];
-                        }
-
-                        return [
-                            new faceapi.LabeledFaceDescriptors(
-                                patient.id.toString(),
-                                [new Float32Array(parsedDescriptor)]
-                            ),
-                        ];
-                    } catch (error) {
-                        console.warn('Skipping invalid face descriptor for patient', patient.id, error);
-                        return [];
-                    }
-                });
-
-                if (labeledDescriptors.length === 0) {
+                if (faceCount === 0) {
                     setStatus('No usable patient face data found. Please register a face first.', 'error');
                     return;
                 }
 
-                faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, matchThreshold);
+                ready = true;
 
                 await populateCameras();
                 await startVideo(cameraSelect.value);
@@ -192,35 +174,68 @@
                 let isProcessing = false;
 
                 scanInterval = setInterval(async () => {
-                    if (isProcessing || !faceMatcher) {
+                    if (isProcessing || !ready) {
                         return;
                     }
 
-                    const detection = await faceapi
-                        .detectSingleFace(video)
-                        .withFaceLandmarks()
-                        .withFaceDescriptor();
+                    isProcessing = true;
 
-                    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                    try {
+                        const detection = await faceapi
+                            .detectSingleFace(video)
+                            .withFaceLandmarks()
+                            .withFaceDescriptor();
 
-                    if (!detection) {
-                        setStatus('No face detected. Please position the face inside the frame.', 'info');
-                        return;
+                        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+
+                        if (!detection) {
+                            setStatus('No face detected. Please position the face inside the frame.', 'info');
+                            return;
+                        }
+
+                        const resizedDetection = faceapi.resizeResults(detection, displaySize);
+                        faceapi.draw.drawDetections(canvas, [resizedDetection]);
+
+                        const response = await fetch(identifyUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                            },
+                            body: JSON.stringify({ descriptor: Array.from(detection.descriptor) }),
+                        });
+
+                        if (response.status === 429) {
+                            setStatus('Too many scans. Please wait a moment...', 'info');
+                            return;
+                        }
+
+                        if (!response.ok) {
+                            setStatus('Recognition service error. Please reload the page.', 'error');
+                            return;
+                        }
+
+                        const result = await response.json();
+
+                        if (result.matched) {
+                            ready = false; // stop scanning; keep isProcessing set while redirecting
+                            setStatus('Patient identified. Redirecting...', 'success');
+                            window.location.href = result.redirect;
+                            return;
+                        }
+
+                        setStatus(result.reason === 'ambiguous'
+                            ? 'Face matches more than one patient closely. Please adjust lighting or angle.'
+                            : 'Face not recognized among your patients.', 'error');
+                    } catch (error) {
+                        console.error(error);
+                        setStatus('Recognition failed. Check the connection and try again.', 'error');
+                    } finally {
+                        if (ready) {
+                            isProcessing = false;
+                        }
                     }
-
-                    const resizedDetection = faceapi.resizeResults(detection, displaySize);
-                    faceapi.draw.drawDetections(canvas, [resizedDetection]);
-
-                    const result = faceMatcher.findBestMatch(detection.descriptor);
-
-                    if (result.label !== 'unknown' && result.distance <= matchThreshold) {
-                        isProcessing = true;
-                        setStatus('Patient identified. Redirecting...', 'success');
-                        window.location.href = `{{ url('/pharmacist/patients') }}/${result.label}/summary`;
-                        return;
-                    }
-
-                    setStatus(`Face not recognized. Current match: ${result.label} (${result.distance.toFixed(2)})`, 'error');
                 }, 600);
             });
         });

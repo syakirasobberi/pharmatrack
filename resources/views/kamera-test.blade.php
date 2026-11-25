@@ -55,9 +55,9 @@
 
         // 1. Load AI Models from the public/models folder
         Promise.all([
-            faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
-            faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-            faceapi.nets.faceRecognitionNet.loadFromUri('/models')
+            faceapi.nets.ssdMobilenetv1.loadFromUri('{{ asset("models") }}'),
+            faceapi.nets.faceLandmark68Net.loadFromUri('{{ asset("models") }}'),
+            faceapi.nets.faceRecognitionNet.loadFromUri('{{ asset("models") }}')
         ]).then(startVideo);
 
         // 2. Start the Camera
