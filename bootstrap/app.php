@@ -21,7 +21,16 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // Every web request: sign out accounts an admin has deactivated.
-        $middleware->web(append: [\App\Http\Middleware\EnsureAccountActive::class]);
+        $middleware->web(append: [
+            \App\Http\Middleware\EnsureAccountActive::class,
+            // Back button after logout must not show cached patient pages.
+            \App\Http\Middleware\PreventCachingWhenLoggedIn::class,
+        ]);
+
+        // Logout works even from a page left open past the session lifetime (120 min):
+        // otherwise its expired CSRF token gives "419 Page Expired" and the user stays
+        // stuck. Logging someone out is harmless, so it needs no CSRF protection.
+        $middleware->validateCsrfTokens(except: ['logout']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
