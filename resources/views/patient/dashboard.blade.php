@@ -42,19 +42,19 @@
                 @endphp
 
                 <!-- Hero Section -->
-                <div class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-8 shadow-2xl text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
+                <div class="bg-gradient-to-br from-teal-600 to-purple-700 rounded-3xl p-8 shadow-2xl text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
                     <!-- Decorative background elements -->
                     <div class="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl"></div>
                     <div class="absolute bottom-0 left-20 w-48 h-48 bg-purple-400 opacity-20 rounded-full blur-2xl"></div>
                     
                     <div class="relative z-10">
-                        <p class="text-indigo-200 text-sm font-semibold tracking-wider uppercase mb-1">Welcome back</p>
+                        <p class="text-teal-200 text-sm font-semibold tracking-wider uppercase mb-1">Welcome back</p>
                         <h1 class="text-4xl font-extrabold mb-2">{{ auth()->user()->name }}!</h1>
-                        <p class="text-indigo-100 text-base">Here is a quick overview of your health records and active medications.</p>
+                        <p class="text-teal-100 text-base">Here is a quick overview of your health records and active medications.</p>
                     </div>
                     <div class="relative z-10 flex gap-4">
                         <div class="bg-white/10 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20 text-center">
-                            <span class="block text-xs text-indigo-200 font-bold uppercase tracking-wider">Today's Date</span>
+                            <span class="block text-xs text-teal-200 font-bold uppercase tracking-wider">Today's Date</span>
                             <span class="block text-lg font-extrabold">{{ now()->format('d M Y') }}</span>
                         </div>
                     </div>
@@ -66,22 +66,22 @@
                 @endphp
 
                 @if($unreadNotifications->isNotEmpty())
-                    <div class="bg-indigo-50/60 border border-indigo-200/50 backdrop-blur-md rounded-3xl p-6 shadow-sm space-y-4">
+                    <div class="bg-teal-50/60 border border-teal-200/50 backdrop-blur-md rounded-3xl p-6 shadow-sm space-y-4">
                         <div class="flex items-center justify-between">
-                            <h3 class="font-extrabold text-lg text-indigo-900 flex items-center gap-2">
+                            <h3 class="font-extrabold text-lg text-teal-900 flex items-center gap-2">
                                 <span class="relative flex h-3 w-3">
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
                                 </span>
                                 System Notifications ({{ $unreadNotifications->count() }})
                             </h3>
-                            <a href="{{ route('patient.notifications.index') }}" class="text-xs font-extrabold uppercase tracking-wide text-indigo-700 hover:text-indigo-900">
+                            <a href="{{ route('patient.notifications.index') }}" class="text-xs font-extrabold uppercase tracking-wide text-teal-700 hover:text-teal-900">
                                 View Inbox
                             </a>
                         </div>
                         <div class="space-y-3">
                             @foreach($unreadNotifications as $notification)
-                                <div class="bg-white/80 border border-indigo-100 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-shadow">
+                                <div class="bg-white/80 border border-teal-100 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-shadow">
                                     <div>
                                         <p class="font-bold text-gray-900 text-base">
                                             {{ $notification->data['title'] ?? 'Notification' }}
@@ -97,13 +97,13 @@
                                     </div>
                                     <div class="flex w-full flex-col gap-2 sm:w-auto">
                                         @if(!empty($notification->data['action_url']))
-                                            <a href="{{ $notification->data['action_url'] }}" class="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2 text-xs font-bold text-indigo-700 ring-1 ring-indigo-200 hover:bg-indigo-50">
+                                            <a href="{{ $notification->data['action_url'] }}" class="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2 text-xs font-bold text-teal-700 ring-1 ring-teal-200 hover:bg-teal-50">
                                                 Open
                                             </a>
                                         @endif
                                         <form action="{{ route('patient.notifications.read', $notification->id) }}" method="POST">
                                             @csrf
-                                            <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-sm">
+                                            <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-teal-600 px-4 py-2 text-xs font-bold text-white hover:bg-teal-700 transition-colors shadow-sm">
                                                 Mark as Read
                                             </button>
                                         </form>
@@ -175,12 +175,12 @@
                             @endforeach
 
                             @foreach($endingSoonMedications as $medication)
-                                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 bg-white border border-blue-100 rounded-2xl p-4">
+                                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 bg-white border border-teal-100 rounded-2xl p-4">
                                     <div>
                                         <p class="font-bold text-gray-900">{{ $medication->name }}</p>
-                                        <p class="text-sm text-blue-800">Treatment ends on {{ \Carbon\Carbon::parse($medication->end_date)->format('d M Y') }}.</p>
+                                        <p class="text-sm text-teal-800">Treatment ends on {{ \Carbon\Carbon::parse($medication->end_date)->format('d M Y') }}.</p>
                                     </div>
-                                    <span class="text-xs font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">Ending soon</span>
+                                    <span class="text-xs font-bold text-teal-700 bg-teal-100 px-3 py-1 rounded-full">Ending soon</span>
                                 </div>
                             @endforeach
                         </div>
@@ -189,7 +189,7 @@
 
                 <!-- Health Vitals Quick Stats -->
                 <h3 class="text-xl font-extrabold text-gray-800 flex items-center gap-2">
-                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-teal-100 text-teal-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
@@ -199,7 +199,7 @@
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                     {{-- Age --}}
                     <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow">
-                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-3">
+                        <div class="w-12 h-12 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center mb-3">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                             </svg>
@@ -277,7 +277,7 @@
                     </div>
 
                     <div class="mt-6 text-center">
-                        <a href="{{ route('patient.checkups') }}" class="text-sm font-bold text-indigo-600 hover:text-indigo-800">View All Checkups &rarr;</a>
+                        <a href="{{ route('patient.checkups') }}" class="text-sm font-bold text-teal-600 hover:text-teal-800">View All Checkups &rarr;</a>
                     </div>
                 </div>
 
@@ -290,8 +290,8 @@
                                     💊 Active Medications
                                 </h3>
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full">{{ $patient->currentMedications->count() }} Prescriptions</span>
-                                    <a href="{{ route('patient.medications') }}" class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-indigo-700">
+                                    <span class="bg-teal-100 text-teal-800 text-xs font-bold px-3 py-1 rounded-full">{{ $patient->currentMedications->count() }} Prescriptions</span>
+                                    <a href="{{ route('patient.medications') }}" class="inline-flex items-center justify-center rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-teal-700">
                                         Add / Update Medication
                                     </a>
                                 </div>
@@ -299,15 +299,15 @@
 
                             <div class="space-y-4">
                                 @forelse($patient->currentMedications as $med)
-                                    <div class="flex items-start p-5 border border-gray-100 rounded-2xl hover:border-indigo-200 hover:bg-indigo-50/30 transition-all shadow-sm">
-                                        <div class="flex-shrink-0 w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center text-2xl shadow-inner mr-4">
+                                    <div class="flex items-start p-5 border border-gray-100 rounded-2xl hover:border-teal-200 hover:bg-teal-50/30 transition-all shadow-sm">
+                                        <div class="flex-shrink-0 w-12 h-12 bg-teal-100 text-teal-600 rounded-xl flex items-center justify-center text-2xl shadow-inner mr-4">
                                             💊
                                         </div>
                                         <div class="flex-grow">
                                             <h4 class="text-lg font-bold text-gray-900">{{ $med->name }}</h4>
                                             <p class="text-sm text-gray-500 font-medium mt-1">Dosage: <span class="text-gray-800">{{ $med->dosage }}</span></p>
                                             <div class="mt-3 bg-gray-50 rounded-lg p-3 text-sm text-gray-700 border border-gray-100">
-                                                <span class="font-bold text-gray-800 flex items-center gap-1"><svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Instructions:</span> 
+                                                <span class="font-bold text-gray-800 flex items-center gap-1"><svg class="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Instructions:</span> 
                                                 {{ $med->frequency ?: ($med->notes ?: 'Follow the dosage recorded by your pharmacist.') }}
                                             </div>
                                         </div>

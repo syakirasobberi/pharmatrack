@@ -6,7 +6,7 @@
     <div class="py-8 bg-gray-50 min-h-screen flex items-center justify-center">
         <div class="max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8">
             
-            <a href="{{ route('pharmacist.patients.show', $patient->id) }}" class="inline-flex items-center text-gray-500 hover:text-blue-600 font-bold mb-6 transition-colors">
+            <a href="{{ route('pharmacist.patients.show', $patient->id) }}" class="inline-flex items-center text-gray-500 hover:text-teal-600 font-bold mb-6 transition-colors">
                 &larr; Back to Patient Profile
             </a>
 

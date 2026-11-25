@@ -10,16 +10,16 @@
             <div class="rounded-3xl bg-white p-8 shadow-sm border border-gray-100">
                 <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
-                        <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">Notification Inbox</p>
+                        <p class="text-xs font-bold uppercase tracking-wide text-teal-600">Notification Inbox</p>
                         <h1 class="mt-1 text-3xl font-extrabold text-gray-900">Reminders and System Alerts</h1>
                         <p class="mt-2 max-w-2xl text-sm text-gray-500">
                             View pharmacy reminders and mark them as read after reviewing the details.
                         </p>
                     </div>
                     <div class="grid grid-cols-2 gap-3 sm:min-w-64">
-                        <div class="rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-3">
-                            <p class="text-xs font-bold uppercase text-indigo-700">Unread</p>
-                            <p class="mt-1 text-2xl font-black text-indigo-950">{{ $unreadCount }}</p>
+                        <div class="rounded-2xl border border-teal-100 bg-teal-50 px-4 py-3">
+                            <p class="text-xs font-bold uppercase text-teal-700">Unread</p>
+                            <p class="mt-1 text-2xl font-black text-teal-950">{{ $unreadCount }}</p>
                         </div>
                         <div class="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
                             <p class="text-xs font-bold uppercase text-gray-500">Total</p>
@@ -49,10 +49,10 @@
                         $metaDate = $data['last_checkup_date'] ?? $data['last_medication_update'] ?? null;
                     @endphp
 
-                    <article class="rounded-3xl border {{ $isUnread ? 'border-indigo-200 bg-indigo-50/70' : 'border-gray-100 bg-white' }} p-6 shadow-sm">
+                    <article class="rounded-3xl border {{ $isUnread ? 'border-teal-200 bg-teal-50/70' : 'border-gray-100 bg-white' }} p-6 shadow-sm">
                         <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                             <div class="flex gap-4">
-                                <span class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl {{ $isUnread ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500' }}">
+                                <span class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl {{ $isUnread ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-500' }}">
                                     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 01-6 0m6 0H9"></path>
                                     </svg>
@@ -63,7 +63,7 @@
                                         <h2 class="text-lg font-extrabold text-gray-900">
                                             {{ $data['title'] ?? 'Notification' }}
                                         </h2>
-                                        <span class="inline-flex rounded-full px-3 py-1 text-xs font-extrabold {{ $isUnread ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600' }}">
+                                        <span class="inline-flex rounded-full px-3 py-1 text-xs font-extrabold {{ $isUnread ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-600' }}">
                                             {{ $isUnread ? 'Unread' : 'Read' }}
                                         </span>
                                     </div>
@@ -92,7 +92,7 @@
 
                             <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row lg:flex-col">
                                 @if($actionUrl)
-                                    <a href="{{ $actionUrl }}" class="inline-flex items-center justify-center rounded-xl border border-indigo-200 bg-white px-4 py-2.5 text-sm font-extrabold text-indigo-700 hover:bg-indigo-50">
+                                    <a href="{{ $actionUrl }}" class="inline-flex items-center justify-center rounded-xl border border-teal-200 bg-white px-4 py-2.5 text-sm font-extrabold text-teal-700 hover:bg-teal-50">
                                         Open Reminder
                                     </a>
                                 @endif
@@ -100,7 +100,7 @@
                                 @if($isUnread)
                                     <form action="{{ route('patient.notifications.read', $notification->id) }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-sm hover:bg-indigo-700">
+                                        <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-sm hover:bg-teal-700">
                                             Mark as Read
                                         </button>
                                     </form>

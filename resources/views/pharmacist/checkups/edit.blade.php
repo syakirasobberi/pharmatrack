@@ -18,7 +18,7 @@
 
     <div class="py-8 sm:py-12 bg-gray-50 min-h-screen">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <a href="{{ route('pharmacist.patients.show', $patient->id) }}" class="text-sm font-bold text-blue-600 hover:text-blue-800">&larr; Back to Patient Profile</a>
+            <a href="{{ route('pharmacist.patients.show', $patient->id) }}" class="text-sm font-bold text-teal-600 hover:text-teal-800">&larr; Back to Patient Profile</a>
 
             <div class="mt-4 bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
                 <div class="px-6 sm:px-8 py-6 border-b border-gray-100 bg-amber-50/60">
@@ -56,11 +56,11 @@
                             <label for="checkup_date" class="block text-sm font-bold text-gray-700 mb-1">Check-up Date <span class="text-red-500">*</span></label>
                             <input type="date" id="checkup_date" name="checkup_date" required max="{{ today()->toDateString() }}"
                                    value="{{ old('checkup_date', $checkup->checkup_date?->toDateString()) }}"
-                                   class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                   class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                         </div>
                         <div>
                             <label for="report_source" class="block text-sm font-bold text-gray-700 mb-1">Report Source</label>
-                            <select id="report_source" name="report_source" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <select id="report_source" name="report_source" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <option value="">— Select source —</option>
                                 @foreach($reportSources as $value => $label)
                                     <option value="{{ $value }}" @selected(old('report_source', $checkup->report_source) === $value)>{{ $label }}</option>
@@ -85,7 +85,7 @@
                                         </label>
                                         <input type="text" inputmode="decimal" id="{{ $field }}" name="{{ $field }}"
                                                value="{{ old($field, $display($checkup->$field)) }}" placeholder="{{ $placeholder }}"
-                                               class="w-full rounded-xl shadow-sm focus:border-blue-500 focus:ring-blue-500 {{ $errors->has($field) ? 'border-red-400 bg-red-50' : 'border-gray-300' }}">
+                                               class="w-full rounded-xl shadow-sm focus:border-teal-500 focus:ring-teal-500 {{ $errors->has($field) ? 'border-red-400 bg-red-50' : 'border-gray-300' }}">
                                     </div>
                                 @endforeach
                             </div>
@@ -95,12 +95,12 @@
                     <div>
                         <label for="notes" class="block text-sm font-bold text-gray-700 mb-1">Pharmacist Notes</label>
                         <textarea id="notes" name="notes" rows="3" maxlength="2000"
-                                  class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('notes', $checkup->notes) }}</textarea>
+                                  class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">{{ old('notes', $checkup->notes) }}</textarea>
                     </div>
 
                     <div class="flex flex-wrap items-center justify-end gap-3 pt-2 border-t border-gray-100">
                         <a href="{{ route('pharmacist.patients.show', $patient->id) }}" class="px-5 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 font-bold hover:bg-gray-50">Cancel</a>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700">Save Changes</button>
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-teal-600 text-white font-bold hover:bg-teal-700">Save Changes</button>
                     </div>
                 </form>
             </div>

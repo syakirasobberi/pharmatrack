@@ -6,7 +6,7 @@
     <div class="py-8 bg-slate-50 min-h-screen">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <div>
-                <a href="{{ route('admin.dashboard') }}" class="text-sm font-bold text-slate-500 hover:text-emerald-700">&larr; Back to Admin Dashboard</a>
+                <a href="{{ route('admin.dashboard') }}" class="text-sm font-bold text-slate-500 hover:text-teal-700">&larr; Back to Admin Dashboard</a>
                 <h1 class="text-2xl font-extrabold text-slate-900 mt-2">Reports & Monitoring</h1>
                 <p class="text-sm text-slate-500 mt-1">System-wide operational reporting for users, check-ups, clinical alerts, and medication follow-ups.</p>
             </div>

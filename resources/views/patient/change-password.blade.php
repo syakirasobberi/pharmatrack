@@ -5,7 +5,7 @@
         <div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             {{-- Page Header --}}
-            <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:1.5rem;padding:2rem 2.5rem;color:#fff;position:relative;overflow:hidden;">
+            <div style="background:linear-gradient(135deg,#0d9488,#0891b2);border-radius:1.5rem;padding:2rem 2.5rem;color:#fff;position:relative;overflow:hidden;">
                 <div style="position:absolute;top:-30px;right:-30px;width:130px;height:130px;background:rgba(255,255,255,0.08);border-radius:50%;"></div>
                 <p style="font-size:.75rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#c4b5fd;margin-bottom:.25rem;">Account Settings</p>
                 <h1 style="font-size:1.75rem;font-weight:900;margin:0;">Change Password</h1>
@@ -56,7 +56,7 @@
                     </div>
 
                     <button type="submit"
-                        style="width:100%;padding:.875rem;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;font-weight:700;font-size:.95rem;border:none;border-radius:.875rem;cursor:pointer;transition:opacity .2s;"
+                        style="width:100%;padding:.875rem;background:linear-gradient(135deg,#0d9488,#0891b2);color:#fff;font-weight:700;font-size:.95rem;border:none;border-radius:.875rem;cursor:pointer;transition:opacity .2s;"
                         onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">
                         Update Password
                     </button>

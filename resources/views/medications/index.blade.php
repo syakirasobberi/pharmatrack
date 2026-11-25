@@ -38,28 +38,28 @@
     <div class="py-8 bg-slate-50 min-h-screen" x-data="{ addModalOpen: {{ ($errors->any() || session('drug_warnings')) ? 'true' : 'false' }} }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <div class="flex flex-wrap items-center justify-between gap-4">
-                <a href="{{ route('pharmacist.patients.summary', $patient->id) }}" class="inline-flex items-center text-slate-500 hover:text-blue-700 font-bold transition-colors text-sm">
+                <a href="{{ route('pharmacist.patients.summary', $patient->id) }}" class="inline-flex items-center text-slate-500 hover:text-teal-700 font-bold transition-colors text-sm">
                     &larr; Back to Patient Summary
                 </a>
 
-                <button @click="addModalOpen = true" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-colors">
+                <button @click="addModalOpen = true" class="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-md transition-colors">
                     Add Medication
                 </button>
             </div>
 
             <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="px-6 py-6 md:px-8 bg-gradient-to-r from-emerald-600 to-teal-600 text-white">
+                <div class="px-6 py-6 md:px-8 bg-gradient-to-r from-teal-600 to-teal-600 text-white">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
                         <div class="flex items-center gap-4">
                             <img
-                                src="https://ui-avatars.com/api/?name={{ urlencode($patientName) }}&background=ffffff&color=059669&size=128&font-size=0.35&bold=true"
+                                src="https://ui-avatars.com/api/?name={{ urlencode($patientName) }}&background=ffffff&color=0d9488&size=128&font-size=0.35&bold=true"
                                 alt="Patient avatar"
                                 class="w-18 h-18 rounded-full border-4 border-white/50 shadow-sm"
                             >
                             <div>
-                                <p class="text-sm font-bold uppercase tracking-[0.2em] text-emerald-100">Medication Overview</p>
+                                <p class="text-sm font-bold uppercase tracking-[0.2em] text-teal-100">Medication Overview</p>
                                 <h1 class="text-3xl font-extrabold">{{ $patientName }}</h1>
-                                <div class="flex flex-wrap gap-3 text-sm text-emerald-50 mt-2">
+                                <div class="flex flex-wrap gap-3 text-sm text-teal-50 mt-2">
                                     <span>{{ $patient->gender }}</span>
                                     <span>{{ $patient->age }} years</span>
                                     <span>{{ $patient->weight }} kg</span>
@@ -67,7 +67,7 @@
                             </div>
                         </div>
 
-                        <div class="max-w-md text-sm text-emerald-50">
+                        <div class="max-w-md text-sm text-teal-50">
                             <p class="font-bold">How to use this page</p>
                             <p class="mt-1">Review the status cards first, then check the medication table. Use “Add Medication” to record a new prescription with start date, end date, and latest dose date.</p>
                         </div>
@@ -115,7 +115,7 @@
                         @empty
                             <span class="text-slate-500">None recorded</span>
                         @endforelse
-                        <a href="{{ route('pharmacist.patients.medical.edit', $patient->id) }}" class="ml-1 text-xs font-bold text-blue-600 hover:text-blue-800">Edit medical history</a>
+                        <a href="{{ route('pharmacist.patients.medical.edit', $patient->id) }}" class="ml-1 text-xs font-bold text-teal-600 hover:text-teal-800">Edit medical history</a>
                     </div>
 
                     @if($safetyWarnings)
@@ -183,7 +183,7 @@
                                         <span>{{ number_format($progressPercent, 1) }}%</span>
                                     </div>
                                     <div class="h-3 rounded-full overflow-hidden {{ $isNonCompliant ? 'bg-red-100' : 'bg-emerald-100' }}">
-                                        <div class="h-3 rounded-full {{ $isNonCompliant ? 'bg-red-500' : 'bg-emerald-500' }}" style="width: {{ $progressPercent }}%"></div>
+                                        <div class="h-3 rounded-full {{ $isNonCompliant ? 'bg-red-500' : 'bg-teal-500' }}" style="width: {{ $progressPercent }}%"></div>
                                     </div>
                                     <p class="mt-2 text-xs {{ $isNonCompliant ? 'text-red-600' : 'text-emerald-700' }}">
                                         Start: {{ $startDate?->format('d M Y') ?? 'not recorded' }} | End: {{ $endDate?->format('d M Y') ?? 'ongoing' }}
@@ -217,7 +217,7 @@
                                 <h2 class="text-lg font-extrabold text-slate-800">Medication List</h2>
                                 <p class="text-sm text-slate-500 mt-1">Each row shows what the patient is taking, for how long, and whether follow-up is needed.</p>
                             </div>
-                            <button @click="addModalOpen = true" class="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors">
+                            <button @click="addModalOpen = true" class="px-4 py-2 rounded-xl bg-teal-600 text-white font-bold hover:bg-teal-700 transition-colors">
                                 Add Medication
                             </button>
                         </div>
@@ -310,28 +310,28 @@
                                             <td class="py-4 px-6 text-right align-top">
                                                 <div class="flex flex-col items-end gap-2">
                                                     <a href="{{ route('pharmacist.medication.edit', $medication->id) }}"
-                                                       class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-blue-600 hover:bg-blue-50"
+                                                       class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-teal-600 hover:bg-teal-50"
                                                        aria-label="Edit {{ $medication->name }}">Edit</a>
                                                     {{-- Refill dispensed today; leftover supply carries forward. --}}
                                                     <details class="text-left">
-                                                        <summary class="list-none cursor-pointer px-3 py-1.5 rounded-lg border {{ in_array($medication->refillStatus(), ['due', 'overdue']) || $medication->refill_requested_at ? 'border-indigo-400 bg-indigo-50' : 'border-indigo-200' }} text-xs font-bold text-indigo-700 hover:bg-indigo-50 text-right">Refill…</summary>
+                                                        <summary class="list-none cursor-pointer px-3 py-1.5 rounded-lg border {{ in_array($medication->refillStatus(), ['due', 'overdue']) || $medication->refill_requested_at ? 'border-teal-400 bg-teal-50' : 'border-teal-200' }} text-xs font-bold text-teal-700 hover:bg-teal-50 text-right">Refill…</summary>
                                                         <form method="POST" action="{{ route('pharmacist.medication.refill', $medication->id) }}"
-                                                              class="mt-2 w-64 rounded-xl border border-indigo-200 bg-indigo-50 p-3 space-y-2" x-data="{ days: 30 }">
+                                                              class="mt-2 w-64 rounded-xl border border-teal-200 bg-teal-50 p-3 space-y-2" x-data="{ days: 30 }">
                                                             @csrf
                                                             <label for="refill-days-{{ $medication->id }}" class="block text-xs font-bold text-slate-700">Dispensed today: supply for how many days?</label>
                                                             <div class="flex gap-1">
                                                                 @foreach([30, 60, 90] as $preset)
-                                                                    <button type="button" @click="days = {{ $preset }}" :class="days == {{ $preset }} ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-700'" class="flex-1 rounded-lg border border-indigo-300 px-2 py-1 text-xs font-bold">{{ $preset }}</button>
+                                                                    <button type="button" @click="days = {{ $preset }}" :class="days == {{ $preset }} ? 'bg-teal-600 text-white' : 'bg-white text-teal-700'" class="flex-1 rounded-lg border border-teal-300 px-2 py-1 text-xs font-bold">{{ $preset }}</button>
                                                                 @endforeach
                                                             </div>
                                                             <input id="refill-days-{{ $medication->id }}" type="number" name="days" min="1" max="365" required x-model="days" class="w-full rounded-lg border-slate-300 text-xs">
                                                             <p class="text-[11px] text-slate-500">{{ $medication->supply_until && $medication->supply_until->isFuture() ? 'Added on top of the current supply (until ' . $medication->supply_until->format('d M') . ').' : 'Counted from today.' }}</p>
-                                                            <button type="submit" class="w-full px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs">Record refill</button>
+                                                            <button type="submit" class="w-full px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg text-xs">Record refill</button>
                                                         </form>
                                                     </details>
                                                     {{-- Dose the patient reports at the counter / by phone. --}}
                                                     <details class="text-left">
-                                                        <summary class="list-none cursor-pointer px-3 py-1.5 rounded-lg border border-emerald-200 text-xs font-bold text-emerald-700 hover:bg-emerald-50 text-right">Log dose…</summary>
+                                                        <summary class="list-none cursor-pointer px-3 py-1.5 rounded-lg border border-emerald-200 text-xs font-bold text-emerald-700 hover:bg-teal-50 text-right">Log dose…</summary>
                                                         <div class="mt-2 w-64 rounded-xl border border-emerald-200 bg-emerald-50 p-3 space-y-3">
                                                             <form method="POST" action="{{ route('pharmacist.medication.doses.store', $medication->id) }}" class="space-y-2">
                                                                 @csrf
@@ -339,7 +339,7 @@
                                                                 <input id="dose-date-{{ $medication->id }}" type="date" name="taken_on" required
                                                                        value="{{ today()->toDateString() }}" max="{{ today()->toDateString() }}" min="{{ \App\Support\Adherence::windowStart()->toDateString() }}"
                                                                        class="w-full rounded-lg border-slate-300 text-xs">
-                                                                <button type="submit" class="w-full px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs">Log dose</button>
+                                                                <button type="submit" class="w-full px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg text-xs">Log dose</button>
                                                             </form>
                                                             @php $loggedDays = $medication->doses->sortByDesc('taken_on'); @endphp
                                                             @if($loggedDays->isNotEmpty())
@@ -414,12 +414,12 @@
                                                         @endif
                                                     </td>
                                                     <td class="py-3 px-6 text-right whitespace-nowrap">
-                                                        <a href="{{ route('pharmacist.medication.edit', $past->id) }}" class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-blue-600 hover:bg-blue-50">Edit</a>
+                                                        <a href="{{ route('pharmacist.medication.edit', $past->id) }}" class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-teal-600 hover:bg-teal-50">Edit</a>
                                                         @if($past->status() === 'Stopped')
                                                             <form method="POST" action="{{ route('pharmacist.medication.resume', $past->id) }}" class="inline">
                                                                 @csrf
                                                                 @method('PATCH')
-                                                                <button class="ml-1 px-3 py-1.5 rounded-lg border border-emerald-300 bg-white text-xs font-bold text-emerald-700 hover:bg-emerald-50">Resume</button>
+                                                                <button class="ml-1 px-3 py-1.5 rounded-lg border border-teal-300 bg-white text-xs font-bold text-teal-700 hover:bg-teal-50">Resume</button>
                                                             </form>
                                                         @endif
                                                     </td>
@@ -489,7 +489,7 @@
                                         </svg>
                                     </div>
                                     <div class="pr-12">
-                                        <p class="text-xs font-bold uppercase tracking-[0.24em] text-emerald-600">Medication Form</p>
+                                        <p class="text-xs font-bold uppercase tracking-[0.24em] text-teal-600">Medication Form</p>
                                         <h2 class="text-[28px] leading-tight font-extrabold text-slate-900 mt-2">Add medication for {{ $patientName }}</h2>
                                         <p class="text-sm text-slate-500 mt-3 max-w-xl">Record one medication clearly so the system can track timing, dose status, and treatment progress without confusion.</p>
                                     </div>
@@ -511,22 +511,22 @@
                                         <div class="space-y-4">
                                             <div>
                                                 <label class="block text-sm font-bold text-slate-700 mb-1.5">Medication name</label>
-                                                <input type="text" name="name" value="{{ old('name') }}" placeholder="Metformin, Rifampicin, Isoniazid..." required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 transition-colors">
+                                                <input type="text" name="name" value="{{ old('name') }}" placeholder="Metformin, Rifampicin, Isoniazid..." required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">
                                             </div>
 
                                             <div>
                                                 <label class="block text-sm font-bold text-slate-700 mb-1.5">Dosage</label>
-                                                <input type="text" name="dosage" value="{{ old('dosage') }}" placeholder="500mg twice daily after meals" required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 transition-colors">
+                                                <input type="text" name="dosage" value="{{ old('dosage') }}" placeholder="500mg twice daily after meals" required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">
                                             </div>
 
                                             <div>
                                                 <label class="block text-sm font-bold text-slate-700 mb-1.5">Frequency</label>
-                                                <input type="text" name="frequency" value="{{ old('frequency') }}" placeholder="Twice daily, once at night, every 8 hours..." class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 transition-colors">
+                                                <input type="text" name="frequency" value="{{ old('frequency') }}" placeholder="Twice daily, once at night, every 8 hours..." class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">
                                             </div>
 
                                             <div>
                                                 <label class="block text-sm font-bold text-slate-700 mb-1.5">Extra notes</label>
-                                                <input type="text" name="notes" value="{{ old('notes') }}" placeholder="Before breakfast, avoid dairy, take with water..." class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 transition-colors">
+                                                <input type="text" name="notes" value="{{ old('notes') }}" placeholder="Before breakfast, avoid dairy, take with water..." class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">
                                             </div>
                                         </div>
                                     </div>
@@ -536,15 +536,15 @@
                                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div>
                                                 <label class="block text-sm font-bold text-slate-700 mb-1.5">Start date</label>
-                                                <input type="date" name="start_date" id="start_date" value="{{ old('start_date') }}" required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 transition-colors">
+                                                <input type="date" name="start_date" id="start_date" value="{{ old('start_date') }}" required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-bold text-slate-700 mb-1.5">End date <span class="font-normal text-slate-400">(leave blank if long-term)</span></label>
-                                                <input type="date" name="end_date" id="end_date" value="{{ old('end_date') }}" class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 transition-colors">
+                                                <input type="date" name="end_date" id="end_date" value="{{ old('end_date') }}" class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-bold text-slate-700 mb-1.5">Latest dose date</label>
-                                                <input type="date" name="last_taken" value="{{ old('last_taken') }}" required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 transition-colors">
+                                                <input type="date" name="last_taken" value="{{ old('last_taken') }}" required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">
                                             </div>
                                         </div>
 
@@ -552,9 +552,9 @@
                                             <label for="supply_days" class="block text-sm font-bold text-slate-700 mb-1.5">Supply dispensed today <span class="font-normal text-slate-400">(days — for refill reminders; leave blank if not dispensed here)</span></label>
                                             <div class="flex flex-wrap items-center gap-2">
                                                 @foreach([30, 60, 90] as $preset)
-                                                    <button type="button" @click="supply = {{ $preset }}" :class="supply == {{ $preset }} ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-emerald-700 border-emerald-300'" class="rounded-xl border px-3 py-2 text-sm font-bold">{{ $preset }} days</button>
+                                                    <button type="button" @click="supply = {{ $preset }}" :class="supply == {{ $preset }} ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-teal-700 border-teal-300'" class="rounded-xl border px-3 py-2 text-sm font-bold">{{ $preset }} days</button>
                                                 @endforeach
-                                                <input id="supply_days" type="number" name="supply_days" min="1" max="365" x-model="supply" placeholder="Other" class="w-28 rounded-2xl border-slate-300 bg-white shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200">
+                                                <input id="supply_days" type="number" name="supply_days" min="1" max="365" x-model="supply" placeholder="Other" class="w-28 rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200">
                                             </div>
                                             <p class="mt-1 text-xs text-slate-500" x-show="supply" x-text="'Runs out on ' + new Date(Date.now() + supply * 86400000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + '. The patient is reminded {{ \App\Models\Medication::REFILL_NOTICE_DAYS }} days before.'"></p>
                                         </div>
@@ -566,15 +566,15 @@
                                         <p class="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">Quick Guide</p>
                                         <ul class="mt-4 space-y-3 text-sm text-emerald-900">
                                             <li class="flex gap-2">
-                                                <span class="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span>
+                                                <span class="mt-1 h-2 w-2 rounded-full bg-teal-500"></span>
                                                 <span>Use the full medication name to make searching easier later.</span>
                                             </li>
                                             <li class="flex gap-2">
-                                                <span class="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span>
+                                                <span class="mt-1 h-2 w-2 rounded-full bg-teal-500"></span>
                                                 <span>Write dosage as the patient should actually take it.</span>
                                             </li>
                                             <li class="flex gap-2">
-                                                <span class="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span>
+                                                <span class="mt-1 h-2 w-2 rounded-full bg-teal-500"></span>
                                                 <span>The latest dose date helps the status tracker know if treatment is on time.</span>
                                             </li>
                                         </ul>
@@ -590,10 +590,10 @@
 
                         <div class="bg-white px-6 md:px-8 py-5 border-t border-slate-100">
                             <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-                                <button type="button" @click="addModalOpen = false" class="w-full sm:w-44 inline-flex justify-center rounded-xl border border-slate-300 shadow-sm px-5 py-3 bg-white text-sm font-bold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors">
+                                <button type="button" @click="addModalOpen = false" class="w-full sm:w-44 inline-flex justify-center rounded-xl border border-slate-300 shadow-sm px-5 py-3 bg-white text-sm font-bold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors">
                                     Cancel
                                 </button>
-                                <button type="submit" class="w-full sm:w-56 inline-flex justify-center rounded-xl border border-transparent shadow-sm px-5 py-3 bg-emerald-600 text-sm font-bold text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors">
+                                <button type="submit" class="w-full sm:w-56 inline-flex justify-center rounded-xl border border-transparent shadow-sm px-5 py-3 bg-teal-600 text-sm font-bold text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors">
                                 Save Medication
                                 </button>
                             </div>

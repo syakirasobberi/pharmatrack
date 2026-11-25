@@ -12,7 +12,7 @@
             line-height: 1.5;
         }
         .header {
-            border-bottom: 3px solid #1d4ed8;
+            border-bottom: 3px solid #0f766e;
             padding-bottom: 16px;
             margin-bottom: 24px;
         }
@@ -30,7 +30,7 @@
         .section h2 {
             font-size: 18px;
             margin: 0 0 10px;
-            color: #1e3a8a;
+            color: #134e4a;
         }
         .grid {
             display: grid;
@@ -65,7 +65,7 @@
             vertical-align: top;
         }
         th {
-            background: #eff6ff;
+            background: #f0fdfa;
         }
         ul {
             margin: 8px 0 0 18px;

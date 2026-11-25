@@ -11,18 +11,18 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --primary:    #0284c7; /* Deep Medical Blue */
-            --primary-l:  #0ea5e9; /* Light Blue */
+            --primary:    #0d9488; /* Brand Teal */
+            --primary-l:  #14b8a6; /* Light Teal */
             --secondary:  #059669; /* Success Green */
             --bg:         #f8fafc; /* Crisp Light Gray/Blue */
             --surface:    rgba(255, 255, 255, 0.75);
             --surface-solid: #ffffff;
-            --border:     rgba(14, 165, 233, 0.15);
-            --border-hover: rgba(14, 165, 233, 0.3);
+            --border:     rgba(20, 184, 166, 0.15);
+            --border-hover: rgba(20, 184, 166, 0.3);
             --text:       #0f172a; /* Slate Dark */
             --muted:      #64748b; /* Slate Gray */
             --shadow-sm:  0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            --shadow-lg:  0 12px 32px rgba(14, 165, 233, 0.08);
+            --shadow-lg:  0 12px 32px rgba(20, 184, 166, 0.08);
             --glass-blur: blur(24px);
         }
 
@@ -46,7 +46,7 @@
         /* Subtle technical dot grid */
         .bg-grid {
             position: fixed; inset: 0; z-index: 0;
-            background-image: radial-gradient(rgba(14, 165, 233, 0.15) 1px, transparent 1px);
+            background-image: radial-gradient(rgba(20, 184, 166, 0.15) 1px, transparent 1px);
             background-size: 32px 32px;
             opacity: 0.6;
         }
@@ -61,7 +61,7 @@
         
         .blob-1 {
             width: 500px; height: 500px;
-            background: rgba(14, 165, 233, 0.4); /* Primary blue */
+            background: rgba(20, 184, 166, 0.4); /* Primary blue */
             top: -100px; left: -100px;
         }
 
@@ -153,11 +153,11 @@
             padding: 34px;
             border: 1px solid rgba(255, 255, 255, 0.72); border-radius: 30px;
             background-image:
-                linear-gradient(90deg, rgba(248, 250, 252, 0.96), rgba(240, 249, 255, 0.82) 46%, rgba(14, 165, 233, 0.16)),
+                linear-gradient(90deg, rgba(248, 250, 252, 0.96), rgba(240, 253, 250, 0.82) 46%, rgba(20, 184, 166, 0.16)),
                 url('{{ asset('storage/bg3.png') }}');
             background-size: cover;
             background-position: center;
-            box-shadow: 0 22px 54px rgba(14, 165, 233, 0.16);
+            box-shadow: 0 22px 54px rgba(20, 184, 166, 0.16);
         }
 
         .glass-card {
@@ -172,7 +172,7 @@
         .welcome-card { flex: 1.2; background: rgba(255, 255, 255, 0.93); min-width: 280px; }
         .about-card { 
             flex: 1; min-width: 280px;
-            background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(240,249,255,0.82));
+            background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(240, 253, 250,0.82));
         }
 
         @keyframes floatUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -183,7 +183,7 @@
 
         .badge {
             display: inline-block; padding: 6px 14px; border-radius: 20px;
-            background: rgba(14, 165, 233, 0.1); color: var(--primary);
+            background: rgba(20, 184, 166, 0.1); color: var(--primary);
             font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-bottom: 16px;
             align-self: flex-start;
         }
@@ -193,9 +193,9 @@
             width: 100%; padding: 16px 24px; border-radius: 16px;
             font-size: 1.05rem; font-weight: 700; cursor: pointer; border: none;
             background: linear-gradient(135deg, var(--primary-l), var(--primary)); color: #fff;
-            box-shadow: 0 8px 24px rgba(14, 165, 233, 0.25); transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(20, 184, 166, 0.25); transition: all 0.3s ease;
         }
-        .btn-start:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(14, 165, 233, 0.35); }
+        .btn-start:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(20, 184, 166, 0.35); }
         
         .login-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 16px; }
         
@@ -219,7 +219,7 @@
         /* ── Registration Banner ── */
         .registration-banner {
             width: 100%; max-width: 1100px;
-            background: #f0f9ff; border: 1px solid #bae6fd;
+            background: #f0fdfa; border: 1px solid #99f6e4;
             border-radius: 20px; padding: 24px 32px;
             display: flex; align-items: center; gap: 20px;
             box-shadow: var(--shadow-sm); margin-top: 8px;
@@ -229,11 +229,11 @@
             flex-shrink: 0; width: 48px; height: 48px; border-radius: 14px;
             background: var(--primary); color: #fff;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
+            box-shadow: 0 4px 12px rgba(20, 184, 166, 0.2);
         }
 
-        .registration-content h3 { font-size: 1.05rem; font-weight: 700; color: #0369a1; margin-bottom: 4px; }
-        .registration-content p { font-size: 0.9rem; color: #075985; line-height: 1.5; }
+        .registration-content h3 { font-size: 1.05rem; font-weight: 700; color: #0f766e; margin-bottom: 4px; }
+        .registration-content p { font-size: 0.9rem; color: #115e59; line-height: 1.5; }
 
         @media (max-width: 600px) {
             .registration-banner { flex-direction: column; text-align: center; padding: 24px; }
@@ -267,7 +267,7 @@
             background: linear-gradient(135deg, var(--primary-l), var(--primary));
             display: flex; align-items: center; justify-content: center;
             font-size: 1.2rem; font-weight: 800; color: #fff;
-            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+            box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
         }
 
         .step-title { font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 12px; }
@@ -290,9 +290,9 @@
 
         .feature-icon-wrapper {
             width: 64px; height: 64px; border-radius: 16px; margin-bottom: 20px;
-            background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(2, 132, 199, 0.15));
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1), rgba(13, 148, 136, 0.15));
             display: flex; align-items: center; justify-content: center;
-            color: var(--primary); border: 1px solid rgba(14, 165, 233, 0.2);
+            color: var(--primary); border: 1px solid rgba(20, 184, 166, 0.2);
         }
 
         .feature-title { font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 12px; }
@@ -330,7 +330,7 @@
         
         .cam-frame::after {
             content: ''; position: absolute; inset: 16px;
-            border: 2px solid rgba(14, 165, 233, 0.5); border-radius: 16px; pointer-events: none;
+            border: 2px solid rgba(20, 184, 166, 0.5); border-radius: 16px; pointer-events: none;
         }
 
         .scan-line {
@@ -366,7 +366,7 @@
         }
         .kiosk-step-num {
             width: 36px; height: 36px; border-radius: 12px; flex-shrink: 0;
-            background: rgba(14, 165, 233, 0.1); color: var(--primary);
+            background: rgba(20, 184, 166, 0.1); color: var(--primary);
             display: flex; align-items: center; justify-content: center; font-weight: 800;
         }
 
@@ -397,7 +397,7 @@
             background: var(--primary); color: #fff; border-color: var(--primary);
         }
         .btn-login-instead:hover {
-            background: #0284c7; border-color: #0284c7; transform: translateY(-1px);
+            background: #0d9488; border-color: #0d9488; transform: translateY(-1px);
         }
         
         .contact-float {
@@ -492,6 +492,7 @@
             .contact-pharmacist { width: 46px; height: 46px; flex-basis: 46px; }
         }
     </style>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
 </head>
 <body>
     <div class="bg-scene"></div>
@@ -525,15 +526,7 @@
     <div id="welcome-screen">
         <header class="header">
             <div class="logo">
-                <div class="logo-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-width="2" d="M12 4v16M20 12H4"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="logo-text">PharmaTrack</div>
-                    <div class="logo-sub">Smart Pharmacy System</div>
-                </div>
+                <x-brand :size="48" tagline="Smart Pharmacy System" />
             </div>
             <div id="clock">--:--:--</div>
         </header>
@@ -692,15 +685,7 @@
     <div class="kiosk">
         <header class="header">
             <div class="logo">
-                <div class="logo-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-width="2" d="M12 4v16M20 12H4"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="logo-text">PharmaTrack</div>
-                    <div class="logo-sub">Smart Pharmacy System</div>
-                </div>
+                <x-brand :size="48" tagline="Smart Pharmacy System" />
             </div>
         </header>
 
@@ -935,7 +920,7 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 if (!detection) return;
                 const box = faceapi.resizeResults(detection, currentSize).detection.box;
-                ctx.strokeStyle = ok ? '#0ea5e9' : '#f59e0b';
+                ctx.strokeStyle = ok ? '#14b8a6' : '#f59e0b';
                 ctx.lineWidth = 3;
                 ctx.strokeRect(box.x, box.y, box.width, box.height);
             };

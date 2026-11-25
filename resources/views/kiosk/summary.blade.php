@@ -66,6 +66,7 @@
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
     </style>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
 </head>
 <body class="text-slate-800 antialiased min-h-screen">
 
@@ -143,10 +144,7 @@
 
     <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <a href="{{ route('welcome') }}" class="flex items-center gap-3 group">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-teal-500/30 group-hover:scale-105 transition-transform">
-                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6V4z" stroke-linejoin="round"/></svg>
-            </div>
-            <span class="text-xl font-extrabold text-slate-800 tracking-tight">PharmaTrack</span>
+            <x-brand :size="40" class="group-hover:scale-105 transition-transform" />
         </a>
         
         <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">

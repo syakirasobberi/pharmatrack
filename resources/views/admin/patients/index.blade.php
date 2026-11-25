@@ -6,7 +6,7 @@
     <div class="py-8 bg-slate-50 min-h-screen">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <div>
-                <a href="{{ route('admin.dashboard') }}" class="text-sm font-bold text-slate-500 hover:text-emerald-700">&larr; Back to Admin Dashboard</a>
+                <a href="{{ route('admin.dashboard') }}" class="text-sm font-bold text-slate-500 hover:text-teal-700">&larr; Back to Admin Dashboard</a>
                 <h1 class="text-2xl font-extrabold text-slate-900 mt-2">Community Patients</h1>
                 <p class="text-sm text-slate-500 mt-1">View patient coverage, pharmacist assignment, biometric readiness, and latest check-up status.</p>
             </div>
@@ -49,7 +49,7 @@
                     <h2 class="text-lg font-extrabold text-slate-800">Patient Directory</h2>
                     <form method="GET" action="{{ route('admin.patients.index') }}" class="flex gap-2">
                         @if($onlyUnassigned)<input type="hidden" name="unassigned" value="1">@endif
-                        <input type="search" name="search" value="{{ $search }}" placeholder="Search patient or pharmacist..." class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
+                        <input type="search" name="search" value="{{ $search }}" placeholder="Search patient or pharmacist..." class="rounded-xl border-slate-300 text-sm focus:border-teal-500 focus:ring-teal-200">
                         <button class="px-4 py-2 rounded-xl bg-slate-800 text-white text-sm font-bold">Search</button>
                     </form>
                 </div>
@@ -88,13 +88,13 @@
                                                 @method('PATCH')
                                                 <label for="assign-{{ $patient->id }}" class="sr-only">Assign {{ $patient->user->name }} to</label>
                                                 <select id="assign-{{ $patient->id }}" name="pharmacist_id" required
-                                                        class="rounded-lg border-slate-300 text-xs py-1.5 focus:border-emerald-500 focus:ring-emerald-200">
+                                                        class="rounded-lg border-slate-300 text-xs py-1.5 focus:border-teal-500 focus:ring-teal-200">
                                                     <option value="">{{ $patient->pharmacist ? 'Move to…' : 'Assign to…' }}</option>
                                                     @foreach($activePharmacists as $option)
                                                         <option value="{{ $option->id }}" @selected($option->id === $patient->pharmacist_id)>{{ $option->name }}</option>
                                                     @endforeach
                                                 </select>
-                                                <button type="submit" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">Save</button>
+                                                <button type="submit" class="px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold">Save</button>
                                             </form>
                                         @endif
                                     </td>

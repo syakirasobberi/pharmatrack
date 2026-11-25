@@ -4,19 +4,19 @@
             <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 mb-6">Quick Patient Recognition</h2>
 
             <div class="bg-white p-4 sm:p-8 rounded-3xl shadow-lg border border-gray-200">
-                <p id="status" class="mb-4 text-blue-600 font-bold animate-pulse">Initializing AI system...</p>
+                <p id="status" class="mb-4 text-teal-600 font-bold animate-pulse">Initializing AI system...</p>
 
                 <div class="mb-4">
                     <label for="camera-select" class="block text-sm font-medium text-gray-700 mb-1">Select Camera</label>
                     <select
                         id="camera-select"
-                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md shadow-sm border"
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm rounded-md shadow-sm border"
                     >
                         <option value="">Loading cameras...</option>
                     </select>
                 </div>
 
-                <div id="video-container" class="relative inline-block w-full max-w-xl rounded-2xl overflow-hidden border-4 border-blue-100 shadow-inner bg-black">
+                <div id="video-container" class="relative inline-block w-full max-w-xl rounded-2xl overflow-hidden border-4 border-teal-100 shadow-inner bg-black">
                     <video id="video" width="480" height="360" autoplay muted playsinline class="w-full bg-black"></video>
                 </div>
 
@@ -159,7 +159,7 @@
 
             function setStatus(message, state = 'info') {
                 statusText.innerText = message;
-                statusText.classList.remove('text-blue-600', 'text-red-500', 'text-green-600', 'animate-pulse');
+                statusText.classList.remove('text-teal-600', 'text-red-500', 'text-green-600', 'animate-pulse');
 
                 if (state === 'error') {
                     statusText.classList.add('text-red-500');
@@ -171,7 +171,7 @@
                     return;
                 }
 
-                statusText.classList.add('text-blue-600');
+                statusText.classList.add('text-teal-600');
             }
 
             function drawBox(result) {

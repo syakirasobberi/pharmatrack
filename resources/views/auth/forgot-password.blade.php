@@ -11,6 +11,7 @@
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
 </head>
 <body class="font-sans text-gray-900 antialiased">
 <div class="min-h-screen flex flex-col bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -25,10 +26,8 @@
                 </div>
                 
                 <div class="relative z-10 text-center">
-                    <div class="bg-white/20 p-4 rounded-full inline-block mb-6 backdrop-blur-sm">
-                        <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
-                        </svg>
+                    <div class="inline-block mb-6">
+                        <x-brand-mark :size="72" />
                     </div>
                     <h2 class="text-3xl font-bold mb-3 tracking-tight">PharmaTrack</h2>
                     <p class="text-teal-100 text-sm max-w-xs mx-auto leading-relaxed">

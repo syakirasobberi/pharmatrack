@@ -6,18 +6,18 @@
     <div class="py-8 bg-gray-50 min-h-screen flex items-center justify-center">
         <div class="max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8">
 
-            <a href="{{ route('pharmacist.patients.show', $patient->id) }}" class="inline-flex items-center text-gray-500 hover:text-blue-600 font-bold mb-6 transition-colors">
+            <a href="{{ route('pharmacist.patients.show', $patient->id) }}" class="inline-flex items-center text-gray-500 hover:text-teal-600 font-bold mb-6 transition-colors">
                 &larr; Back to Patient Profile
             </a>
 
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
 
                 {{-- Header --}}
-                <div class="bg-blue-50/50 border-b border-gray-100 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div class="bg-teal-50/50 border-b border-gray-100 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
                         <h2 class="text-2xl font-extrabold text-gray-800">Record Health Check-up</h2>
                         <p class="text-sm text-gray-500 mt-1">
-                            Patient: <strong class="text-blue-700">{{ $patient->user->name }}</strong>
+                            Patient: <strong class="text-teal-700">{{ $patient->user->name }}</strong>
                             &nbsp;|&nbsp; BMI on file: <span id="patient-bmi" class="font-bold text-gray-700">{{ number_format($patient->bmi, 1) }}</span>
                         </p>
                     </div>
@@ -49,10 +49,10 @@
                     @endif
 
                     {{-- Patient table measurements --}}
-                    <div class="mb-8 rounded-2xl border border-blue-100 bg-blue-50/60 p-5">
+                    <div class="mb-8 rounded-2xl border border-teal-100 bg-teal-50/60 p-5">
                         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <h3 class="font-extrabold text-blue-950">Patient Measurements</h3>
+                                <h3 class="font-extrabold text-teal-950">Patient Measurements</h3>
                             </div>
                         </div>
 
@@ -62,7 +62,7 @@
                                 <input type="number" step="0.1" min="1" max="300" name="patient_weight" id="patient-weight"
                                     value="{{ old('patient_weight', $patient->weight) }}"
                                     oninput="updatePatientBmi(); generateAiAuto();"
-                                    class="w-full rounded-xl border-blue-200 bg-white shadow-sm text-gray-700 font-bold focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-xl border-teal-200 bg-white shadow-sm text-gray-700 font-bold focus:border-teal-500 focus:ring-teal-500">
                             </div>
 
                             <div>
@@ -70,7 +70,7 @@
                                 <input type="number" step="0.1" min="1" max="250" name="patient_height" id="patient-height"
                                     value="{{ old('patient_height', $patient->height) }}"
                                     oninput="updatePatientBmi(); generateAiAuto();"
-                                    class="w-full rounded-xl border-blue-200 bg-white shadow-sm text-gray-700 font-bold focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-xl border-teal-200 bg-white shadow-sm text-gray-700 font-bold focus:border-teal-500 focus:ring-teal-500">
                             </div>
 
                             <div>
@@ -78,15 +78,15 @@
                                 <input type="text" id="patient-bmi-display"
                                     value="{{ is_numeric(old('patient_weight', $patient->weight)) && is_numeric(old('patient_height', $patient->height)) && (float) old('patient_height', $patient->height) > 0 ? number_format((float) old('patient_weight', $patient->weight) / (((float) old('patient_height', $patient->height) / 100) ** 2), 1) : 'N/A' }}"
                                     readonly
-                                    class="w-full rounded-xl border-blue-100 bg-white/80 shadow-sm text-gray-700 font-bold cursor-not-allowed">
+                                    class="w-full rounded-xl border-teal-100 bg-white/80 shadow-sm text-gray-700 font-bold cursor-not-allowed">
                             </div>
                         </div>
                     </div>
 
                     {{-- Steps --}}
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-                        <div class="rounded-2xl border border-blue-100 bg-blue-50 p-4">
-                            <p class="text-xs font-bold uppercase tracking-wide text-blue-700">Step 1</p>
+                        <div class="rounded-2xl border border-teal-100 bg-teal-50 p-4">
+                            <p class="text-xs font-bold uppercase tracking-wide text-teal-700">Step 1</p>
                             <p class="mt-1 font-extrabold text-gray-900 text-sm">Upload full report</p>
                             <p class="mt-1 text-xs text-gray-500">Image or scanned PDF checkup result.</p>
                         </div>
@@ -112,11 +112,11 @@
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-1">Check-up Date <span class="text-red-500">*</span></label>
                             <input type="date" name="checkup_date" value="{{ date('Y-m-d') }}" required
-                                class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50">
+                                class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 bg-gray-50">
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-1">Report Source</label>
-                            <select name="report_source" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50">
+                            <select name="report_source" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 bg-gray-50">
                                 <option value="">— Select source —</option>
                                 <option value="klinik_kesihatan">Klinik Kesihatan (KKM)</option>
                                 <option value="private_clinic">Private Clinic</option>
@@ -155,7 +155,7 @@
                                 </button>
                                 @if ($smartExtract)
                                 <button type="button" id="ai-extract-btn"
-                                    class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
+                                    class="rounded-xl bg-teal-600 px-5 py-2.5 text-sm font-bold text-white shadow hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
                                     Smart Extract (AI)
                                 </button>
                                 @endif
@@ -213,7 +213,7 @@
                     {{-- Section: Core Readings --}}
                     <div class="mb-8">
                         <div class="flex items-center gap-2 mb-4">
-                            <div class="w-1 h-5 bg-blue-500 rounded-full"></div>
+                            <div class="w-1 h-5 bg-teal-500 rounded-full"></div>
                             <h3 class="font-extrabold text-gray-800 text-base">Core Readings</h3>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -226,7 +226,7 @@
                                 <input type="text" name="blood_pressure" id="bp-input"
                                     oninput="updateBadge('bp-input','bp-badge')" onblur="generateAiAuto()"
                                     placeholder="e.g. 120/80"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="bp-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
@@ -238,7 +238,7 @@
                                 <input type="number" name="heart_rate" id="heart-rate-input"
                                     oninput="updateBadge('heart-rate-input','hr-badge')" onblur="generateAiAuto()"
                                     placeholder="e.g. 75"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="hr-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
@@ -250,7 +250,7 @@
                                 <input type="number" step="0.01" name="haemoglobin" id="haemoglobin-input"
                                     oninput="updateBadge('haemoglobin-input','haemoglobin-badge')" onblur="generateAiAuto()"
                                     placeholder="e.g. 13.5"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="haemoglobin-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
@@ -274,7 +274,7 @@
                                 <input type="number" step="0.01" name="blood_sugar" id="sugar-input"
                                     oninput="updateBadge('sugar-input','sugar-badge')" onblur="generateAiAuto()"
                                     placeholder="e.g. 5.5"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="sugar-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
@@ -286,7 +286,7 @@
                                 <input type="number" step="0.1" name="hba1c" id="hba1c-input"
                                     oninput="updateBadge('hba1c-input','hba1c-badge')" onblur="generateAiAuto()"
                                     placeholder="e.g. 5.4"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="hba1c-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
@@ -308,7 +308,7 @@
                                 <input type="number" step="0.01" name="albumin_globulin_ratio" id="ag-ratio-input"
                                     oninput="updateBadge('ag-ratio-input','ag-ratio-badge')" onblur="generateAiAuto()"
                                     placeholder="e.g. 1.4"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="ag-ratio-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
@@ -320,7 +320,7 @@
                                 <input type="number" step="0.01" name="alkaline_phosphatase" id="alp-input"
                                     oninput="updateBadge('alp-input','alp-badge')" onblur="generateAiAuto()"
                                     placeholder="e.g. 85"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="alp-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
@@ -332,7 +332,7 @@
                                 <input type="number" step="0.01" name="aspartate_transaminase" id="ast-input"
                                     oninput="updateBadge('ast-input','ast-badge')" onblur="generateAiAuto()"
                                     placeholder="e.g. 25"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="ast-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
@@ -344,7 +344,7 @@
                                 <input type="number" step="0.01" name="alanine_transaminase" id="alt-input"
                                     oninput="updateBadge('alt-input','alt-badge')" onblur="generateAiAuto()"
                                     placeholder="e.g. 28"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="alt-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
@@ -356,7 +356,7 @@
                                 <input type="number" step="0.01" name="gamma_glutamyl_transferase" id="ggt-input"
                                     oninput="updateBadge('ggt-input','ggt-badge')" onblur="generateAiAuto()"
                                     placeholder="e.g. 35"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="ggt-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
                         </div>
@@ -377,7 +377,7 @@
                                 <input type="number" step="0.01" name="sodium" id="sodium-input"
                                     oninput="updateBadge('sodium-input','sodium-badge')" onblur="generateAiAuto()"
                                     placeholder="e.g. 140"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="sodium-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
@@ -389,7 +389,7 @@
                                 <input type="number" step="0.01" name="renal_glucose" id="renal-glucose-input"
                                     oninput="updateBadge('renal-glucose-input','renal-glucose-badge')" onblur="generateAiAuto()"
                                     placeholder="e.g. 5.1"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="renal-glucose-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
                         </div>
@@ -411,7 +411,7 @@
                                 <input type="number" step="0.01" name="cholesterol" id="cholesterol-input"
                                     oninput="updateBadge('cholesterol-input','chol-badge')" onblur="generateAiAuto()"
                                     placeholder="e.g. 4.8"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="chol-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
@@ -423,7 +423,7 @@
                                 <input type="number" step="0.01" name="ldl" id="ldl-input"
                                     oninput="updateBadge('ldl-input','ldl-badge')" onblur="generateAiAuto()"
                                     placeholder="e.g. 2.6"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="ldl-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
@@ -435,7 +435,7 @@
                                 <input type="number" step="0.01" name="hdl" id="hdl-input"
                                     oninput="updateBadge('hdl-input','hdl-badge')" onblur="generateAiAuto()"
                                     placeholder="e.g. 1.3"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="hdl-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
@@ -449,21 +449,21 @@
                             <h3 class="font-extrabold text-gray-800 text-base">Pharmacist Notes</h3>
                         </div>
                         <textarea name="notes" rows="3" placeholder="Optional — add any clinical observations, patient complaints, or medication notes here..."
-                            class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"></textarea>
+                            class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"></textarea>
                     </div>
 
                     {{-- AI Recommendation --}}
-                    <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-5 mb-6">
-                        <h3 class="font-bold text-indigo-800 flex items-center gap-2 mb-2">
+                    <div class="bg-teal-50 border border-teal-100 rounded-2xl p-5 mb-6">
+                        <h3 class="font-bold text-teal-800 flex items-center gap-2 mb-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
                             </svg>
                             AI Health Insights
                         </h3>
-                        <div id="aiResponseArea" class="text-sm text-indigo-600 italic">
+                        <div id="aiResponseArea" class="text-sm text-teal-600 italic">
                             Upload a report or enter readings manually. The system will generate food, exercise, follow-up, and pharmacist review suggestions.
                         </div>
-                        <p class="mt-3 text-xs font-semibold text-indigo-700">
+                        <p class="mt-3 text-xs font-semibold text-teal-700">
                             Medication notes are for pharmacist review only. The system does not automatically prescribe medication.
                         </p>
                     </div>
@@ -474,7 +474,7 @@
                            class="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors">
                             Cancel
                         </a>
-                        <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition-colors">
+                        <button type="submit" class="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-md transition-colors">
                             Save Reviewed Checkup
                         </button>
                     </div>
@@ -922,7 +922,7 @@
             suggestionInput.value = '';
         }
 
-        responseArea.innerHTML = '<span class="animate-pulse text-indigo-600 font-bold">Analyzing health metrics...</span>';
+        responseArea.innerHTML = '<span class="animate-pulse text-teal-600 font-bold">Analyzing health metrics...</span>';
 
         const patientData = {
             bmi:          bmi          || 'Not specified',
@@ -955,7 +955,7 @@
 
                 const styles = {
                     food:               'border-emerald-100 bg-emerald-50 text-emerald-900',
-                    exercise:           'border-blue-100 bg-blue-50 text-blue-900',
+                    exercise:           'border-teal-100 bg-teal-50 text-teal-900',
                     'follow-up':        'border-amber-100 bg-amber-50 text-amber-900',
                     'medication review':'border-purple-100 bg-purple-50 text-purple-900',
                 };
@@ -976,7 +976,7 @@
                         const [rawTitle, ...rest] = cleaned.split(':');
                         const title = rawTitle.trim();
                         const body  = rest.join(':').trim() || cleaned;
-                        const style = styles[title.toLowerCase()] || 'border-indigo-100 bg-white text-indigo-900';
+                        const style = styles[title.toLowerCase()] || 'border-teal-100 bg-white text-teal-900';
                         return `<div class="rounded-xl border ${style} p-4">
                             <p class="text-xs font-extrabold uppercase tracking-wide">${escapeHtml(title)}</p>
                             <p class="mt-1 text-sm font-medium leading-6">${escapeHtml(body)}</p>

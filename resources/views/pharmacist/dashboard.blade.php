@@ -109,6 +109,15 @@
         $dueCount = (clone $dueQuery)->count();
         $patientsNeedingCheckup = $dueQuery->with(['user', 'latestCheckup'])->take(5)->get();
 
+        // When each due patient was last sent a check-up reminder (one query for the whole list).
+        $lastReminderAt = \Illuminate\Notifications\DatabaseNotification::query()
+            ->where('type', \App\Notifications\RoutineCheckupReminderNotification::class)
+            ->where('notifiable_type', (new \App\Models\User)->getMorphClass())
+            ->whereIn('notifiable_id', $patientsNeedingCheckup->pluck('user_id')->filter())
+            ->selectRaw('notifiable_id, MAX(created_at) as last_at')
+            ->groupBy('notifiable_id')
+            ->pluck('last_at', 'notifiable_id');
+
         $workflowAlerts = $healthAlertsAll->count() + $medicationAlertCount + $adherenceAlertsAll->count() + $refillAlertsAll->count() + $reviewAlertsAll->count() + $dueCount;
         $shownAlerts = $healthAlerts->count() + $medicationAlerts->count() + $adherenceAlerts->count() + $refillAlerts->count() + $reviewAlerts->count() + $patientsNeedingCheckup->count();
 
@@ -149,7 +158,7 @@
             @endif
 
             <!-- Hero + quick actions -->
-            <div class="bg-gradient-to-br from-blue-700 via-indigo-600 to-blue-800 rounded-[2rem] p-8 shadow-2xl text-white relative overflow-hidden border border-white/10">
+            <div class="bg-gradient-to-br from-teal-700 via-teal-600 to-teal-800 rounded-[2rem] p-8 shadow-2xl text-white relative overflow-hidden border border-white/10">
                 <div class="absolute inset-0 mix-blend-overlay">
                     <img src="{{ asset('storage/login.png') }}" alt="" class="w-full h-full object-cover opacity-30">
                 </div>
@@ -158,19 +167,19 @@
                 <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div>
                         <h1 class="text-3xl md:text-4xl font-extrabold mb-2 tracking-tight text-white drop-shadow-md">Welcome back, {{ $pharmacist->name }}</h1>
-                        <p class="text-blue-100/90 text-sm md:text-base font-medium max-w-xl">
+                        <p class="text-teal-100/90 text-sm md:text-base font-medium max-w-xl">
                             Here is the latest health summary and clinical alerts for your community patients today.
                         </p>
                     </div>
                     <div class="bg-white/10 backdrop-blur-xl px-5 py-3 rounded-2xl border border-white/20 text-center shadow-lg shrink-0">
-                        <span class="block text-[10px] text-blue-200 font-bold uppercase tracking-widest mb-1">Today's Date</span>
+                        <span class="block text-[10px] text-teal-200 font-bold uppercase tracking-widest mb-1">Today's Date</span>
                         <span class="block text-lg font-extrabold text-white">{{ now()->format('d M Y') }}</span>
                     </div>
                 </div>
 
                 <div class="relative z-10 mt-7 flex flex-col lg:flex-row gap-3">
                     <a href="{{ route('pharmacist.quickScan') }}" id="dashboard-quick-scan"
-                       class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-extrabold text-indigo-700 shadow-lg hover:bg-indigo-50 transition-colors">
+                       class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-extrabold text-teal-700 shadow-lg hover:bg-teal-50 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2m8-16h2a2 2 0 012 2v2m-4 12h2a2 2 0 002-2v-2M9 10h.01M15 10h.01M9.5 15a3.5 3.5 0 005 0"/></svg>
                         Quick Scan Patient
                     </a>
@@ -183,7 +192,7 @@
                         <label for="dashboard-search" class="sr-only">Find a patient</label>
                         <input id="dashboard-search" type="search" name="search" placeholder="Find patient by name, email or ID"
                                class="w-full rounded-xl border-0 bg-white/95 px-4 py-3 text-sm text-slate-800 placeholder-slate-400 shadow-lg focus:ring-2 focus:ring-white">
-                        <button type="submit" class="rounded-xl bg-indigo-900/60 px-4 py-3 text-sm font-bold text-white border border-white/20 hover:bg-indigo-900/80">Search</button>
+                        <button type="submit" class="rounded-xl bg-teal-900/60 px-4 py-3 text-sm font-bold text-white border border-white/20 hover:bg-teal-900/80">Search</button>
                     </form>
                 </div>
             </div>
@@ -191,7 +200,7 @@
             <!-- Stats Overview -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 <a href="{{ route('pharmacist.patients.index') }}" class="bg-white rounded-[1.5rem] p-5 shadow-sm hover:shadow-md border border-slate-200 transition-all flex items-center gap-4 group">
-                    <div class="w-14 h-14 bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600 rounded-2xl flex items-center justify-center border border-blue-200/50 shrink-0">
+                    <div class="w-14 h-14 bg-gradient-to-br from-teal-50 to-teal-100 text-teal-600 rounded-2xl flex items-center justify-center border border-teal-200/50 shrink-0">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m6-6a4 4 0 11-8 0 4 4 0 018 0zm6 2a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </div>
                     <div>
@@ -222,7 +231,7 @@
                 </div>
 
                 <a href="{{ route('pharmacist.quickScan') }}" class="bg-white rounded-[1.5rem] p-5 shadow-sm hover:shadow-md border border-slate-200 transition-all flex items-center gap-4">
-                    <div class="w-14 h-14 bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center border border-indigo-200/50 shrink-0">
+                    <div class="w-14 h-14 bg-gradient-to-br from-teal-50 to-teal-100 text-teal-600 rounded-2xl flex items-center justify-center border border-teal-200/50 shrink-0">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2m8-16h2a2 2 0 012 2v2m-4 12h2a2 2 0 002-2v-2M9 10h.01M15 10h.01M9.5 15a3.5 3.5 0 005 0"/></svg>
                     </div>
                     <div>
@@ -242,12 +251,12 @@
                 <div class="lg:col-span-2 bg-white border border-slate-200 rounded-[2rem] p-7 shadow-sm">
                     <div class="flex justify-between items-center mb-6 gap-3">
                         <h3 class="font-extrabold text-xl text-slate-800 flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                            <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center border border-teal-100">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>
                             </div>
                             Recently Added Patients
                         </h3>
-                        <a href="{{ route('pharmacist.patients.index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-bold px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors whitespace-nowrap">View All</a>
+                        <a href="{{ route('pharmacist.patients.index') }}" class="text-sm text-teal-600 hover:text-teal-800 font-bold px-4 py-2 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors whitespace-nowrap">View All</a>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -263,10 +272,10 @@
                             <tbody>
                                 @forelse($recentPatients as $pt)
                                 @php [$bmiText, $bmiClass, $bmiDot, $bmiLabel] = $bmiBadge($pt->bmi); @endphp
-                                <tr class="bg-slate-50 hover:bg-blue-50/50 transition-colors group">
+                                <tr class="bg-slate-50 hover:bg-teal-50/50 transition-colors group">
                                     <td class="py-4 px-4 font-bold text-slate-800 rounded-l-2xl border-y border-l border-slate-100">
                                         <div class="flex items-center gap-3">
-                                            <span class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-extrabold shrink-0">
+                                            <span class="w-10 h-10 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-sm font-extrabold shrink-0">
                                                 {{ strtoupper(mb_substr($pt->user->name ?? '?', 0, 1)) }}
                                             </span>
                                             <span>
@@ -290,10 +299,10 @@
                                         {{ $pt->latestCheckup ? \Carbon\Carbon::parse($pt->latestCheckup->checkup_date)->format('d M Y') : 'None yet' }}
                                     </td>
                                     <td class="py-4 px-4 text-right rounded-r-2xl border-y border-r border-slate-100 whitespace-nowrap">
-                                        <a href="{{ route('pharmacist.checkups.create', $pt->id) }}" class="inline-flex items-center px-3 py-2 bg-blue-600 text-white hover:bg-blue-700 font-bold rounded-xl text-xs shadow-sm">
+                                        <a href="{{ route('pharmacist.checkups.create', $pt->id) }}" class="inline-flex items-center px-3 py-2 bg-teal-600 text-white hover:bg-teal-700 font-bold rounded-xl text-xs shadow-sm">
                                             + Check-up
                                         </a>
-                                        <a href="{{ route('pharmacist.patients.show', $pt->id) }}" class="inline-flex items-center px-3 py-2 bg-white text-slate-700 hover:text-blue-700 font-bold rounded-xl text-xs border border-slate-200 shadow-sm hover:border-blue-200">
+                                        <a href="{{ route('pharmacist.patients.show', $pt->id) }}" class="inline-flex items-center px-3 py-2 bg-white text-slate-700 hover:text-teal-700 font-bold rounded-xl text-xs border border-slate-200 shadow-sm hover:border-teal-200">
                                             View
                                         </a>
                                     </td>
@@ -302,7 +311,7 @@
                                 <tr>
                                     <td colspan="4" class="py-12 text-center text-slate-400 font-medium bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                                         No patients registered yet.
-                                        <a href="{{ route('pharmacist.patients.create') }}" class="text-blue-600 font-bold hover:underline">Register the first patient</a>
+                                        <a href="{{ route('pharmacist.patients.create') }}" class="text-teal-600 font-bold hover:underline">Register the first patient</a>
                                     </td>
                                 </tr>
                                 @endforelse
@@ -383,7 +392,7 @@
                                     @endif
                                 </div>
                                 <div class="mt-3 flex items-center gap-3">
-                                    <a href="{{ route('pharmacist.medication.index', $med->patient_id) }}" class="text-xs font-bold text-blue-600 hover:text-blue-800">Review medications &rarr;</a>
+                                    <a href="{{ route('pharmacist.medication.index', $med->patient_id) }}" class="text-xs font-bold text-teal-600 hover:text-teal-800">Review medications &rarr;</a>
                                     @unless($alert->warnings)
                                         <form method="POST" action="{{ route('pharmacist.medication.review', $med->id) }}" class="ml-auto">
                                             @csrf
@@ -397,15 +406,15 @@
                         <!-- Refill Alerts (patient request or supply running out) -->
                         @foreach($refillAlerts as $med)
                             @php $out = $med->refillStatus() === 'overdue'; $days = $med->supplyDaysLeft(); @endphp
-                            <div class="p-4 border {{ $out ? 'border-rose-200/60 bg-rose-50/50' : 'border-indigo-200/60 bg-indigo-50/50' }} rounded-2xl group shadow-sm">
+                            <div class="p-4 border {{ $out ? 'border-rose-200/60 bg-rose-50/50' : 'border-teal-200/60 bg-teal-50/50' }} rounded-2xl group shadow-sm">
                                 <div class="flex items-center gap-2 mb-2">
-                                    <svg class="w-4 h-4 {{ $out ? 'text-rose-500' : 'text-indigo-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                    <svg class="w-4 h-4 {{ $out ? 'text-rose-500' : 'text-teal-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                     <h4 class="font-bold text-sm text-slate-800">{{ $med->patient->user->name ?? 'Unknown' }}</h4>
                                     @if($med->refill_requested_at)
-                                        <span class="ml-auto px-2 py-1 bg-white rounded-md text-[10px] font-bold text-indigo-600 shadow-sm border border-indigo-100">Requested</span>
+                                        <span class="ml-auto px-2 py-1 bg-white rounded-md text-[10px] font-bold text-teal-600 shadow-sm border border-teal-100">Requested</span>
                                     @endif
                                 </div>
-                                <p class="text-xs {{ $out ? 'text-rose-800' : 'text-indigo-900' }} font-medium bg-white/60 p-2.5 rounded-xl border {{ $out ? 'border-rose-100/50' : 'border-indigo-100/50' }}">
+                                <p class="text-xs {{ $out ? 'text-rose-800' : 'text-teal-900' }} font-medium bg-white/60 p-2.5 rounded-xl border {{ $out ? 'border-rose-100/50' : 'border-teal-100/50' }}">
                                     <span class="font-bold">{{ $med->name }}:</span>
                                     @if($med->refill_requested_at)
                                         patient asked for a refill on {{ $med->refill_requested_at->format('d M') }}.
@@ -414,7 +423,7 @@
                                         {{ $days < 0 ? 'Supply ran out ' . abs($days) . ' days ago.' : ($days === 0 ? 'Supply runs out today.' : "Supply runs out in {$days} " . \Illuminate\Support\Str::plural('day', $days) . '.') }}
                                     @endif
                                 </p>
-                                <a href="{{ route('pharmacist.medication.index', $med->patient_id) }}" class="mt-3 text-xs font-bold {{ $out ? 'text-rose-600 hover:text-rose-800' : 'text-indigo-600 hover:text-indigo-800' }} flex items-center gap-1 group-hover:gap-2 transition-all">
+                                <a href="{{ route('pharmacist.medication.index', $med->patient_id) }}" class="mt-3 text-xs font-bold {{ $out ? 'text-rose-600 hover:text-rose-800' : 'text-teal-600 hover:text-teal-800' }} flex items-center gap-1 group-hover:gap-2 transition-all">
                                     Record Refill <span aria-hidden="true">&rarr;</span>
                                 </a>
                             </div>
@@ -468,24 +477,28 @@
 
                         <!-- Check-up Reminders -->
                         @foreach($patientsNeedingCheckup as $patientDue)
-                            <div class="p-4 border border-blue-200/60 bg-blue-50/50 rounded-2xl group shadow-sm">
+                            <div class="p-4 border border-teal-200/60 bg-teal-50/50 rounded-2xl group shadow-sm">
                                 <h4 class="font-bold text-sm text-slate-800 mb-2">{{ $patientDue->user->name ?? 'Unknown' }}</h4>
-                                <p class="text-xs text-blue-800 font-medium bg-white/60 p-2.5 rounded-xl border border-blue-100/50">
+                                <p class="text-xs text-teal-800 font-medium bg-white/60 p-2.5 rounded-xl border border-teal-100/50">
                                     {{ $patientDue->latestCheckup
                                         ? 'Last check-up: ' . \Carbon\Carbon::parse($patientDue->latestCheckup->checkup_date)->format('d M Y') . '.'
                                         : 'No health check-up on record.' }}
                                 </p>
-                                <div class="mt-3 flex items-center gap-3 flex-wrap">
-                                    <a href="{{ route('pharmacist.checkups.create', $patientDue->id) }}" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 group-hover:gap-2 transition-all">
-                                        Record Check-up <span aria-hidden="true">&rarr;</span>
+                                <div class="mt-3 grid gap-2">
+                                    <a href="{{ route('pharmacist.checkups.create', $patientDue->id) }}" class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-teal-600 border border-transparent text-white text-xs font-semibold rounded-lg shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-teal-500 transition-all">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                                        Record Check-up
                                     </a>
-                                    <form action="{{ route('pharmacist.patients.sendReminder', $patientDue->id) }}" method="POST" class="inline">
-                                        @csrf
-                                        <button type="submit" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-all bg-indigo-50/80 hover:bg-indigo-100/80 px-2 py-1 rounded-lg border border-indigo-200/50">
-                                            ✉️ Send Reminder
-                                        </button>
-                                    </form>
+                                    @if ($patientDue->user)
+                                        <x-reminder-button :patient="$patientDue" size="sm" class="w-full" />
+                                    @endif
                                 </div>
+                                @if ($patientDue->user)
+                                    @php $sentAt = $lastReminderAt[$patientDue->user_id] ?? null; @endphp
+                                    <p class="mt-2 text-[11px] font-medium text-slate-500">
+                                        {{ $sentAt ? 'Last reminder sent ' . \Illuminate\Support\Carbon::parse($sentAt)->diffForHumans() : 'No reminder sent yet' }}
+                                    </p>
+                                @endif
                             </div>
                         @endforeach
                     </div>

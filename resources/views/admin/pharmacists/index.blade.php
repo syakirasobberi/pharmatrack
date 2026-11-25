@@ -7,7 +7,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <a href="{{ route('admin.dashboard') }}" class="text-sm font-bold text-slate-500 hover:text-emerald-700">&larr; Back to Admin Dashboard</a>
+                    <a href="{{ route('admin.dashboard') }}" class="text-sm font-bold text-slate-500 hover:text-teal-700">&larr; Back to Admin Dashboard</a>
                     <h1 class="text-2xl font-extrabold text-slate-900 mt-2">Pharmacist Staff</h1>
                     <p class="text-sm text-slate-500 mt-1">Manage pharmacist access and monitor assigned patient workload.</p>
                 </div>
@@ -49,11 +49,11 @@
             <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
                 <form method="POST" action="{{ route('admin.pharmacists.store') }}" class="grid grid-cols-1 md:grid-cols-5 gap-3">
                     @csrf
-                    <input type="text" name="name" value="{{ old('name') }}" placeholder="Staff name" required class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
-                    <input type="email" name="email" value="{{ old('email') }}" placeholder="Email address" required class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
-                    <input type="tel" name="phone_number" value="{{ old('phone_number') }}" placeholder="WhatsApp phone" required class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
-                    <input type="password" name="password" placeholder="Temporary password" required class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
-                    <button type="submit" class="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-4 py-2.5">Add Pharmacist</button>
+                    <input type="text" name="name" value="{{ old('name') }}" placeholder="Staff name" required class="rounded-xl border-slate-300 text-sm focus:border-teal-500 focus:ring-teal-200">
+                    <input type="email" name="email" value="{{ old('email') }}" placeholder="Email address" required class="rounded-xl border-slate-300 text-sm focus:border-teal-500 focus:ring-teal-200">
+                    <input type="tel" name="phone_number" value="{{ old('phone_number') }}" placeholder="WhatsApp phone" required class="rounded-xl border-slate-300 text-sm focus:border-teal-500 focus:ring-teal-200">
+                    <input type="password" name="password" placeholder="Temporary password" required class="rounded-xl border-slate-300 text-sm focus:border-teal-500 focus:ring-teal-200">
+                    <button type="submit" class="rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm px-4 py-2.5">Add Pharmacist</button>
                 </form>
             </div>
 
@@ -61,7 +61,7 @@
                 <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <h2 class="text-lg font-extrabold text-slate-800">All Pharmacist Accounts</h2>
                     <form method="GET" action="{{ route('admin.pharmacists.index') }}" class="flex gap-2">
-                        <input type="search" name="search" value="{{ $search }}" placeholder="Search staff..." class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
+                        <input type="search" name="search" value="{{ $search }}" placeholder="Search staff..." class="rounded-xl border-slate-300 text-sm focus:border-teal-500 focus:ring-teal-200">
                         <button class="px-4 py-2 rounded-xl bg-slate-800 text-white text-sm font-bold">Search</button>
                     </form>
                 </div>
@@ -110,7 +110,7 @@
                                                 <form method="POST" action="{{ route('admin.pharmacists.reactivate', $staff) }}" class="inline">
                                                     @csrf
                                                     @method('PATCH')
-                                                    <button class="px-3 py-1.5 border border-emerald-300 text-emerald-700 hover:bg-emerald-50 font-bold rounded-lg text-xs">Reactivate</button>
+                                                    <button class="px-3 py-1.5 border border-teal-300 text-teal-700 hover:bg-teal-50 font-bold rounded-lg text-xs">Reactivate</button>
                                                 </form>
                                             @else
                                                 <form method="POST" action="{{ route('admin.pharmacists.requirePasswordChange', $staff) }}" class="inline">

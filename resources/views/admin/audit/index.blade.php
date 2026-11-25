@@ -5,11 +5,11 @@
 
     @php
         $categoryStyle = [
-            'change' => 'bg-blue-100 text-blue-700 border-blue-200',
+            'change' => 'bg-teal-100 text-teal-700 border-teal-200',
             'view' => 'bg-slate-100 text-slate-700 border-slate-200',
             'auth' => 'bg-violet-100 text-violet-700 border-violet-200',
         ];
-        $field = 'w-full rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-500';
+        $field = 'w-full rounded-xl border-slate-300 text-sm focus:border-teal-500 focus:ring-teal-500';
         $hasFilters = collect($filters)->filter()->isNotEmpty();
     @endphp
 
@@ -17,11 +17,11 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <div class="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <a href="{{ route('admin.dashboard') }}" class="text-sm font-bold text-slate-500 hover:text-emerald-700">&larr; Back to Admin Dashboard</a>
+                    <a href="{{ route('admin.dashboard') }}" class="text-sm font-bold text-slate-500 hover:text-teal-700">&larr; Back to Admin Dashboard</a>
                     <h1 class="text-2xl font-extrabold text-slate-900 mt-2">Audit Log</h1>
                     <p class="text-sm text-slate-500 mt-1">Who viewed or changed patient records, and every sign-in attempt. Entries cannot be edited or deleted.</p>
                 </div>
-                <a href="{{ route('admin.audit.export', request()->query()) }}" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold shadow-sm">
+                <a href="{{ route('admin.audit.export', request()->query()) }}" class="px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold shadow-sm">
                     Export CSV{{ $hasFilters ? ' (filtered)' : '' }}
                 </a>
             </div>
@@ -123,7 +123,7 @@
                                         <p class="mt-1 text-slate-700">{{ $log->description }}</p>
                                         @if($log->changes)
                                             <details class="mt-1">
-                                                <summary class="cursor-pointer text-xs font-bold text-blue-600 hover:text-blue-800">{{ count($log->changes) }} {{ \Illuminate\Support\Str::plural('field', count($log->changes)) }}</summary>
+                                                <summary class="cursor-pointer text-xs font-bold text-teal-600 hover:text-teal-800">{{ count($log->changes) }} {{ \Illuminate\Support\Str::plural('field', count($log->changes)) }}</summary>
                                                 <dl class="mt-2 space-y-1 rounded-lg bg-slate-50 border border-slate-200 p-2 text-xs">
                                                     @foreach($log->changes as $fieldName => $change)
                                                         <div class="grid grid-cols-[minmax(7rem,auto)_1fr] gap-2">
@@ -140,7 +140,7 @@
                                     </td>
                                     <td class="py-3 px-4">
                                         @if($log->patient_id)
-                                            <a href="{{ route('admin.audit.index', ['patient' => $log->patient_id]) }}" class="font-semibold text-blue-600 hover:text-blue-800" title="Show all entries for this patient">
+                                            <a href="{{ route('admin.audit.index', ['patient' => $log->patient_id]) }}" class="font-semibold text-teal-600 hover:text-teal-800" title="Show all entries for this patient">
                                                 {{ $log->patient?->user?->name ?? 'Patient #' . $log->patient_id }}
                                             </a>
                                         @else

@@ -7,18 +7,18 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             <div class="bg-slate-800 rounded-2xl p-8 shadow-lg text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
-                <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-emerald-500 opacity-20 rounded-full blur-3xl"></div>
+                <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-teal-500 opacity-20 rounded-full blur-3xl"></div>
                 <div class="absolute bottom-0 left-20 w-32 h-32 bg-slate-600 opacity-40 rounded-full blur-xl"></div>
                 
                 <div class="relative z-10">
                     <div class="flex items-center gap-3 mb-2">
-                        <span class="bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">System Administrator</span>
+                        <span class="bg-teal-500 text-white text-xs font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">System Administrator</span>
                     </div>
                     <h1 class="text-3xl font-extrabold mb-1">PharmaTrack Command Center</h1>
                     <p class="text-slate-300 text-sm">Monitor system health, manage staff access, and oversee clinical operations.</p>
                 </div>
                 <div class="relative z-10">
-                    <a href="{{ route('admin.settings.index') }}" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-md transition-colors flex items-center gap-2">
+                    <a href="{{ route('admin.settings.index') }}" class="px-5 py-2.5 bg-teal-500 hover:bg-teal-600 text-white font-bold rounded-xl shadow-md transition-colors flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -30,7 +30,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <a href="{{ route('admin.pharmacists.index') }}" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex items-center gap-4 hover:shadow-md transition-shadow cursor-pointer">
-                    <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100">
+                    <div class="w-14 h-14 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center border border-teal-100">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m6-6a4 4 0 11-8 0 4 4 0 018 0zm6 2a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         </svg>
@@ -92,11 +92,11 @@
 
                     <form method="POST" action="{{ route('admin.pharmacists.store') }}" class="grid grid-cols-1 md:grid-cols-5 gap-3 flex-1">
                         @csrf
-                        <input type="text" name="name" value="{{ old('name') }}" placeholder="Staff name" required class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
-                        <input type="email" name="email" value="{{ old('email') }}" placeholder="Email address" required class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
-                        <input type="tel" name="phone_number" value="{{ old('phone_number') }}" placeholder="WhatsApp phone" required class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
-                        <input type="password" name="password" placeholder="Temporary password" required class="rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200">
-                        <button type="submit" class="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-4 py-2.5">
+                        <input type="text" name="name" value="{{ old('name') }}" placeholder="Staff name" required class="rounded-xl border-slate-300 text-sm focus:border-teal-500 focus:ring-teal-200">
+                        <input type="email" name="email" value="{{ old('email') }}" placeholder="Email address" required class="rounded-xl border-slate-300 text-sm focus:border-teal-500 focus:ring-teal-200">
+                        <input type="tel" name="phone_number" value="{{ old('phone_number') }}" placeholder="WhatsApp phone" required class="rounded-xl border-slate-300 text-sm focus:border-teal-500 focus:ring-teal-200">
+                        <input type="password" name="password" placeholder="Temporary password" required class="rounded-xl border-slate-300 text-sm focus:border-teal-500 focus:ring-teal-200">
+                        <button type="submit" class="rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm px-4 py-2.5">
                             Add Staff
                         </button>
                     </form>
@@ -113,7 +113,7 @@
                         </span>
                         Recent Pharmacist Staff
                     </h3>
-                    <a href="{{ route('admin.pharmacists.index') }}" class="text-sm text-emerald-600 hover:text-emerald-800 font-bold">Manage All Staff &rarr;</a>
+                    <a href="{{ route('admin.pharmacists.index') }}" class="text-sm text-teal-600 hover:text-teal-800 font-bold">Manage All Staff &rarr;</a>
                 </div>
 
                 <div class="overflow-x-auto">

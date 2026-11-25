@@ -3,10 +3,10 @@
 
     <div class="min-h-screen bg-gray-50 py-10">
         <div class="mx-auto max-w-5xl space-y-6 px-4 sm:px-6 lg:px-8">
-            <div class="rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-700 p-8 text-white shadow-lg">
-                <p class="text-xs font-bold uppercase tracking-wide text-indigo-100">Your Active Prescriptions</p>
+            <div class="rounded-3xl bg-gradient-to-br from-teal-600 to-violet-700 p-8 text-white shadow-lg">
+                <p class="text-xs font-bold uppercase tracking-wide text-teal-100">Your Active Prescriptions</p>
                 <h1 class="mt-2 text-3xl font-extrabold">Medication Schedule</h1>
-                <p class="mt-2 max-w-2xl text-sm text-indigo-100">
+                <p class="mt-2 max-w-2xl text-sm text-teal-100">
                     Review your medication list and update the latest date you took each medication.
                 </p>
             </div>
@@ -101,14 +101,14 @@
                 </div>
             @endif
 
-            <div class="rounded-3xl border border-indigo-100 bg-white p-6 shadow-sm">
+            <div class="rounded-3xl border border-teal-100 bg-white p-6 shadow-sm">
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                        <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">Add Medication</p>
+                        <p class="text-xs font-bold uppercase tracking-wide text-teal-600">Add Medication</p>
                         <h2 class="mt-1 text-xl font-extrabold text-gray-900">Record Your Medication</h2>
                         <p class="mt-1 text-sm text-gray-500">Add medication you are currently taking so your record stays complete.</p>
                     </div>
-                    <span class="inline-flex w-fit rounded-full bg-indigo-100 px-3 py-1 text-xs font-bold text-indigo-700">
+                    <span class="inline-flex w-fit rounded-full bg-teal-100 px-3 py-1 text-xs font-bold text-teal-700">
                         Patient entry
                     </span>
                 </div>
@@ -125,7 +125,7 @@
                             value="{{ old('name') }}"
                             placeholder="Example: Metformin"
                             required
-                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
                         >
                     </div>
 
@@ -137,7 +137,7 @@
                             name="dosage"
                             value="{{ old('dosage') }}"
                             placeholder="Example: 500mg"
-                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
                         >
                     </div>
 
@@ -149,7 +149,7 @@
                             name="last_taken"
                             value="{{ old('last_taken', now()->format('Y-m-d')) }}"
                             max="{{ now()->format('Y-m-d') }}"
-                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
                         >
                     </div>
 
@@ -161,7 +161,7 @@
                             name="frequency"
                             value="{{ old('frequency') }}"
                             placeholder="Example: Once daily after meal"
-                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
                         >
                     </div>
 
@@ -174,12 +174,12 @@
                             value="{{ old('notes') }}"
                             maxlength="255"
                             placeholder="Optional question or note"
-                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            class="mt-1 w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
                         >
                     </div>
 
                     <div class="lg:col-span-4">
-                        <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-indigo-700 sm:w-auto">
+                        <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-teal-600 px-5 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-teal-700 sm:w-auto">
                             Add Medication
                         </button>
                     </div>
@@ -193,7 +193,7 @@
                             <div class="border-b border-gray-100 bg-gray-50 px-6 py-5">
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                     <div>
-                                        <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">Medication</p>
+                                        <p class="text-xs font-bold uppercase tracking-wide text-teal-600">Medication</p>
                                         <h2 class="mt-1 text-xl font-extrabold text-gray-900">
                                             {{ $medication->name }}
                                             @if($medication->status() !== 'Active')
@@ -256,7 +256,7 @@
                                                         @endunless
                                                     @endforeach
                                                 </select>
-                                                <button type="submit" class="w-full rounded-lg bg-indigo-600 px-3 py-2 text-xs font-bold text-white hover:bg-indigo-700">Log dose</button>
+                                                <button type="submit" class="w-full rounded-lg bg-teal-600 px-3 py-2 text-xs font-bold text-white hover:bg-teal-700">Log dose</button>
                                             </form>
                                         </details>
                                         @endif
@@ -277,7 +277,7 @@
                                     @unless($medication->refill_requested_at)
                                         <form method="POST" action="{{ route('patient.medications.refillRequest', $medication) }}">
                                             @csrf
-                                            <button type="submit" class="rounded-xl px-4 py-2 text-xs font-extrabold {{ in_array($refill, ['due', 'overdue']) ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'border border-indigo-200 bg-white text-indigo-700 hover:bg-indigo-50' }}">Request refill</button>
+                                            <button type="submit" class="rounded-xl px-4 py-2 text-xs font-extrabold {{ in_array($refill, ['due', 'overdue']) ? 'bg-teal-600 text-white hover:bg-teal-700' : 'border border-teal-200 bg-white text-teal-700 hover:bg-teal-50' }}">Request refill</button>
                                         </form>
                                     @endunless
                                 </div>
@@ -305,24 +305,24 @@
                                     </div>
                                 </div>
 
-                                <form method="POST" action="{{ route('patient.medications.update', $medication) }}" class="rounded-2xl border border-indigo-100 bg-indigo-50 p-4">
+                                <form method="POST" action="{{ route('patient.medications.update', $medication) }}" class="rounded-2xl border border-teal-100 bg-teal-50 p-4">
                                     @csrf
                                     @method('PATCH')
 
-                                    <h3 class="font-extrabold text-indigo-950">Quick Update</h3>
-                                    <p class="mt-1 text-xs font-semibold text-indigo-700">Keep this short. Your pharmacist can review it later.</p>
+                                    <h3 class="font-extrabold text-teal-950">Quick Update</h3>
+                                    <p class="mt-1 text-xs font-semibold text-teal-700">Keep this short. Your pharmacist can review it later.</p>
 
-                                    <label class="mt-4 block text-sm font-bold text-indigo-950" for="notes_{{ $medication->id }}">Note or question</label>
+                                    <label class="mt-4 block text-sm font-bold text-teal-950" for="notes_{{ $medication->id }}">Note or question</label>
                                     <textarea
                                         id="notes_{{ $medication->id }}"
                                         name="notes"
                                         rows="2"
                                         maxlength="255"
                                         placeholder="Example: Still taking daily, no issue."
-                                        class="mt-1 w-full rounded-xl border-indigo-200 bg-white text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                        class="mt-1 w-full rounded-xl border-teal-200 bg-white text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
                                     >{{ old('notes', $medication->notes) }}</textarea>
 
-                                    <button type="submit" class="mt-4 w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-sm hover:bg-indigo-700">
+                                    <button type="submit" class="mt-4 w-full rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-sm hover:bg-teal-700">
                                         Save Update
                                     </button>
                                 </form>

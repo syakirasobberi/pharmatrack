@@ -54,17 +54,17 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Height (cm)</label>
-                            <input type="number" step="0.01" min="1" max="999.99" name="height" id="height" value="{{ old('height') }}" required class="mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 {{ $errors->has('height') ? 'border-red-400' : 'border-gray-300' }}">
+                            <input type="number" step="0.01" min="1" max="999.99" name="height" id="height" value="{{ old('height') }}" required class="mt-1 block w-full rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 {{ $errors->has('height') ? 'border-red-400' : 'border-gray-300' }}">
                             @error('height') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Weight (kg)</label>
-                            <input type="number" step="0.01" min="1" max="999.99" name="weight" id="weight" value="{{ old('weight') }}" required class="mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 {{ $errors->has('weight') ? 'border-red-400' : 'border-gray-300' }}">
+                            <input type="number" step="0.01" min="1" max="999.99" name="weight" id="weight" value="{{ old('weight') }}" required class="mt-1 block w-full rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 {{ $errors->has('weight') ? 'border-red-400' : 'border-gray-300' }}">
                             @error('weight') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Calculated BMI</label>
-                            <input type="text" id="bmi_display" readonly class="mt-1 block w-full bg-gray-100 border-gray-300 rounded-md shadow-sm cursor-not-allowed text-blue-700 font-bold" placeholder="Auto-calculated">
+                            <input type="text" id="bmi_display" readonly class="mt-1 block w-full bg-gray-100 border-gray-300 rounded-md shadow-sm cursor-not-allowed text-teal-700 font-bold" placeholder="Auto-calculated">
                         </div>
                     </div>
 
@@ -74,17 +74,17 @@
                         <div class="mb-3">
                             @include('pharmacist.patients.partials.face-capture-guide')
                         </div>
-                        <p id="status" class="text-sm font-semibold text-indigo-700 mb-2">Loading AI models... You can save the patient without face data.</p>
+                        <p id="status" class="text-sm font-semibold text-teal-700 mb-2">Loading AI models... You can save the patient without face data.</p>
 
                         <div id="video-container" class="relative inline-block w-full max-w-sm overflow-hidden rounded-lg bg-black">
                             <video id="video" width="320" height="240" autoplay muted playsinline class="w-full rounded-lg"></video>
                         </div>
 
                         <div class="mt-3 flex flex-col gap-2 sm:flex-row">
-                            <button type="button" id="btn-start-camera" class="px-4 py-2 bg-blue-600 text-white font-bold rounded shadow hover:bg-blue-700 transition-colors opacity-50 cursor-not-allowed" disabled>
+                            <button type="button" id="btn-start-camera" class="px-4 py-2 bg-teal-600 text-white font-bold rounded shadow hover:bg-teal-700 transition-colors opacity-50 cursor-not-allowed" disabled>
                                 Loading Models...
                             </button>
-                            <button type="button" id="btn-scan-face" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded shadow hover:bg-indigo-700 transition-colors hidden" style="display: none;">
+                            <button type="button" id="btn-scan-face" class="px-4 py-2 bg-teal-600 text-white font-bold rounded shadow hover:bg-teal-700 transition-colors hidden" style="display: none;">
                                 Scan & Capture Face
                             </button>
                         </div>
@@ -98,7 +98,7 @@
 
                     <div class="flex flex-col-reverse justify-end gap-3 mt-6 sm:flex-row sm:gap-4">
                         <a href="{{ route('pharmacist.dashboard') }}" class="inline-flex justify-center px-6 py-2 bg-gray-300 text-gray-800 font-bold rounded-lg hover:bg-gray-400 transition-colors">Cancel</a>
-                        <button type="submit" class="inline-flex justify-center px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-md">Save Patient</button>
+                        <button type="submit" class="inline-flex justify-center px-6 py-2 bg-teal-600 text-white font-bold rounded-lg hover:bg-teal-700 transition-colors shadow-md">Save Patient</button>
                     </div>
                 </form>
 

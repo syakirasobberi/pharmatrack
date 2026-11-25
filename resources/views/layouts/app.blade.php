@@ -11,26 +11,21 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     </head>
     <body class="font-sans antialiased text-gray-900 bg-gray-100">
         
         <div x-data="{ sidebarOpen: false }" class="flex min-h-dvh bg-gray-50 lg:h-dvh lg:overflow-hidden">
             
             @php
-                $sidebarBg = 'bg-blue-900';
-                $borderClass = 'border-blue-800';
-                $brandColor = 'text-blue-300';
+                // One sidebar theme for every role (admin, pharmacist, patient), matching the PharmaTrack logo.
+                $sidebarBg = 'bg-teal-900 border-r border-teal-800';
+                $borderClass = 'border-teal-800';
+                $brandColor = 'text-teal-300';
                 $patientContact = null;
                 $patientUnreadNotificationsCount = 0;
-                
-                if(Auth::user()->role == 'admin') {
-                    $sidebarBg = 'bg-slate-900 border-r border-slate-800';
-                    $borderClass = 'border-slate-800';
-                    $brandColor = 'text-emerald-400';
-                } elseif(Auth::user()->role == 'patient') {
-                    $sidebarBg = 'bg-indigo-900 border-r border-indigo-800';
-                    $borderClass = 'border-indigo-800';
-                    $brandColor = 'text-indigo-400';
+
+                if(Auth::user()->role == 'patient') {
                     $patientUnreadNotificationsCount = Auth::user()->unreadNotifications()->count();
                     $patientContact = \App\Models\Patient::with('pharmacist')
                         ->where('user_id', Auth::id())
@@ -63,7 +58,7 @@
             >
                 
                 <div class="h-16 flex items-center justify-between gap-3 border-b px-4 {{ $borderClass }}">
-                    <h1 class="text-2xl font-extrabold tracking-wider">Pharma<span class="{{ $brandColor }}">Track</span></h1>
+                    <a href="{{ route('dashboard') }}" aria-label="PharmaTrack home"><x-brand theme="dark" :size="34" /></a>
                     <button
                         type="button"
                         @click="sidebarOpen = false"
@@ -80,37 +75,37 @@
                     
                     @if(Auth::user()->role == 'admin')
                         <a href="{{ route('admin.dashboard') }}" 
-                           class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-slate-800 text-emerald-400 font-bold border-l-4 border-emerald-500' : 'text-slate-400 hover:bg-slate-800 hover:text-emerald-300' }}">
+                           class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-teal-700 font-bold border-l-4 border-teal-300' : 'hover:bg-teal-800 text-teal-100' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                             Admin Dashboard
                         </a>
 
                         <a href="{{ route('admin.pharmacists.index') }}"
-                           class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('admin.pharmacists.*') ? 'bg-slate-800 text-emerald-400 font-bold border-l-4 border-emerald-500' : 'text-slate-400 hover:bg-slate-800 hover:text-emerald-300 font-medium' }}">
+                           class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('admin.pharmacists.*') ? 'bg-teal-700 font-bold border-l-4 border-teal-300' : 'hover:bg-teal-800 text-teal-100 font-medium' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                             Manage Staff
                         </a>
 
                         <a href="{{ route('admin.patients.index') }}"
-                           class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('admin.patients.*') ? 'bg-slate-800 text-emerald-400 font-bold border-l-4 border-emerald-500' : 'text-slate-400 hover:bg-slate-800 hover:text-emerald-300 font-medium' }}">
+                           class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('admin.patients.*') ? 'bg-teal-700 font-bold border-l-4 border-teal-300' : 'hover:bg-teal-800 text-teal-100 font-medium' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m6-6a4 4 0 11-8 0 4 4 0 018 0zm6 2a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                             Patient Overview
                         </a>
 
                         <a href="{{ route('admin.reports.index') }}"
-                           class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('admin.reports.*') ? 'bg-slate-800 text-emerald-400 font-bold border-l-4 border-emerald-500' : 'text-slate-400 hover:bg-slate-800 hover:text-emerald-300 font-medium' }}">
+                           class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('admin.reports.*') ? 'bg-teal-700 font-bold border-l-4 border-teal-300' : 'hover:bg-teal-800 text-teal-100 font-medium' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6m4 6V7m4 10v-3M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                             Reports
                         </a>
 
                         <a href="{{ route('admin.audit.index') }}"
-                           class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('admin.audit.*') ? 'bg-slate-800 text-emerald-400 font-bold border-l-4 border-emerald-500' : 'text-slate-400 hover:bg-slate-800 hover:text-emerald-300 font-medium' }}">
+                           class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('admin.audit.*') ? 'bg-teal-700 font-bold border-l-4 border-teal-300' : 'hover:bg-teal-800 text-teal-100 font-medium' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                             Audit Log
                         </a>
 
                         <a href="{{ route('admin.settings.index') }}"
-                           class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('admin.settings.*') ? 'bg-slate-800 text-emerald-400 font-bold border-l-4 border-emerald-500' : 'text-slate-400 hover:bg-slate-800 hover:text-emerald-300 font-medium' }}">
+                           class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('admin.settings.*') ? 'bg-teal-700 font-bold border-l-4 border-teal-300' : 'hover:bg-teal-800 text-teal-100 font-medium' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                             System Settings
                         </a>
@@ -119,7 +114,7 @@
                         {{-- My Health --}}
                         <a href="{{ route('patient.dashboard') }}"
                            class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium"
-                           style="background:{{ request()->routeIs('patient.dashboard') ? '#4338ca' : 'transparent' }};color:{{ request()->routeIs('patient.dashboard') ? '#fff' : '#c7d2fe' }};border-left:{{ request()->routeIs('patient.dashboard') ? '4px solid #a5b4fc' : '4px solid transparent' }};">
+                           style="background:{{ request()->routeIs('patient.dashboard') ? '#0f766e' : 'transparent' }};color:{{ request()->routeIs('patient.dashboard') ? '#fff' : '#ccfbf1' }};border-left:{{ request()->routeIs('patient.dashboard') ? '4px solid #5eead4' : '4px solid transparent' }};">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                             My Health
                         </a>
@@ -127,21 +122,21 @@
                         {{-- My Medications --}}
                         <a href="{{ route('patient.medications') }}"
                            class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium"
-                           style="background:{{ request()->routeIs('patient.medications') ? '#4338ca' : 'transparent' }};color:{{ request()->routeIs('patient.medications') ? '#fff' : '#c7d2fe' }};border-left:{{ request()->routeIs('patient.medications') ? '4px solid #a5b4fc' : '4px solid transparent' }};">
+                           style="background:{{ request()->routeIs('patient.medications') ? '#0f766e' : 'transparent' }};color:{{ request()->routeIs('patient.medications') ? '#fff' : '#ccfbf1' }};border-left:{{ request()->routeIs('patient.medications') ? '4px solid #5eead4' : '4px solid transparent' }};">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                             My Medications
                         </a>
 
                         <a href="{{ route('patient.checkups') }}"
                            class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium"
-                           style="background:{{ request()->routeIs('patient.checkups') ? '#4338ca' : 'transparent' }};color:{{ request()->routeIs('patient.checkups') ? '#fff' : '#c7d2fe' }};border-left:{{ request()->routeIs('patient.checkups') ? '4px solid #a5b4fc' : '4px solid transparent' }};">
+                           style="background:{{ request()->routeIs('patient.checkups') ? '#0f766e' : 'transparent' }};color:{{ request()->routeIs('patient.checkups') ? '#fff' : '#ccfbf1' }};border-left:{{ request()->routeIs('patient.checkups') ? '4px solid #5eead4' : '4px solid transparent' }};">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-3-3v6m8-3a8 8 0 11-16 0 8 8 0 0116 0z"></path></svg>
                             My Checkups
                         </a>
 
                         <a href="{{ route('patient.notifications.index') }}"
                            class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium"
-                           style="background:{{ request()->routeIs('patient.notifications.*') ? '#4338ca' : 'transparent' }};color:{{ request()->routeIs('patient.notifications.*') ? '#fff' : '#c7d2fe' }};border-left:{{ request()->routeIs('patient.notifications.*') ? '4px solid #a5b4fc' : '4px solid transparent' }};">
+                           style="background:{{ request()->routeIs('patient.notifications.*') ? '#0f766e' : 'transparent' }};color:{{ request()->routeIs('patient.notifications.*') ? '#fff' : '#ccfbf1' }};border-left:{{ request()->routeIs('patient.notifications.*') ? '4px solid #5eead4' : '4px solid transparent' }};">
                             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 01-6 0m6 0H9"></path></svg>
                             <span class="min-w-0 flex-1">Notifications</span>
                             @if($patientUnreadNotificationsCount > 0)
@@ -152,17 +147,17 @@
                         </a>
 
                         {{-- Health Summary PDF Options --}}
-                        <div class="rounded-xl border border-indigo-700/70 bg-indigo-950/30 p-2">
-                            <p class="px-2 pb-2 text-xs font-bold uppercase tracking-wider text-indigo-300">Health Summary PDF</p>
+                        <div class="rounded-xl border border-teal-700/70 bg-teal-950/30 p-2">
+                            <p class="px-2 pb-2 text-xs font-bold uppercase tracking-wider text-teal-300">Health Summary PDF</p>
                             <a href="{{ route('patient.summary.download') }}"
-                               class="flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium text-indigo-100 transition-colors hover:bg-indigo-800">
+                               class="flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium text-teal-100 transition-colors hover:bg-teal-800">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                 Download PDF
                             </a>
                             <form action="{{ route('patient.summary.email') }}" method="POST">
                                 @csrf
                                 <button type="submit"
-                                        class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left font-medium text-indigo-100 transition-colors hover:bg-indigo-800"
+                                        class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left font-medium text-teal-100 transition-colors hover:bg-teal-800"
                                         title="Send to {{ Auth::user()->email }}">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 8V6a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg>
                                     Send to Email
@@ -172,13 +167,13 @@
 
                     @else
                         <a href="{{ route('pharmacist.dashboard') }}" 
-                           class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('pharmacist.dashboard') ? 'bg-blue-700 font-bold border-l-4 border-blue-300' : 'hover:bg-blue-800 text-blue-100' }}">
+                           class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('pharmacist.dashboard') ? 'bg-teal-700 font-bold border-l-4 border-teal-300' : 'hover:bg-teal-800 text-teal-100' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                             Dashboard
                         </a>
 
                         <a href="{{ route('pharmacist.patients.index') }}"
-                           class="flex items-center gap-3 px-4 py-3 mt-2 rounded-lg transition-colors {{ request()->routeIs('pharmacist.patients.index', 'pharmacist.patients.show', 'pharmacist.patients.summary', 'pharmacist.patients.summary.download', 'pharmacist.patients.medical.*', 'pharmacist.medication.*', 'pharmacist.checkups.*') ? 'bg-blue-700 font-bold border-l-4 border-blue-300 text-white' : 'hover:bg-blue-800 text-blue-100' }}">
+                           class="flex items-center gap-3 px-4 py-3 mt-2 rounded-lg transition-colors {{ request()->routeIs('pharmacist.patients.index', 'pharmacist.patients.show', 'pharmacist.patients.summary', 'pharmacist.patients.summary.download', 'pharmacist.patients.medical.*', 'pharmacist.medication.*', 'pharmacist.checkups.*') ? 'bg-teal-700 font-bold border-l-4 border-teal-300 text-white' : 'hover:bg-teal-800 text-teal-100' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                             </svg>
@@ -186,13 +181,13 @@
                         </a>
 
                         <a href="{{ route('pharmacist.patients.create') }}" 
-                           class="flex items-center gap-3 px-4 py-3 mt-2 rounded-lg transition-colors {{ request()->routeIs('pharmacist.patients.create') ? 'bg-blue-700 font-bold border-l-4 border-blue-300' : 'hover:bg-blue-800 text-blue-100' }}">
+                           class="flex items-center gap-3 px-4 py-3 mt-2 rounded-lg transition-colors {{ request()->routeIs('pharmacist.patients.create') ? 'bg-teal-700 font-bold border-l-4 border-teal-300' : 'hover:bg-teal-800 text-teal-100' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
                             Register Patient
                         </a>
 
                         <a href="{{ route('pharmacist.quickScan') }}"
-                           class="flex items-center gap-3 px-4 py-3 mt-2 rounded-lg transition-colors {{ request()->routeIs('pharmacist.quickScan') ? 'bg-blue-700 font-bold border-l-4 border-blue-300' : 'hover:bg-blue-800 text-blue-100' }}">
+                           class="flex items-center gap-3 px-4 py-3 mt-2 rounded-lg transition-colors {{ request()->routeIs('pharmacist.quickScan') ? 'bg-teal-700 font-bold border-l-4 border-teal-300' : 'hover:bg-teal-800 text-teal-100' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2m8-16h2a2 2 0 012 2v2m-4 12h2a2 2 0 002-2v-2M9 10h.01M15 10h.01M9.5 15a3.5 3.5 0 005 0"/></svg>
                             Quick Scan
                         </a>
@@ -200,7 +195,7 @@
 
                 </nav>
 
-                <div class="p-4 border-t {{ $borderClass }} {{ Auth::user()->role == 'admin' ? 'bg-slate-950' : (Auth::user()->role == 'patient' ? 'bg-indigo-950' : 'bg-blue-950') }}">
+                <div class="p-4 border-t {{ $borderClass }} bg-teal-950">
                     <p class="text-sm font-semibold">{{ Auth::user()->name }}</p>
                     <p class="text-xs capitalize font-bold {{ $brandColor }}">{{ Auth::user()->role }}</p>
                 </div>
@@ -227,7 +222,7 @@
                     </div>
 
                     <div class="flex items-center gap-2 sm:gap-4">
-                        <a href="{{ route('profile.edit') }}" class="text-sm font-semibold text-gray-600 hover:text-blue-700 transition-colors flex items-center gap-2">
+                        <a href="{{ route('profile.edit') }}" class="text-sm font-semibold text-gray-600 hover:text-teal-700 transition-colors flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                             <span class="hidden sm:inline">My Profile</span>
                         </a>

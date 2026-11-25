@@ -6,7 +6,7 @@
     <div class="py-8 bg-slate-50 min-h-screen">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <div>
-                <a href="{{ route('admin.dashboard') }}" class="text-sm font-bold text-slate-500 hover:text-emerald-700">&larr; Back to Admin Dashboard</a>
+                <a href="{{ route('admin.dashboard') }}" class="text-sm font-bold text-slate-500 hover:text-teal-700">&larr; Back to Admin Dashboard</a>
                 <h1 class="text-2xl font-extrabold text-slate-900 mt-2">System Settings</h1>
                 <p class="text-sm text-slate-500 mt-1">System configuration and access-control overview for the current deployment.</p>
             </div>
@@ -50,12 +50,12 @@
                                 value="{{ old('app_name', $settings['app_name']) }}"
                                 required
                                 maxlength="60"
-                                class="w-full rounded-xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-200"
+                                class="w-full rounded-xl border-slate-300 text-sm focus:border-teal-500 focus:ring-teal-200"
                             >
                             <p class="text-xs text-slate-500 mt-2">This updates the Laravel `APP_NAME` value used by the page title and system branding.</p>
                         </div>
 
-                        <button type="submit" class="px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
+                        <button type="submit" class="px-4 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-bold hover:bg-teal-700">
                             Save App Name
                         </button>
                     </form>

@@ -14,5 +14,5 @@
     </span>
 @endif
 @if($medication->refill_requested_at && $medication->isCurrent())
-    <span class="mt-1 inline-flex px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold">Refill requested {{ $medication->refill_requested_at->format('d M') }}</span>
+    <span class="mt-1 inline-flex px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 border border-teal-200 text-xs font-bold">Refill requested {{ $medication->refill_requested_at->format('d M') }}</span>
 @endif

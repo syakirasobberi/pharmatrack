@@ -255,7 +255,7 @@
         $aiSuggestionText = $latestCheckup?->ai_suggestion;
         $aiSuggestionStyles = [
             'food' => 'border-emerald-100 bg-emerald-50 text-emerald-900',
-            'exercise' => 'border-blue-100 bg-blue-50 text-blue-900',
+            'exercise' => 'border-teal-100 bg-teal-50 text-teal-900',
             'follow-up' => 'border-amber-100 bg-amber-50 text-amber-900',
             'medication review' => 'border-purple-100 bg-purple-50 text-purple-900',
         ];
@@ -275,7 +275,7 @@
                     return [
                         'title' => $title,
                         'body' => $body ?: $line,
-                        'style' => $aiSuggestionStyles[$key] ?? 'border-indigo-100 bg-white text-indigo-900',
+                        'style' => $aiSuggestionStyles[$key] ?? 'border-teal-100 bg-white text-teal-900',
                     ];
                 })
                 ->values();
@@ -307,7 +307,7 @@
             {{-- Back link --}}
             <div>
                 <a href="{{ route('pharmacist.patients.show', $patient->id) }}"
-                   class="inline-flex items-center gap-1 text-slate-500 hover:text-blue-700 font-bold transition-colors text-sm">
+                   class="inline-flex items-center gap-1 text-slate-500 hover:text-teal-700 font-bold transition-colors text-sm">
                     &larr; Back to patient profile
                 </a>
             </div>
@@ -315,20 +315,20 @@
             {{-- ── HEADER CARD ───────────────────────────────────────────── --}}
             <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="px-6 py-6 md:px-8 text-white"
-                     style="background: linear-gradient(90deg,#1d4ed8 0%,#0891b2 100%);">
+                     style="background: linear-gradient(90deg,#0f766e 0%,#0891b2 100%);">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
                         <div class="flex items-center gap-4">
-                            <img src="https://ui-avatars.com/api/?name={{ urlencode($patientName) }}&background=ffffff&color=1d4ed8&size=128&font-size=0.35&bold=true"
+                            <img src="https://ui-avatars.com/api/?name={{ urlencode($patientName) }}&background=ffffff&color=0f766e&size=128&font-size=0.35&bold=true"
                                  alt="Patient avatar"
                                  class="w-20 h-20 rounded-full border-4 border-white/60 shadow-sm">
                             <div>
-                                <p class="text-xs font-bold uppercase tracking-[0.2em]" style="color:#dbeafe;">
+                                <p class="text-xs font-bold uppercase tracking-[0.2em]" style="color:#ccfbf1;">
                                     Pharmacist Clinical View
                                 </p>
                                 <h1 class="text-3xl font-extrabold" style="color:#ffffff;">
                                     {{ $patientName }}
                                 </h1>
-                                <div class="flex flex-wrap gap-3 text-sm mt-2" style="color:#eff6ff;">
+                                <div class="flex flex-wrap gap-3 text-sm mt-2" style="color:#f0fdfa;">
                                     <span>{{ $patient->gender }}</span>
                                     <span>{{ $patient->age }} years</span>
                                     <span>&bull;</span>
@@ -338,11 +338,11 @@
                         </div>
                         <div class="flex flex-wrap gap-3">
                             <a href="{{ route('pharmacist.patients.show', $patient->id) }}"
-                               class="px-4 py-2 rounded-full bg-white text-blue-700 font-bold shadow-sm hover:bg-blue-50 transition-colors text-sm">
+                               class="px-4 py-2 rounded-full bg-white text-teal-700 font-bold shadow-sm hover:bg-teal-50 transition-colors text-sm">
                                 Full Profile
                             </a>
                             <a href="{{ route('pharmacist.patients.summary.download', $patient->id) }}"
-                               class="px-4 py-2 rounded-full bg-white text-blue-700 font-bold shadow-sm hover:bg-blue-50 transition-colors text-sm">
+                               class="px-4 py-2 rounded-full bg-white text-teal-700 font-bold shadow-sm hover:bg-teal-50 transition-colors text-sm">
                                 Download Summary
                             </a>
                             <form action="{{ route('pharmacist.patients.summary.email', $patient->id) }}" method="POST">
@@ -442,8 +442,8 @@
                             <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
 
                                 {{-- Body Metrics --}}
-                                <div class="rounded-2xl bg-blue-50 border border-blue-100 p-4">
-                                    <p class="text-xs font-bold uppercase tracking-wide text-blue-600 mb-3">
+                                <div class="rounded-2xl bg-teal-50 border border-teal-100 p-4">
+                                    <p class="text-xs font-bold uppercase tracking-wide text-teal-600 mb-3">
                                         Body Metrics
                                     </p>
                                     <dl class="space-y-2 text-sm text-slate-700">
@@ -621,7 +621,7 @@
                                     <div class="flex items-center justify-between">
                                         <h2 class="text-lg font-extrabold text-slate-800">Medications</h2>
                                         <span class="text-xs font-bold px-2.5 py-1 rounded-full
-                                            {{ $activeMedCount > 0 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500' }}">
+                                            {{ $activeMedCount > 0 ? 'bg-teal-100 text-teal-700' : 'bg-slate-100 text-slate-500' }}">
                                             {{ $activeMedCount }} active
                                         </span>
                                     </div>
@@ -645,7 +645,7 @@
                                     @endforelse
                                     @if($activeMedCount > 2)
                                         <a href="{{ route('pharmacist.patients.show', $patient->id) }}"
-                                           class="block text-center text-xs font-bold text-blue-600 hover:text-blue-800 pt-1">
+                                           class="block text-center text-xs font-bold text-teal-600 hover:text-teal-800 pt-1">
                                             + {{ $activeMedCount - 2 }} more — view full profile
                                         </a>
                                     @endif
@@ -667,7 +667,7 @@
                                         <span class="w-fit rounded-full px-3 py-1 text-xs font-bold {{ $healthStatusClass }}">
                                             {{ $healthStatus }}
                                         </span>
-                                        <button type="button" id="generateOverallSummary" class="rounded-full bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700">
+                                        <button type="button" id="generateOverallSummary" class="rounded-full bg-teal-600 px-4 py-2 text-xs font-bold text-white hover:bg-teal-700">
                                             {{ $aiSuggestionCards->isNotEmpty() ? 'Regenerate API Suggestion' : 'Generate API Suggestion' }}
                                         </button>
                                     </div>
@@ -709,8 +709,8 @@
                                     </ul>
                                 </div>
 
-                                <div id="apiOverallSummary" class="xl:col-span-3 {{ $aiSuggestionCards->isNotEmpty() ? '' : 'hidden' }} rounded-2xl border border-indigo-100 bg-indigo-50 p-4">
-                                    <p class="text-xs font-bold uppercase tracking-wide text-indigo-700">AI Health Insights</p>
+                                <div id="apiOverallSummary" class="xl:col-span-3 {{ $aiSuggestionCards->isNotEmpty() ? '' : 'hidden' }} rounded-2xl border border-teal-100 bg-teal-50 p-4">
+                                    <p class="text-xs font-bold uppercase tracking-wide text-teal-700">AI Health Insights</p>
                                     <div id="apiOverallSummaryText" class="mt-3">
                                         @if($aiSuggestionCards->isNotEmpty())
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -723,7 +723,7 @@
                                             </div>
                                         @endif
                                     </div>
-                                    <p class="mt-3 text-xs font-semibold text-indigo-700">
+                                    <p class="mt-3 text-xs font-semibold text-teal-700">
                                         Medication notes are for pharmacist review only. The system does not automatically prescribe medication.
                                     </p>
                                 </div>
@@ -804,7 +804,7 @@
                 const renderSuggestionCards = (suggestion) => {
                     const styles = {
                         food: 'border-emerald-100 bg-emerald-50 text-emerald-900',
-                        exercise: 'border-blue-100 bg-blue-50 text-blue-900',
+                        exercise: 'border-teal-100 bg-teal-50 text-teal-900',
                         'follow-up': 'border-amber-100 bg-amber-50 text-amber-900',
                         'medication review': 'border-purple-100 bg-purple-50 text-purple-900',
                     };
@@ -826,7 +826,7 @@
                             const [rawTitle, ...rest] = cleaned.split(':');
                             const title = rawTitle.trim();
                             const body = rest.join(':').trim() || cleaned;
-                            const style = styles[title.toLowerCase()] || 'border-indigo-100 bg-white text-indigo-900';
+                            const style = styles[title.toLowerCase()] || 'border-teal-100 bg-white text-teal-900';
 
                             return `<div class="rounded-xl border ${style} p-4">
                                 <p class="text-xs font-extrabold uppercase tracking-wide">${escapeHtml(title)}</p>
@@ -842,7 +842,7 @@
                     generateSummaryButton.disabled = true;
                     generateSummaryButton.textContent = 'Generating...';
                     apiSummaryBox.classList.remove('hidden');
-                    apiSummaryText.innerHTML = '<span class="animate-pulse text-indigo-600 font-bold">Analyzing latest check-up metrics...</span>';
+                    apiSummaryText.innerHTML = '<span class="animate-pulse text-teal-600 font-bold">Analyzing latest check-up metrics...</span>';
 
                     try {
                         const response = await fetch('{{ route('pharmacist.patients.aiSummary', $patient->id) }}', {

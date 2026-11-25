@@ -6,7 +6,7 @@
     <div class="py-8 bg-gray-50 min-h-screen">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <div>
-                <a href="{{ route('pharmacist.patients.index') }}" class="inline-flex items-center text-gray-500 hover:text-blue-700 font-bold transition-colors">
+                <a href="{{ route('pharmacist.patients.index') }}" class="inline-flex items-center text-gray-500 hover:text-teal-700 font-bold transition-colors">
                     &larr; Back to Patient List
                 </a>
             </div>
@@ -26,7 +26,7 @@
             <div class="flex flex-col md:flex-row items-start bg-white p-6 rounded-2xl shadow-sm hover:shadow-md border border-gray-200 transition-shadow duration-200 gap-6">
     <div class="flex-shrink-0 relative">
         <img
-            src="https://ui-avatars.com/api/?name={{ urlencode($patient->user->name) }}&background=eff6ff&color=1d4ed8&size=128&font-size=0.35&bold=true"
+            src="https://ui-avatars.com/api/?name={{ urlencode($patient->user->name) }}&background=f0fdfa&color=0f766e&size=128&font-size=0.35&bold=true"
             alt="{{ $patient->user->name }}'s Profile Photo"
             class="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover shadow-sm ring-4 ring-gray-50"
         >
@@ -57,26 +57,37 @@
                 </div>
             </div>
 
-            <div class="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 w-fit">
-                <svg class="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+            <div class="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 bg-teal-50 px-3 py-1.5 rounded-lg border border-teal-100 w-fit">
+                <svg class="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
                 Assigned Pharmacist: {{ $patient->pharmacist?->name ?? 'Unassigned' }}
             </div>
         </div>
 
         <div class="w-full md:w-auto flex flex-col items-start md:items-end gap-3 pt-4 md:pt-0 border-t md:border-t-0 border-gray-100">
             <div class="flex flex-row w-full md:w-auto gap-3">
-                <a href="{{ route('pharmacist.patients.edit', $patient->id) }}" class="flex-1 md:flex-none inline-flex justify-center items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium text-sm rounded-xl hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
-                    Edit
+                <a href="{{ route('pharmacist.patients.edit', $patient->id) }}" class="flex-1 md:flex-none inline-flex justify-center items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-semibold text-sm rounded-xl hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.232-6.232a2.5 2.5 0 113.536 3.536L12.536 16.536 8 18l1.464-4.536z" /></svg>
+                    Edit Profile
                 </a>
-                
-                <form action="{{ route('pharmacist.patients.sendReminder', $patient->id) }}" method="POST" class="flex-1 md:flex-none inline-flex">
-                    @csrf
-                    <button type="submit" class="w-full inline-flex justify-center items-center gap-2 px-4 py-2 bg-indigo-600 border border-transparent text-white font-medium text-sm rounded-xl hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-sm transition-all">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                        Reminder
-                    </button>
-                </form>
+
+                @php
+                    $lastReminderAt = $patient->user?->notifications()
+                        ->where('type', \App\Notifications\RoutineCheckupReminderNotification::class)
+                        ->latest()
+                        ->value('created_at');
+                @endphp
+                <x-reminder-button :patient="$patient" class="flex-1 md:flex-none" />
             </div>
+
+            <span class="text-xs text-gray-500 font-medium flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                @if ($lastReminderAt)
+                    Last reminder sent {{ \Illuminate\Support\Carbon::parse($lastReminderAt)->diffForHumans() }}
+                    <span class="text-gray-400">({{ \Illuminate\Support\Carbon::parse($lastReminderAt)->format('d M Y') }})</span>
+                @else
+                    No reminder sent yet
+                @endif
+            </span>
             
             <span class="text-xs text-gray-400 font-medium flex items-center gap-1 mt-1">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -150,7 +161,7 @@
                 {{-- Latest Vitals --}}
                 <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                     <h3 class="font-extrabold text-base text-gray-800 mb-4 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
+                        <span class="w-2 h-2 rounded-full bg-teal-500 inline-block"></span>
                         Latest Vitals
                         @if($latestCheckup)
                             <span class="ml-auto text-xs font-medium text-gray-400">{{ \Carbon\Carbon::parse($latestCheckup->checkup_date)->format('d M Y') }}</span>
@@ -216,9 +227,9 @@
                             <p class="text-xs text-gray-500 font-bold mb-1">Drug Allergies</p>
                             <p class="text-sm font-bold text-gray-800">{{ optional($medicalHistory)->drug_allergies ?: 'No known drug allergies' }}</p>
                         </div>
-                        <div class="border {{ optional($medicalHistory)->others ? 'border-indigo-200 bg-indigo-50' : 'border-gray-200' }} rounded-xl p-3">
-                            <p class="text-xs {{ optional($medicalHistory)->others ? 'text-indigo-600' : 'text-gray-500' }} font-bold mb-1">Other Conditions</p>
-                            <p class="text-sm font-bold {{ optional($medicalHistory)->others ? 'text-indigo-800' : 'text-gray-800' }}">{{ optional($medicalHistory)->others ?: 'None recorded' }}</p>
+                        <div class="border {{ optional($medicalHistory)->others ? 'border-teal-200 bg-teal-50' : 'border-gray-200' }} rounded-xl p-3">
+                            <p class="text-xs {{ optional($medicalHistory)->others ? 'text-teal-600' : 'text-gray-500' }} font-bold mb-1">Other Conditions</p>
+                            <p class="text-sm font-bold {{ optional($medicalHistory)->others ? 'text-teal-800' : 'text-gray-800' }}">{{ optional($medicalHistory)->others ?: 'None recorded' }}</p>
                         </div>
                     </div>
                 </div>
@@ -265,7 +276,7 @@
                     <div class="mt-4 flex flex-col gap-3 sm:flex-row">
                         <a href="#face-registration"
                            onclick="document.getElementById('registered-face-actions').classList.toggle('hidden'); return false;"
-                           class="inline-flex justify-center px-5 py-2 bg-indigo-600 text-white font-bold text-sm rounded-full shadow hover:bg-indigo-700 transition-colors">
+                           class="inline-flex justify-center px-5 py-2 bg-teal-600 text-white font-bold text-sm rounded-full shadow hover:bg-teal-700 transition-colors">
                             Update Face
                         </a>
                         <form action="{{ route('pharmacist.patients.deleteFace', $patient->id) }}" method="POST"
@@ -286,8 +297,8 @@
                         <div class="flex flex-col items-center bg-gray-50 p-4 rounded-xl border border-dashed border-gray-300">
                         @include('pharmacist.patients.partials.face-capture-guide')
                             <div id="camera-idle" class="flex flex-col items-center gap-3 py-6">
-                                <div class="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center">
-                                    <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div class="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center">
+                                    <svg class="w-8 h-8 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0"/>
                                     </svg>
@@ -295,7 +306,7 @@
                                 <p class="text-sm font-bold text-gray-700">Camera is off</p>
                                 <p class="text-xs text-gray-400 text-center max-w-xs">Click the button below to turn on the camera and update this patient's facial biometric.</p>
                                 <button type="button" id="btn-start-camera"
-                                    class="mt-2 px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-full shadow hover:bg-indigo-700 active:scale-95 transition-all flex items-center gap-2">
+                                    class="mt-2 px-6 py-2.5 bg-teal-600 text-white font-bold rounded-full shadow hover:bg-teal-700 active:scale-95 transition-all flex items-center gap-2">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.069A1 1 0 0121 8.868v6.264a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
                                     </svg>
@@ -313,7 +324,7 @@
 
                                 <div class="flex gap-3 mt-1">
                                     <button type="button" id="btn-update-face"
-                                        class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-full shadow hover:bg-indigo-700 transition-colors flex items-center gap-2">
+                                        class="px-6 py-2 bg-teal-600 text-white font-bold rounded-full shadow hover:bg-teal-700 transition-colors flex items-center gap-2">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                         </svg>
@@ -341,8 +352,8 @@
                         {{-- Idle prompt (shown before camera starts) --}}
                         @include('pharmacist.patients.partials.face-capture-guide')
                         <div id="camera-idle" class="flex flex-col items-center gap-3 py-6">
-                            <div class="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center">
-                                <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center">
+                                <svg class="w-8 h-8 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0"/>
                                 </svg>
@@ -350,7 +361,7 @@
                             <p class="text-sm font-bold text-gray-700">Camera is off</p>
                             <p class="text-xs text-gray-400 text-center max-w-xs">Click the button below to turn on the camera and register this patient's facial biometric.</p>
                             <button type="button" id="btn-start-camera"
-                                class="mt-2 px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-full shadow hover:bg-indigo-700 active:scale-95 transition-all flex items-center gap-2">
+                                class="mt-2 px-6 py-2.5 bg-teal-600 text-white font-bold rounded-full shadow hover:bg-teal-700 active:scale-95 transition-all flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.069A1 1 0 0121 8.868v6.264a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
                                 </svg>
@@ -369,7 +380,7 @@
 
                             <div class="flex gap-3 mt-1">
                                 <button type="button" id="btn-update-face"
-                                    class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-full shadow hover:bg-indigo-700 transition-colors flex items-center gap-2">
+                                    class="px-6 py-2 bg-teal-600 text-white font-bold rounded-full shadow hover:bg-teal-700 transition-colors flex items-center gap-2">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                     </svg>
@@ -420,7 +431,7 @@
                         <h3 class="font-extrabold text-lg text-gray-800">Health Check-up History</h3>
                         <p class="text-xs text-gray-400 mt-0.5">All recorded check-up results for this patient.</p>
                     </div>
-                    <a href="{{ route('pharmacist.checkups.create', $patient->id) }}" class="inline-flex justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-full shadow-md transition-colors">
+                    <a href="{{ route('pharmacist.checkups.create', $patient->id) }}" class="inline-flex justify-center px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm rounded-full shadow-md transition-colors">
                         + Add Check-up
                     </a>
                 </div>
@@ -454,11 +465,11 @@
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 @foreach($allCheckups as $checkup)
-                                    <tr class="hover:bg-blue-50/30 transition-colors {{ $loop->first ? 'bg-blue-50/20' : '' }}">
+                                    <tr class="hover:bg-teal-50/30 transition-colors {{ $loop->first ? 'bg-teal-50/20' : '' }}">
                                         <td class="py-3 px-4 font-bold text-gray-800 whitespace-nowrap">
                                             {{ \Carbon\Carbon::parse($checkup->checkup_date)->format('d M Y') }}
                                             @if($loop->first)
-                                                <span class="ml-1 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">Latest</span>
+                                                <span class="ml-1 text-xs bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded font-bold">Latest</span>
                                             @endif
                                             @if($checkup->edited_at)
                                                 <span class="block mt-0.5 text-[11px] font-semibold text-amber-700"
@@ -498,7 +509,7 @@
                                         <td class="py-3 px-4 text-gray-500 text-xs max-w-[140px] truncate">{{ $checkup->notes ?? '—' }}</td>
                                         <td class="py-3 px-4 whitespace-nowrap">
                                             <a href="{{ route('pharmacist.checkups.edit', $checkup->id) }}"
-                                               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-gray-200 bg-white text-xs font-bold text-blue-600 hover:bg-blue-50"
+                                               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-gray-200 bg-white text-xs font-bold text-teal-600 hover:bg-teal-50"
                                                aria-label="Edit check-up of {{ \Carbon\Carbon::parse($checkup->checkup_date)->format('d M Y') }}">
                                                 Edit
                                             </a>
@@ -524,7 +535,7 @@
                         <div class="relative border-l-2 border-gray-200 ml-3 space-y-6">
                             @forelse($patient->healthCheckups as $checkup)
                                 <div class="relative pl-6">
-                                    <div class="absolute -left-[9px] top-1 w-4 h-4 bg-white border-2 border-blue-500 rounded-full"></div>
+                                    <div class="absolute -left-[9px] top-1 w-4 h-4 bg-white border-2 border-teal-500 rounded-full"></div>
                                     <div class="text-xs font-bold text-gray-400 mb-1">{{ \Carbon\Carbon::parse($checkup->checkup_date)->format('d M Y') }}</div>
                                     <div class="border border-gray-200 rounded-xl p-4 bg-gray-50/50">
                                         <p class="font-bold text-sm text-gray-800">Health Check-up</p>
@@ -580,16 +591,16 @@
                 </div>
 
                 <div class="space-y-6">
-                    <div class="rounded-2xl p-6 shadow-lg text-white" style="background: linear-gradient(135deg, #1d4ed8 0%, #0891b2 100%)">
+                    <div class="rounded-2xl p-6 shadow-lg text-white" style="background: linear-gradient(135deg, #0f766e 0%, #0891b2 100%)">
                         <h3 class="font-extrabold text-lg mb-1">Full Clinical Summary</h3>
-                        <p class="text-blue-200 text-sm mb-4">View the complete pharmacist clinical summary with charts, alerts, and medication overview.</p>
+                        <p class="text-teal-200 text-sm mb-4">View the complete pharmacist clinical summary with charts, alerts, and medication overview.</p>
                         <a href="{{ route('pharmacist.patients.summary', $patient->id) }}"
-                           class="inline-flex items-center gap-2 bg-white text-blue-700 font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-blue-50 transition-colors">
+                           class="inline-flex items-center gap-2 bg-white text-teal-700 font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-teal-50 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                             View Full Summary
                         </a>
                         <a href="{{ route('pharmacist.patients.summary.download', $patient->id) }}"
-                           class="ml-2 inline-flex items-center gap-2 bg-blue-700/60 border border-blue-400/40 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-blue-700 transition-colors">
+                           class="ml-2 inline-flex items-center gap-2 bg-teal-700/60 border border-teal-400/40 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-teal-700 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                             Download
                         </a>

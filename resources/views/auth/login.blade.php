@@ -10,6 +10,7 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
 </head>
 <body class="min-h-screen flex bg-slate-50">
 
@@ -21,16 +22,9 @@
         <div class="absolute inset-0 bg-gradient-to-b from-teal-800/95 to-slate-900/95 z-0"></div>
 
         <div class="relative z-10">
-            <div class="flex items-center gap-3 mb-4">
-                <!-- Medical cross icon -->
-                <svg class="w-10 h-10 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                <div>
-                    <h1 class="text-3xl font-bold tracking-tight">Pharma<span class="text-teal-400">Track</span></h1>
-                    <p class="text-sm text-teal-100 mt-1 tracking-wide uppercase font-semibold">Clinical Decision Support System</p>
-                </div>
-            </div>
+            <h1 class="mb-4">
+                <x-brand theme="dark" :size="48" tagline="Clinical Decision Support System" />
+            </h1>
 
             <div class="mt-20 max-w-md">
                 <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/20 text-teal-100 text-sm font-medium mb-6 border border-teal-500/30">

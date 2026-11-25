@@ -117,7 +117,7 @@
 <article class="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
     <div class="flex flex-col gap-3 border-b border-gray-100 bg-gray-50 px-5 py-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-            <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">Health Checkup</p>
+            <p class="text-xs font-bold uppercase tracking-wide text-teal-600">Health Checkup</p>
             <h4 class="mt-1 text-base font-extrabold text-gray-900">
                 {{ \Carbon\Carbon::parse($checkup->checkup_date)->format('d M Y') }}
             </h4>
@@ -148,9 +148,9 @@
         @endforeach
 
         @if(filled($checkup->notes))
-            <section class="rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3">
-                <h5 class="text-xs font-extrabold uppercase tracking-wide text-indigo-700">Pharmacist Notes</h5>
-                <p class="mt-2 text-sm font-medium leading-6 text-indigo-950">{{ $checkup->notes }}</p>
+            <section class="rounded-xl border border-teal-100 bg-teal-50 px-4 py-3">
+                <h5 class="text-xs font-extrabold uppercase tracking-wide text-teal-700">Pharmacist Notes</h5>
+                <p class="mt-2 text-sm font-medium leading-6 text-teal-950">{{ $checkup->notes }}</p>
             </section>
         @endif
     </div>
