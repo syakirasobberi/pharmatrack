@@ -222,18 +222,19 @@
                             </button>
                         </div>
 
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm text-left">
+                        <div class="relative overflow-x-auto">
+                            {{-- min-w: below this the table scrolls sideways instead of breaking words mid-word. --}}
+                            <table class="w-full min-w-[60rem] text-sm text-left">
                                 <thead class="bg-slate-50 text-slate-600 font-bold border-y border-slate-200">
                                     <tr>
-                                        <th class="py-4 px-6">Medication</th>
-                                        <th class="py-4 px-6">How To Take</th>
-                                        <th class="py-4 px-6">Treatment Period</th>
-                                        <th class="py-4 px-6">Latest Dose Date</th>
-                                        <th class="py-4 px-6">Adherence (last 7 days)</th>
-                                        <th class="py-4 px-6">Notes</th>
-                                        <th class="py-4 px-6 text-right">Status</th>
-                                        <th class="py-4 px-6 text-right"><span class="sr-only">Actions</span></th>
+                                        <th class="py-4 px-4 whitespace-nowrap">Medication</th>
+                                        <th class="py-4 px-4 whitespace-nowrap">How To Take</th>
+                                        <th class="py-4 px-4 whitespace-nowrap">Treatment Period</th>
+                                        <th class="py-4 px-4 whitespace-nowrap">Latest Dose Date</th>
+                                        <th class="py-4 px-4 whitespace-nowrap">Adherence (last 7 days)</th>
+                                        <th class="py-4 px-4 whitespace-nowrap">Notes</th>
+                                        <th class="py-4 px-4 whitespace-nowrap text-right">Status</th>
+                                        <th class="py-4 px-4 whitespace-nowrap text-right"><span class="sr-only">Actions</span></th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
@@ -262,7 +263,7 @@
                                         @endphp
 
                                         <tr class="hover:bg-slate-50 transition-colors">
-                                            <td class="py-4 px-6">
+                                            <td class="py-4 px-4">
                                                 <p class="font-bold text-slate-800">{{ $medication->name }}</p>
                                                 @if($medication->needsReview())
                                                     <div class="mt-1.5 flex flex-wrap items-center gap-2">
@@ -275,20 +276,20 @@
                                                     </div>
                                                 @endif
                                             </td>
-                                            <td class="py-4 px-6 text-slate-600 font-medium">
+                                            <td class="py-4 px-4 text-slate-600 font-medium">
                                                 {{ $medication->dosage }}
                                             </td>
-                                            <td class="py-4 px-6 text-slate-600">
+                                            <td class="py-4 px-4 text-slate-600">
                                                 <div class="flex flex-col">
                                                     <span>{{ $medication->start_date?->format('d M Y') ?? 'Start not recorded' }}</span>
                                                     <span class="text-xs text-slate-400">{{ $medication->end_date ? 'until ' . $medication->end_date->format('d M Y') : 'Ongoing (no end date)' }}</span>
                                                     <div class="mt-1.5">@include('medications.partials.supply-badge', ['medication' => $medication])</div>
                                                 </div>
                                             </td>
-                                            <td class="py-4 px-6 text-slate-600">
+                                            <td class="py-4 px-4 text-slate-600">
                                                 {{ $lastTaken?->format('d M Y') ?? 'Not recorded' }}
                                             </td>
-                                            <td class="py-4 px-6">
+                                            <td class="py-4 px-4">
                                                 @php $medAdh = $adherence['medications'][$medication->id]; @endphp
                                                 @include('medications.partials.dose-dots', ['last7' => $medAdh['last7']])
                                                 <span class="mt-1.5 inline-block px-2 py-0.5 rounded-full border text-[11px] font-bold {{ \App\Support\Adherence::classes($medAdh['status'])['badge'] }}"
@@ -296,10 +297,10 @@
                                                     {{ $medAdh['percent'] !== null ? $medAdh['percent'] . '% · ' : '' }}{{ $medAdh['label'] }}
                                                 </span>
                                             </td>
-                                            <td class="py-4 px-6 text-slate-500">
+                                            <td class="py-4 px-4 text-slate-500">
                                                 {{ $medication->notes ?: 'No notes recorded' }}
                                             </td>
-                                            <td class="py-4 px-6 text-right">
+                                            <td class="py-4 px-4 text-right">
                                                 <div class="inline-flex flex-col items-end gap-1">
                                                     <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border {{ $statusClass }}">
                                                         {{ $statusLabel }}
@@ -307,14 +308,14 @@
                                                     <span class="text-[11px] text-slate-400">{{ $statusHint }}</span>
                                                 </div>
                                             </td>
-                                            <td class="py-4 px-6 text-right align-top">
+                                            <td class="py-4 px-4 text-right align-top">
                                                 <div class="flex flex-col items-end gap-2">
                                                     <a href="{{ route('pharmacist.medication.edit', $medication->id) }}"
-                                                       class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-teal-600 hover:bg-teal-50"
+                                                       class="whitespace-nowrap px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-teal-600 hover:bg-teal-50"
                                                        aria-label="Edit {{ $medication->name }}">Edit</a>
                                                     {{-- Refill dispensed today; leftover supply carries forward. --}}
                                                     <details class="text-left">
-                                                        <summary class="list-none cursor-pointer px-3 py-1.5 rounded-lg border {{ in_array($medication->refillStatus(), ['due', 'overdue']) || $medication->refill_requested_at ? 'border-teal-400 bg-teal-50' : 'border-teal-200' }} text-xs font-bold text-teal-700 hover:bg-teal-50 text-right">Refill…</summary>
+                                                        <summary class="list-none cursor-pointer whitespace-nowrap px-3 py-1.5 rounded-lg border {{ in_array($medication->refillStatus(), ['due', 'overdue']) || $medication->refill_requested_at ? 'border-teal-400 bg-teal-50' : 'border-teal-200' }} text-xs font-bold text-teal-700 hover:bg-teal-50 text-right">Refill…</summary>
                                                         <form method="POST" action="{{ route('pharmacist.medication.refill', $medication->id) }}"
                                                               class="mt-2 w-64 rounded-xl border border-teal-200 bg-teal-50 p-3 space-y-2" x-data="{ days: 30 }">
                                                             @csrf
@@ -331,13 +332,13 @@
                                                     </details>
                                                     {{-- Dose the patient reports at the counter / by phone. --}}
                                                     <details class="text-left">
-                                                        <summary class="list-none cursor-pointer px-3 py-1.5 rounded-lg border border-emerald-200 text-xs font-bold text-emerald-700 hover:bg-teal-50 text-right">Log dose…</summary>
+                                                        <summary class="list-none cursor-pointer whitespace-nowrap px-3 py-1.5 rounded-lg border border-emerald-200 text-xs font-bold text-emerald-700 hover:bg-teal-50 text-right">Log dose…</summary>
                                                         <div class="mt-2 w-64 rounded-xl border border-emerald-200 bg-emerald-50 p-3 space-y-3">
                                                             <form method="POST" action="{{ route('pharmacist.medication.doses.store', $medication->id) }}" class="space-y-2">
                                                                 @csrf
                                                                 <label for="dose-date-{{ $medication->id }}" class="block text-xs font-bold text-slate-700">Patient took {{ $medication->name }} on</label>
                                                                 <input id="dose-date-{{ $medication->id }}" type="date" name="taken_on" required
-                                                                       value="{{ today()->toDateString() }}" max="{{ today()->toDateString() }}" min="{{ \App\Support\Adherence::windowStart()->toDateString() }}"
+                                                                       value="{{ today()->toDateString() }}" max="{{ today()->toDateString() }}" min="{{ collect([\App\Support\Adherence::windowStart(), $medication->firstDoseDay()])->filter()->max()->toDateString() }}"
                                                                        class="w-full rounded-lg border-slate-300 text-xs">
                                                                 <button type="submit" class="w-full px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg text-xs">Log dose</button>
                                                             </form>
@@ -349,7 +350,7 @@
                                                                     <label for="dose-remove-{{ $medication->id }}" class="block text-xs font-bold text-slate-700">Remove a dose logged by mistake</label>
                                                                     <select id="dose-remove-{{ $medication->id }}" name="taken_on" class="w-full rounded-lg border-slate-300 text-xs">
                                                                         @foreach($loggedDays as $dose)
-                                                                            <option value="{{ $dose->taken_on->toDateString() }}">{{ $dose->taken_on->format('D d M') }} ({{ $dose->source }})</option>
+                                                                            <option value="{{ $dose->taken_on->toDateString() }}">{{ $dose->taken_on->format('D d M') }} ({{ \Illuminate\Support\Str::before($dose->source, \App\Models\Medication::CONFIRMS_ENTERED) }})</option>
                                                                         @endforeach
                                                                     </select>
                                                                     <button type="submit" class="w-full px-3 py-1.5 border border-slate-300 bg-white text-slate-700 font-bold rounded-lg text-xs hover:bg-slate-50">Remove</button>
@@ -359,7 +360,7 @@
                                                     </details>
                                                     {{-- Two-step stop: open the panel, give a reason, confirm. --}}
                                                     <details class="text-left">
-                                                        <summary class="list-none cursor-pointer px-3 py-1.5 rounded-lg border border-red-200 text-xs font-bold text-red-600 hover:bg-red-50 text-right">Stop…</summary>
+                                                        <summary class="list-none cursor-pointer whitespace-nowrap px-3 py-1.5 rounded-lg border border-red-200 text-xs font-bold text-red-600 hover:bg-red-50 text-right">Stop…</summary>
                                                         <form method="POST" action="{{ route('pharmacist.medication.stop', $medication->id) }}"
                                                               class="mt-2 w-64 rounded-xl border border-red-200 bg-red-50 p-3 space-y-2">
                                                             @csrf
@@ -414,7 +415,7 @@
                                                         @endif
                                                     </td>
                                                     <td class="py-3 px-6 text-right whitespace-nowrap">
-                                                        <a href="{{ route('pharmacist.medication.edit', $past->id) }}" class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-teal-600 hover:bg-teal-50">Edit</a>
+                                                        <a href="{{ route('pharmacist.medication.edit', $past->id) }}" class="whitespace-nowrap px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-teal-600 hover:bg-teal-50">Edit</a>
                                                         @if($past->status() === 'Stopped')
                                                             <form method="POST" action="{{ route('pharmacist.medication.resume', $past->id) }}" class="inline">
                                                                 @csrf
@@ -533,7 +534,8 @@
 
                                     <div class="rounded-3xl border border-slate-200 bg-slate-50/80 p-5">
                                         <p class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 mb-4">Treatment Dates</p>
-                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        {{-- 2 columns: three date boxes side by side in this narrow panel cut off the year. --}}
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div>
                                                 <label class="block text-sm font-bold text-slate-700 mb-1.5">Start date</label>
                                                 <input type="date" name="start_date" id="start_date" value="{{ old('start_date') }}" required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">

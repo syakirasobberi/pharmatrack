@@ -99,7 +99,7 @@
 
             @php
                 $latestCheckup  = $patient->healthCheckups->first();
-                $allCheckups    = $patient->healthCheckups->sortByDesc('checkup_date');
+                $allCheckups    = $patient->healthCheckups->sortBy([['checkup_date', 'desc'], ['id', 'desc']]);
                 $medicalHistory = $patient->medicalHistory;
                 $medications    = $patient->currentMedications;
                 $activeMedCount = $medications->count();
@@ -439,7 +439,7 @@
                 @if($allCheckups->isEmpty())
                     <div class="py-10 text-center text-gray-400 italic text-sm">No check-up records found for this patient.</div>
                 @else
-                    <div class="overflow-x-auto rounded-xl border border-gray-100">
+                    <div class="relative overflow-x-auto rounded-xl border border-gray-100">
                         <table class="w-full text-sm text-left" style="min-width:1400px">
                             <thead class="bg-gray-50 text-gray-600 font-bold text-xs uppercase tracking-wide">
                                 <tr>
@@ -645,7 +645,7 @@
     </div>
 
     @php
-        $chartData = $patient->healthCheckups->sortBy('checkup_date');
+        $chartData = $patient->healthCheckups->sortBy([['checkup_date', 'asc'], ['id', 'asc']]);
         $dates = $chartData->pluck('checkup_date')->map(fn($d) => \Carbon\Carbon::parse($d)->format('d M y'))->values();
         $sugars = $chartData->pluck('blood_sugar')->values();
         $cholesterols = $chartData->pluck('cholesterol')->values();

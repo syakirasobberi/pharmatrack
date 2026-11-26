@@ -94,7 +94,7 @@
         $latestCheckup && $latestCheckup->ldl >= 2.6         ? 'LDL cholesterol outside normal range' : null,
     ])->filter()->values();
 
-    $chartData         = $patient->healthCheckups->sortBy('checkup_date')->values();
+    $chartData         = $patient->healthCheckups->sortBy([['checkup_date', 'asc'], ['id', 'asc']])->values();
     $chartLabels       = $chartData->pluck('checkup_date')->map(fn($d) => \Carbon\Carbon::parse($d)->format('d M y'))->values();
     $sugarSeries       = $chartData->pluck('blood_sugar')->values();
     $cholesterolSeries = $chartData->pluck('cholesterol')->values();

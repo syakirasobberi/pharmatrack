@@ -37,7 +37,7 @@ class RoutineCheckupReminderNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $latestCheckup = $this->patient->healthCheckups()->latest('checkup_date')->first();
+        $latestCheckup = $this->patient->healthCheckups()->latest('checkup_date')->latest('id')->first();
         $lastCheckupStr = $latestCheckup 
             ? 'Your last check-up was recorded on ' . $latestCheckup->checkup_date->format('d M Y') . '.'
             : 'You have no check-up on record yet.';
@@ -60,7 +60,7 @@ class RoutineCheckupReminderNotification extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        $latestCheckup = $this->patient->healthCheckups()->latest('checkup_date')->first();
+        $latestCheckup = $this->patient->healthCheckups()->latest('checkup_date')->latest('id')->first();
         return [
             'title' => 'Routine Check-up Reminder',
             'message' => 'Your routine health check-up is due. Please visit the pharmacy counter.',

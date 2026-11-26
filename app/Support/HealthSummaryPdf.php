@@ -327,7 +327,7 @@ class HealthSummaryPdf
         $chartWidth = 220;
         $chartHeight = 44;
         $readings = $patient->healthCheckups
-            ->sortBy('checkup_date')
+            ->sortBy([['checkup_date', 'asc'], ['id', 'asc']])
             ->filter(fn ($checkup) => is_numeric($checkup->{$metric['key']}))
             ->map(fn ($checkup) => [
                 'date' => Carbon::parse($checkup->checkup_date)->format('d M'),

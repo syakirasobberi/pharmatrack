@@ -31,7 +31,7 @@ class SendCheckupReminders extends Command
         $this->info('Starting automated check-up reminders scan...');
 
         $patients = Patient::with(['user', 'healthCheckups' => function ($q) {
-            $q->latest('checkup_date');
+            $q->latest('checkup_date')->latest('id');
         }])->get();
 
         $sentCount = 0;

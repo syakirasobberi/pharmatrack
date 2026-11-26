@@ -165,14 +165,15 @@
                                         @endif
 
                                         {{-- Forgot to log? Pick one of the previous 6 days. --}}
-                                        @if(collect(array_slice($medAdherence['last7'], 0, 6))->contains('taken', false))
+                                        @php $earlierDays = collect(array_slice($medAdherence['last7'], 0, 6))->reject(fn ($d) => $d['taken'] || ($medication->firstDoseDay() && $d['date']->lt($medication->firstDoseDay()))); @endphp
+                                        @if($earlierDays->isNotEmpty())
                                         <details class="relative">
                                             <summary class="list-none cursor-pointer rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-50">Earlier day…</summary>
                                             <form method="POST" action="{{ route('patient.medications.doses.store', $medication) }}" class="absolute right-0 z-10 mt-2 w-56 space-y-2 rounded-xl border border-gray-200 bg-white p-3 shadow-lg">
                                                 @csrf
                                                 <label for="taken_on_{{ $medication->id }}" class="block text-xs font-bold text-gray-700">I also took it on</label>
                                                 <select id="taken_on_{{ $medication->id }}" name="taken_on" class="w-full rounded-lg border-gray-300 text-sm">
-                                                    @foreach(array_slice($medAdherence['last7'], 0, 6) as $day)
+                                                    @foreach($earlierDays as $day)
                                                         @unless($day['taken'])
                                                             <option value="{{ $day['date']->toDateString() }}">{{ $day['date']->format('D, d M') }}</option>
                                                         @endunless

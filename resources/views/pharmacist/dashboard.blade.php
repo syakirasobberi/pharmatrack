@@ -46,7 +46,7 @@
                 return $flags ? (object) ['patient' => $patient, 'checkup' => $c, 'flags' => $flags] : null;
             })
             ->filter()
-            ->sortByDesc(fn ($a) => $a->checkup->checkup_date)
+            ->sortBy([fn ($a, $b) => [$b->checkup->checkup_date, $b->checkup->id] <=> [$a->checkup->checkup_date, $a->checkup->id]])
             ->values();
         $healthAlerts = $healthAlertsAll->take(4);
 

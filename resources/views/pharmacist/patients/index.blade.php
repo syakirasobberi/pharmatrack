@@ -61,12 +61,12 @@
                         <!-- HEADER -->
                         <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[11px] font-bold tracking-wider">
                             <tr>
-                                <th scope="col" class="py-3 px-6">Patient</th>
-                                <th scope="col" class="py-3 px-6">Email</th>
-                                <th scope="col" class="py-3 px-6">Info</th>
-                                <th scope="col" class="py-3 px-6">BMI</th>
-                                <th scope="col" class="py-3 px-6">Face Status</th>
-                                <th scope="col" class="py-3 px-6 text-right">Actions</th>
+                                <th scope="col" class="py-3 px-4">Patient</th>
+                                <th scope="col" class="py-3 px-4">Email</th>
+                                <th scope="col" class="py-3 px-4">Info</th>
+                                <th scope="col" class="py-3 px-4">BMI</th>
+                                <th scope="col" class="py-3 px-4">Face Status</th>
+                                <th scope="col" class="py-3 px-4 text-right">Actions</th>
                             </tr>
                         </thead>
 
@@ -76,7 +76,7 @@
                             <tr class="hover:bg-slate-50/70 transition-colors">
 
                                 <!-- NAME & AVATAR -->
-                                <td class="py-4 px-6 flex items-center gap-4">
+                                <td class="py-4 px-4 flex items-center gap-4">
                                     <img src="https://ui-avatars.com/api/?name={{ urlencode($pt->user->name) }}&background=f0fdfa&color=0f766e"
                                          class="w-10 h-10 rounded-full ring-2 ring-white shadow-sm object-cover" alt="{{ $pt->user->name }}">
                                     <div class="flex flex-col">
@@ -89,17 +89,17 @@
                                 </td>
 
                                 <!-- EMAIL -->
-                                <td class="py-4 px-6 text-slate-600">
+                                <td class="py-4 px-4 text-slate-600">
                                     {{ $pt->user->email }}
                                 </td>
 
                                 <!-- DEMOGRAPHIC -->
-                                <td class="py-4 px-6 text-slate-600 capitalize">
+                                <td class="py-4 px-4 text-slate-600 capitalize">
                                     {{ $pt->gender }}, {{ $pt->age }} yrs
                                 </td>
 
                                 <!-- BMI -->
-                                <td class="py-4 px-6">
+                                <td class="py-4 px-4">
                                     @if($pt->bmi >= 25)
                                         <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20">
                                             {{ number_format($pt->bmi, 1) }}
@@ -116,7 +116,7 @@
                                 </td>
 
                                 <!-- FACE STATUS -->
-                                <td class="py-4 px-6">
+                                <td class="py-4 px-4">
                                     @if($pt->face_descriptor)
                                         <div class="flex items-center gap-1.5 text-emerald-600 text-xs font-medium">
                                             <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
@@ -131,7 +131,7 @@
                                 </td>
 
                                 <!-- ACTION BUTTONS -->
-                                <td class="py-4 px-6 text-right space-x-2">
+                                <td class="py-4 px-4 text-right space-x-2">
                                     @if($showArchived)
                                         <span class="text-xs text-slate-400 mr-2">Archived {{ $pt->archived_at?->format('d M Y') }}</span>
                                         <form method="POST" action="{{ route('pharmacist.patients.restore', $pt->id) }}" class="inline">

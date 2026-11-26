@@ -161,7 +161,7 @@ class PatientPortalController extends Controller
             return $medication;
         }
 
-        $day = $this->validatedDoseDay($request);
+        $day = $this->validatedDoseDay($request, $medication);
         $medication->recordDose($day, 'patient', $request->user());
 
         return redirect()->route('patient.medications')
@@ -218,7 +218,8 @@ class PatientPortalController extends Controller
         return $medication;
     }
 
-    private function validatedDoseDay(Request $request): Carbon
+    /** The dose day from the request (today if none). When logging ($forLogging given), it may not be before the medicine started. */
+    private function validatedDoseDay(Request $request, ?Medication $forLogging = null): Carbon
     {
         $validated = $request->validate([
             'taken_on' => ['nullable', 'date', 'before_or_equal:today', 'after_or_equal:' . today()->subDays(6)->toDateString()],
@@ -227,13 +228,22 @@ class PatientPortalController extends Controller
             'taken_on.before_or_equal' => 'You cannot log a dose in the future.',
         ]);
 
-        return Carbon::parse($validated['taken_on'] ?? today())->startOfDay();
+        $day = Carbon::parse($validated['taken_on'] ?? today())->startOfDay();
+
+        $firstDay = $forLogging?->firstDoseDay();
+        if ($firstDay && $day->lt($firstDay)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'taken_on' => "You started {$forLogging->name} on {$firstDay->format('d M')}, so you can't log a dose before that.",
+            ]);
+        }
+
+        return $day;
     }
 
     public function checkups(Request $request)
     {
         $patient = Patient::with([
-            'healthCheckups' => fn ($query) => $query->latest('checkup_date'),
+            'healthCheckups' => fn ($query) => $query->latest('checkup_date')->latest('id'),
         ])->where('user_id', $request->user()->id)->firstOrFail();
 
         return view('patient.checkups', compact('patient'));
@@ -270,7 +280,7 @@ class PatientPortalController extends Controller
     {
         return Patient::with([
             'user',
-            'healthCheckups' => fn ($query) => $query->latest('checkup_date'),
+            'healthCheckups' => fn ($query) => $query->latest('checkup_date')->latest('id'),
             'medicalHistory',
             'currentMedications',
         ])->where('user_id', $request->user()->id)->firstOrFail();

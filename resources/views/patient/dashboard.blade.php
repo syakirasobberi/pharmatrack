@@ -142,9 +142,11 @@
                                     <p class="text-sm text-amber-800 mt-1">Your face has not been registered for Quick Scan. Please ask your pharmacist to register your face at the pharmacy counter.</p>
                                 </div>
                             </div>
-                            <span class="inline-flex items-center justify-center rounded-xl bg-amber-100 px-4 py-2.5 text-sm font-bold text-amber-800">
+                            {{-- Opens the Contact Us panel (layouts/app) with the assigned pharmacist details. --}}
+                            <button type="button" onclick="const c = document.getElementById('contact-us'); if (c) { c.open = true; c.querySelector('summary')?.focus(); }"
+                                    class="inline-flex items-center justify-center rounded-xl bg-amber-100 px-4 py-2.5 text-sm font-bold text-amber-800 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-300">
                                 Ask pharmacist
-                            </span>
+                            </button>
                         </div>
                     </div>
                 @endif

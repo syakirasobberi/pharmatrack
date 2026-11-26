@@ -171,7 +171,7 @@ class PatientController extends Controller
         $patient = Patient::assignedTo(request()->user())->with([
             'user',
             'pharmacist',
-            'healthCheckups' => fn ($q) => $q->latest('checkup_date'),
+            'healthCheckups' => fn ($q) => $q->latest('checkup_date')->latest('id'),
             'healthCheckups.editor', // "Edited <date> by <name>" in the history table
             'medicalHistory',
             'currentMedications',
@@ -279,7 +279,7 @@ class PatientController extends Controller
         return Patient::assignedTo(request()->user())->with([
             'user',
             'pharmacist',
-            'healthCheckups' => fn ($query) => $query->latest('checkup_date'),
+            'healthCheckups' => fn ($query) => $query->latest('checkup_date')->latest('id'),
             'medicalHistory',
             'currentMedications',
         ])->findOrFail($id);

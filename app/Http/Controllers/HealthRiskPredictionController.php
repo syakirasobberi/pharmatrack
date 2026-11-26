@@ -13,7 +13,7 @@ class HealthRiskPredictionController extends Controller
     public function show(int $id): JsonResponse
     {
         $patient = Patient::assignedTo(request()->user())->with([
-            'healthCheckups' => fn ($query) => $query->latest('checkup_date'),
+            'healthCheckups' => fn ($query) => $query->latest('checkup_date')->latest('id'),
         ])->findOrFail($id);
 
         return response()->json($this->predictForPatient($patient));

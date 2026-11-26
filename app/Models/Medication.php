@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Medication extends Model
 {
+    /** Suffix on a dose's source when the log only confirmed the already-recorded latest dose date. */
+    public const CONFIRMS_ENTERED = '+entered';   // "pharmacist+entered" = 18 chars, column is 20
+
     protected $fillable = [
         'patient_id',
         'name',
@@ -104,9 +107,13 @@ class Medication extends Model
     {
         $day = \Carbon\Carbon::parse($date)->startOfDay();
 
+        // The day was already the recorded latest dose (typed in the medication form) before this
+        // log: mark it, so undoing the log later does not erase that date (see removeDose).
+        $confirmsEntered = $this->last_taken?->isSameDay($day) ?? false;
+
         $dose = $this->doses()->firstOrCreate(
             ['taken_on' => $day->toDateString()],
-            ['source' => $source, 'recorded_by' => $by?->id],
+            ['source' => $confirmsEntered ? $source . self::CONFIRMS_ENTERED : $source, 'recorded_by' => $by?->id],
         );
 
         if ($this->last_taken === null || $this->last_taken->lt($day)) {
@@ -116,13 +123,21 @@ class Medication extends Model
         return $dose;
     }
 
+    /** The earliest day a dose can be logged: the start date (or the day it was added). */
+    public function firstDoseDay(): ?\Carbon\Carbon
+    {
+        return ($this->start_date ?? $this->created_at)?->copy()->startOfDay();
+    }
+
     /** Remove the dose logged for $date; last_taken falls back to the latest remaining dose. */
     public function removeDose(\DateTimeInterface|string $date): void
     {
         $day = \Carbon\Carbon::parse($date)->toDateString();
-        $this->doses()->whereDate('taken_on', $day)->delete();
+        $dose = $this->doses()->whereDate('taken_on', $day)->first();
+        $dose?->delete();
 
-        if ($this->last_taken?->toDateString() === $day) {
+        // Keep last_taken when the removed log only confirmed a date that was already recorded.
+        if ($this->last_taken?->toDateString() === $day && ! str_ends_with((string) $dose?->source, self::CONFIRMS_ENTERED)) {
             $this->forceFill(['last_taken' => $this->doses()->max('taken_on')])->save();
         }
     }

@@ -243,7 +243,7 @@ class AiController extends Controller
     {
         $patient = Patient::assignedTo($request->user())->with([
             'user',
-            'healthCheckups' => fn ($query) => $query->latest('checkup_date'),
+            'healthCheckups' => fn ($query) => $query->latest('checkup_date')->latest('id'),
         ])->findOrFail($id);
 
         $latest = $patient->healthCheckups->first();

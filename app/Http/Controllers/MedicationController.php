@@ -252,7 +252,7 @@ class MedicationController extends Controller
             return back()->with('error', "{$medication->name} is no longer current, so doses can't be logged for it.");
         }
 
-        $day = $this->validatedDoseDay($request);
+        $day = $this->validatedDoseDay($request, $medication);
         $medication->recordDose($day, 'pharmacist', $request->user());
 
         return redirect()->route('pharmacist.medication.index', $medication->patient_id)
@@ -269,7 +269,8 @@ class MedicationController extends Controller
             ->with('success', "Removed the {$medication->name} dose for {$day->format('d M Y')}.");
     }
 
-    private function validatedDoseDay(Request $request): \Carbon\Carbon
+    /** The dose day from the request. When logging ($forLogging given), it may not be before the medicine started. */
+    private function validatedDoseDay(Request $request, ?Medication $forLogging = null): \Carbon\Carbon
     {
         $validated = $request->validateWithBag('dose', [
             'taken_on' => ['required', 'date', 'before_or_equal:today', 'after_or_equal:' . Adherence::windowStart()->toDateString()],
@@ -278,7 +279,16 @@ class MedicationController extends Controller
             'taken_on.before_or_equal' => 'A dose cannot be logged in the future.',
         ]);
 
-        return \Carbon\Carbon::parse($validated['taken_on'])->startOfDay();
+        $day = \Carbon\Carbon::parse($validated['taken_on'])->startOfDay();
+
+        $firstDay = $forLogging?->firstDoseDay();
+        if ($firstDay && $day->lt($firstDay)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'taken_on' => "{$forLogging->name} started on {$firstDay->format('d M Y')}, so a dose cannot be logged before that.",
+            ])->errorBag('dose');
+        }
+
+        return $day;
     }
 
     /**

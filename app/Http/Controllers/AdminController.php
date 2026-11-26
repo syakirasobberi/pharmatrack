@@ -192,7 +192,7 @@ class AdminController extends Controller
                     ->orWhere('blood_sugar', '>', 6.0)
                     ->orWhere('cholesterol', '>=', 5.2);
             })
-            ->latest('checkup_date')
+            ->latest('checkup_date')->latest('id')
             ->take(10)
             ->get();
 

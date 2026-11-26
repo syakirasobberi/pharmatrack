@@ -70,7 +70,7 @@ class KioskController extends Controller
     {
         $patient = Patient::with([
             'user',
-            'healthCheckups' => fn ($q) => $q->latest('checkup_date'),
+            'healthCheckups' => fn ($q) => $q->latest('checkup_date')->latest('id'),
             'medicalHistory',
             'currentMedications',
         ])->findOrFail($id);
@@ -103,7 +103,7 @@ class KioskController extends Controller
         $patient = Patient::with([
             'user',
             'pharmacist',
-            'healthCheckups' => fn ($query) => $query->latest('checkup_date'),
+            'healthCheckups' => fn ($query) => $query->latest('checkup_date')->latest('id'),
             'medicalHistory',
             'currentMedications',
         ])->findOrFail($id);

@@ -77,7 +77,7 @@ class Patient extends Model
     public function healthCheckups()
     {
         // Seorang pesakit boleh ada banyak rekod check-up
-        return $this->hasMany(HealthCheckup::class, 'patient_id', 'id')->orderBy('checkup_date', 'desc');
+        return $this->hasMany(HealthCheckup::class, 'patient_id', 'id')->orderBy('checkup_date', 'desc')->orderBy('id', 'desc');
     }
 
     /** The most recent check-up (by check-up date, then newest entry). */

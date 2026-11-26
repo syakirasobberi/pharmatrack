@@ -236,8 +236,10 @@
                     </div>
                 </header>
 
-                {{-- Patients get extra bottom space so the floating "Contact Us" button never covers content. --}}
-                <main class="min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-gray-50/50 {{ Auth::user()->role == 'patient' ? 'pb-24' : '' }}">
+                {{-- Patients get extra bottom space so the floating "Contact Us" button never covers content.
+                     relative: absolutely-positioned bits inside tables (sr-only labels) stay inside this scroll area
+                     instead of stretching the whole window (second scrollbar, page sliding up). --}}
+                <main class="relative min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-gray-50/50 {{ Auth::user()->role == 'patient' ? 'pb-24' : '' }}">
                     @if(session('summary_success'))
                         <div class="mx-auto mt-5 max-w-5xl px-4 sm:px-6 lg:px-8">
                             <div class="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 font-semibold text-green-800 shadow-sm">
@@ -263,8 +265,9 @@
             </div>
 
             @if(Auth::user()->role == 'patient')
-                <details class="fixed bottom-5 right-5 z-50 w-[calc(100vw-2.5rem)] max-w-sm group">
-                    <summary class="ml-auto flex w-fit cursor-pointer list-none items-center gap-2 rounded-full bg-emerald-600 px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-emerald-700/20 transition hover:-translate-y-0.5 hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200">
+                {{-- pointer-events-none: the closed widget is a wide invisible box; only the pill and the open panel take clicks. z-40 keeps dialogs (z-50) on top. --}}
+                <details id="contact-us" class="pointer-events-none fixed bottom-5 right-5 z-40 w-[calc(100vw-2.5rem)] max-w-sm group">
+                    <summary class="pointer-events-auto ml-auto flex w-fit cursor-pointer list-none items-center gap-2 rounded-full bg-emerald-600 px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-emerald-700/20 transition hover:-translate-y-0.5 hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 11.5a8.4 8.4 0 01-8.7 8.4 9 9 0 01-3.8-.8L3 21l1.8-5.2a8.2 8.2 0 01-1-4A8.4 8.4 0 0112.3 3 8.4 8.4 0 0121 11.5z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.5 10.1c.5 2 2 3.6 4 4.4l1.2-1.2c.2-.2.5-.3.8-.2 1 .3 1.7.4 2.3.4"></path>
@@ -272,7 +275,7 @@
                         Contact Us
                     </summary>
 
-                    <div class="mt-3 rounded-2xl border border-emerald-100 bg-white p-5 text-sm shadow-2xl">
+                    <div class="pointer-events-auto mt-3 rounded-2xl border border-emerald-100 bg-white p-5 text-sm shadow-2xl">
                         <p class="text-xs font-extrabold uppercase tracking-wide text-emerald-700">Need help?</p>
                         <h3 class="mt-1 text-lg font-extrabold text-gray-900">Contact Pharmacy Support</h3>
                         <p class="mt-2 text-gray-600">For urgent health questions, please visit the pharmacy counter.</p>

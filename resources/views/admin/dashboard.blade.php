@@ -84,13 +84,14 @@
             @endif
 
             <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                {{-- Stacked: beside the description the five fields were too narrow to read their placeholders. --}}
+                <div class="flex flex-col gap-5">
                     <div class="max-w-md">
                         <h3 class="font-extrabold text-lg text-slate-800">Create Pharmacist Account</h3>
                         <p class="text-sm text-slate-500 mt-2">Admins can create staff accounts and force first-login password changes for access control.</p>
                     </div>
 
-                    <form method="POST" action="{{ route('admin.pharmacists.store') }}" class="grid grid-cols-1 md:grid-cols-5 gap-3 flex-1">
+                    <form method="POST" action="{{ route('admin.pharmacists.store') }}" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
                         @csrf
                         <input type="text" name="name" value="{{ old('name') }}" placeholder="Staff name" required class="rounded-xl border-slate-300 text-sm focus:border-teal-500 focus:ring-teal-200">
                         <input type="email" name="email" value="{{ old('email') }}" placeholder="Email address" required class="rounded-xl border-slate-300 text-sm focus:border-teal-500 focus:ring-teal-200">

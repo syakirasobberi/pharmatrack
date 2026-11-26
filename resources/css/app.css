@@ -37,7 +37,9 @@
     th,
     a,
     span {
-        overflow-wrap: anywhere;
+        /* break-word, not anywhere: long emails/URLs still wrap when they would overflow, but
+           table columns can no longer shrink below one word ("Para ceta mol"). */
+        overflow-wrap: break-word;
     }
 }
 

@@ -33,8 +33,8 @@
     </ol>
 
     <p class="mt-3 text-xs text-teal-900 bg-white/80 border border-teal-100 rounded-lg p-2">
-        👁 <strong>No eye-closing needed here.</strong> That step is only at the kiosk: when the patient checks in, the kiosk asks them to
-        <strong>close their eyes until they hear a beep, then open them</strong> — this proves they are a real person and not a photo.
+        ↔ <strong>No head-turning needed here.</strong> That step is only at the kiosk: when the patient checks in, the kiosk asks them to
+        <strong>turn their head to the side shown until they hear a beep, then look back</strong> — this proves they are a real person and not a photo.
         Tell the patient about this so they know what to expect.
     </p>
 

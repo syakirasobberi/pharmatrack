@@ -10,7 +10,7 @@
         $assignedPharmacistName = $patient->pharmacist?->name ?? 'Unassigned';
 
         // ── Chart data ──────────────────────────────────────────────────────
-        $chartData         = $patient->healthCheckups->sortBy('checkup_date')->values();
+        $chartData         = $patient->healthCheckups->sortBy([['checkup_date', 'asc'], ['id', 'asc']])->values();
         $chartLabels       = $chartData->pluck('checkup_date')
                                ->map(fn ($d) => \Carbon\Carbon::parse($d)->format('d M y'))
                                ->values();
