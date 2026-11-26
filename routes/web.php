@@ -49,6 +49,13 @@ Route::get('/dashboard', function () {
     };
 })->middleware(['auth', 'force_password_change', 'verified'])->name('dashboard');
 
+// Staff two-step sign-in (EnsureTwoFactor sends staff here until the emailed code is entered).
+Route::middleware('auth')->group(function () {
+    Route::get('/two-factor', [\App\Http\Controllers\Auth\TwoFactorController::class, 'show'])->name('two-factor.show');
+    Route::post('/two-factor', [\App\Http\Controllers\Auth\TwoFactorController::class, 'verify'])->middleware('throttle:10,1')->name('two-factor.verify');
+    Route::post('/two-factor/resend', [\App\Http\Controllers\Auth\TwoFactorController::class, 'resend'])->middleware('throttle:5,1')->name('two-factor.resend');
+});
+
 Route::middleware(['auth', 'force_password_change'])->group(function () {
     Route::get('/force-password-change', [ForcePasswordChangeController::class, 'create'])->name('password.force-change');
     Route::post('/force-password-change', [ForcePasswordChangeController::class, 'store'])->name('password.force-change.store');

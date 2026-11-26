@@ -74,6 +74,9 @@ return [
     */
     'daily_tasks_on_web' => (bool) env('DAILY_TASKS_ON_WEB', env('APP_ENV') === 'production'),
 
+    // Staff two-step sign-in (emailed code). Emergency switch if email is down: TWO_FACTOR_ENABLED=false
+    'two_factor' => (bool) env('TWO_FACTOR_ENABLED', true),
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

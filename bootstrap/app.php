@@ -23,6 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Every web request: sign out accounts an admin has deactivated.
         $middleware->web(append: [
             \App\Http\Middleware\EnsureAccountActive::class,
+            // Staff must enter the emailed sign-in code before any other page.
+            \App\Http\Middleware\EnsureTwoFactor::class,
             // Back button after logout must not show cached patient pages.
             \App\Http\Middleware\PreventCachingWhenLoggedIn::class,
             // Daily reminders (no cron on the live host); runs after the response is sent.

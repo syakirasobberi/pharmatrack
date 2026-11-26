@@ -29,6 +29,8 @@
         <env name="GEMINI_API_KEY" value=""/>
         <env name="BREVO_API_KEY" value=""/>
         <env name="DAILY_TASKS_ON_WEB" value="false"/>
+        <!-- Most tests sign in with actingAs(); TwoFactorTest switches two-step sign-in on itself. -->
+        <env name="TWO_FACTOR_ENABLED" value="false"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

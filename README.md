@@ -45,6 +45,15 @@ PharmaTrack is a web-based system developed to assist pharmacies in managing pat
 
 ---
 
+## Staff two-step sign-in
+
+Admins and pharmacists enter a 6-digit code emailed to them after their password (valid
+10 minutes, 5 tries). "Remember this device" skips it for 30 days on that browser; changing
+the password cancels every remembered device. Patients and the kiosk are not affected.
+
+Emergency switch: if email stops working and staff are locked out, add
+`TWO_FACTOR_ENABLED=false` to the server `.env` (via FTP). Remove it again once email works.
+
 ## Running the tests
 
 Automated tests cover sign-in and role access, every page opening for each role, check-ups,
