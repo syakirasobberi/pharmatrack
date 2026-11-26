@@ -435,6 +435,43 @@
             .top-nav a:not(.nav-login) { display: none; }
         }
 
+        /* ── Hover feedback (mouse/trackpad only: touchscreens never get stuck highlights) ── */
+        .step-card, .portal-item, .visit-card, .faq-list details, .trust-chips li {
+            transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease, background-color .25s ease;
+        }
+        .step-number, .portal-item .fact-icon { transition: transform .25s ease, background .25s ease, color .25s ease; }
+        .faq-list summary { transition: background-color .2s ease, color .2s ease; }
+        .lang-toggle a.active { cursor: default; }
+
+        @media (hover: hover) and (pointer: fine) {
+            /* Cards: same lift as the "What PharmaTrack does" cards */
+            .step-card:hover, .portal-item:hover, .visit-card:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--shadow-lg);
+                border-color: var(--primary-l);
+            }
+            .step-card:hover .step-number { transform: scale(1.08); }
+            .portal-item:hover .fact-icon { background: var(--primary); color: #fff; }
+
+            /* FAQ questions are clickable: tint the row and point */
+            .faq-list details:hover { border-color: var(--primary-l); box-shadow: var(--shadow-lg); }
+            .faq-list summary:hover { background: #f0fdfa; color: var(--primary); }
+
+            /* Badges are info only: a gentle tint, no pointer */
+            .trust-chips li:hover { background: #ccfbf1; border-color: #99f6e4; }
+
+            /* Language switch: the option you can pick lights up */
+            .lang-toggle a:not(.active):hover { background: #f0fdfa; color: var(--primary); }
+        }
+
+        /* Keyboard users get the same cue on the FAQ */
+        .faq-list summary:focus-visible { outline: 3px solid var(--primary-l); outline-offset: -3px; border-radius: 16px; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .step-card:hover, .portal-item:hover, .visit-card:hover, .feature-card:hover,
+            .step-card:hover .step-number { transform: none; }
+        }
+
         /* ── Kiosk Main Content ── */
         .kiosk { display: none; }
         .main { flex: 1; display: flex; align-items: center; justify-content: center; gap: 48px; padding: 24px 0; }
