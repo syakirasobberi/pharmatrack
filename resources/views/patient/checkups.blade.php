@@ -12,38 +12,38 @@
                 $checkupAlertMessage = null;
 
                 if (! $latestCheckup) {
-                    $checkupAlertMessage = 'You have not had a health check-up yet. Visit the pharmacy counter and your pharmacist will do your first one.';
+                    $checkupAlertMessage = __('You have not had a health check-up yet. Visit the pharmacy counter and your pharmacist will do your first one.');
                 } elseif (\Carbon\Carbon::parse($latestCheckup->checkup_date)->lt(\Carbon\Carbon::today()->subDays(90))) {
                     $lastCheckup = \Carbon\Carbon::parse($latestCheckup->checkup_date);
-                    $checkupAlertMessage = "Your last check-up was {$lastCheckup->diffForHumans()} ({$lastCheckup->format('d M Y')}). We recommend one every 3 months — visit the pharmacy counter when you can.";
+                    $checkupAlertMessage = __('Your last check-up was :ago (:date). We recommend one every 3 months — visit the pharmacy counter when you can.', ['ago' => $lastCheckup->diffForHumans(), 'date' => $lastCheckup->translatedFormat('d M Y')]);
                 }
             @endphp
 
             <div class="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
-                        <p class="text-sm font-bold uppercase tracking-wide text-teal-600">Health Records</p>
-                        <h1 class="text-3xl font-extrabold text-gray-900 mt-1">My Check-ups</h1>
-                        <p class="text-sm text-gray-500 mt-2">Your test results from each visit, newest first.</p>
+                        <p class="text-sm font-bold uppercase tracking-wide text-teal-600">{{ __('Health Records') }}</p>
+                        <h1 class="text-3xl font-extrabold text-gray-900 mt-1">{{ __('My Check-ups') }}</h1>
+                        <p class="text-sm text-gray-500 mt-2">{{ __('Your test results from each visit, newest first.') }}</p>
                     </div>
                     <div class="flex flex-col gap-2 sm:flex-row">
                         <a href="{{ route('patient.summary.download') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-teal-700">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            Download PDF
+                            {{ __('Download PDF') }}
                         </a>
                         <form action="{{ route('patient.summary.email') }}" method="POST">
                             @csrf
-                            <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-teal-200 bg-teal-50 px-4 py-2.5 text-sm font-bold text-teal-700 hover:bg-teal-100" title="Send to {{ auth()->user()->email }}">
+                            <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-teal-200 bg-teal-50 px-4 py-2.5 text-sm font-bold text-teal-700 hover:bg-teal-100" title="{{ __('Send to :email', ['email' => auth()->user()->email]) }}">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 8V6a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg>
-                                Send to Email
+                                {{ __('Send to Email') }}
                             </button>
                         </form>
                         <a href="{{ route('patient.dashboard') }}" class="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50">
-                            Back to Dashboard
+                            {{ __('Back to Dashboard') }}
                         </a>
                     </div>
                 </div>
-                <p class="mt-4 text-sm text-gray-500">Email option sends the PDF to <span class="font-semibold text-gray-700">{{ auth()->user()->email }}</span>.</p>
+                <p class="mt-4 text-sm text-gray-500">{!! __('Email option sends the PDF to <span class="font-semibold text-gray-700">:email</span>.', ['email' => e(auth()->user()->email)]) !!}</p>
             </div>
 
             @if($checkupAlertMessage)
@@ -55,7 +55,7 @@
                             </svg>
                         </span>
                         <div>
-                            <h2 class="font-extrabold text-lg text-amber-900">Time for a check-up</h2>
+                            <h2 class="font-extrabold text-lg text-amber-900">{{ __('Time for a check-up') }}</h2>
                             <p class="text-sm text-amber-800 mt-1">{{ $checkupAlertMessage }}</p>
                         </div>
                     </div>
@@ -64,8 +64,8 @@
 
             @if($patient->healthCheckups->isNotEmpty())
                 <p class="text-sm text-gray-500">
-                    {{ $patient->healthCheckups->count() }} {{ \Illuminate\Support\Str::plural('check-up', $patient->healthCheckups->count()) }} on record.
-                    Only tests that were done are shown. Tap an older check-up to open it.
+                    {{ trans_choice(':count check-up on record.|:count check-ups on record.', $patient->healthCheckups->count(), ['count' => $patient->healthCheckups->count()]) }}
+                    {{ __('Only tests that were done are shown. Tap an older check-up to open it.') }}
                 </p>
             @endif
 
@@ -74,8 +74,8 @@
                     @include('patient.partials.checkup-card', ['checkup' => $checkup, 'collapsible' => true, 'open' => $loop->first])
                 @empty
                     <div class="bg-white border border-dashed border-gray-300 rounded-3xl p-12 text-center shadow-sm">
-                        <h2 class="text-xl font-extrabold text-gray-800">No Checkup Records Yet</h2>
-                        <p class="mt-2 text-sm text-gray-500">Please visit the pharmacy counter for your first health checkup.</p>
+                        <h2 class="text-xl font-extrabold text-gray-800">{{ __('No Checkup Records Yet') }}</h2>
+                        <p class="mt-2 text-sm text-gray-500">{{ __('Please visit the pharmacy counter for your first health checkup.') }}</p>
                     </div>
                 @endforelse
             </div>

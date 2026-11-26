@@ -38,18 +38,8 @@
 
             <div class="md:w-1/2 p-8 sm:p-12 flex flex-col justify-center">
 
-                {{-- EN / BM switch (inline styles: this page uses the prebuilt Vite CSS) --}}
-                @php
-                    $isMs = app()->getLocale() === 'ms';
-                    $langOn  = 'background:#0d9488;color:#fff;';
-                    $langOff = 'color:#64748b;';
-                    $langBtn = 'min-width:42px;padding:6px 10px;border-radius:8px;text-align:center;font-size:12px;font-weight:800;letter-spacing:.04em;text-decoration:none;';
-                @endphp
                 <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
-                    <div role="group" aria-label="{{ __('Language') }}" style="display:inline-flex;gap:2px;padding:4px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.05);">
-                        <a href="{{ route('locale.switch', 'en') }}" lang="en" hreflang="en" @if (!$isMs) aria-current="true" @endif style="{{ $langBtn }}{{ $isMs ? $langOff : $langOn }}">EN</a>
-                        <a href="{{ route('locale.switch', 'ms') }}" lang="ms" hreflang="ms" @if ($isMs) aria-current="true" @endif style="{{ $langBtn }}{{ $isMs ? $langOn : $langOff }}">BM</a>
-                    </div>
+                    <x-lang-toggle />
                 </div>
 
                 <div class="mb-8">

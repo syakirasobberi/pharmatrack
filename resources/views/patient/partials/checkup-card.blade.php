@@ -6,15 +6,15 @@
 
     $sourceLabels = [
         'klinik_kesihatan' => 'Klinik Kesihatan (KKM)',
-        'private_clinic' => 'Private Clinic',
+        'private_clinic' => __('Private Clinic'),
         'hospital' => 'Hospital',
-        'private_lab' => 'Private Lab',
-        'home_device' => 'Home Device / Self-measured',
+        'private_lab' => __('Private Lab'),
+        'home_device' => __('Home Device / Self-measured'),
     ];
 
     $valueWithUnit = function ($value, $unit = null, $decimals = null) {
         if ($value === null || $value === '') {
-            return 'N/A';
+            return __('N/A');
         }
 
         $display = is_numeric($value) && $decimals !== null
@@ -87,28 +87,28 @@
     };
 
     $sections = [
-        'Vitals' => [
-            ['key' => 'blood_pressure', 'label' => 'Blood Pressure', 'value' => $checkup->blood_pressure ?: null, 'unit' => 'mmHg', 'decimals' => null],
-            ['key' => 'heart_rate', 'label' => 'Heart Rate', 'value' => $checkup->heart_rate, 'unit' => 'bpm', 'decimals' => 0],
-            ['key' => 'haemoglobin', 'label' => 'Haemoglobin', 'value' => $checkup->haemoglobin, 'unit' => 'g/dL', 'decimals' => 2],
+        __('Vitals') => [
+            ['key' => 'blood_pressure', 'label' => __('Blood Pressure'), 'value' => $checkup->blood_pressure ?: null, 'unit' => 'mmHg', 'decimals' => null],
+            ['key' => 'heart_rate', 'label' => __('Heart Rate'), 'value' => $checkup->heart_rate, 'unit' => 'bpm', 'decimals' => 0],
+            ['key' => 'haemoglobin', 'label' => __('Haemoglobin'), 'value' => $checkup->haemoglobin, 'unit' => 'g/dL', 'decimals' => 2],
         ],
-        'Blood Glucose' => [
-            ['key' => 'blood_sugar', 'label' => 'Fasting Blood Sugar', 'value' => $checkup->blood_sugar, 'unit' => 'mmol/L', 'decimals' => 2],
+        __('Blood Glucose') => [
+            ['key' => 'blood_sugar', 'label' => __('Fasting Blood Sugar'), 'value' => $checkup->blood_sugar, 'unit' => 'mmol/L', 'decimals' => 2],
             ['key' => 'hba1c', 'label' => 'HbA1c', 'value' => $checkup->hba1c, 'unit' => '%', 'decimals' => 1],
         ],
-        'Liver Function Test' => [
-            ['key' => 'albumin_globulin_ratio', 'label' => 'Albumin-Globulin Ratio', 'value' => $checkup->albumin_globulin_ratio, 'unit' => null, 'decimals' => 2],
+        __('Liver Function Test') => [
+            ['key' => 'albumin_globulin_ratio', 'label' => __('Albumin-Globulin Ratio'), 'value' => $checkup->albumin_globulin_ratio, 'unit' => null, 'decimals' => 2],
             ['key' => 'alkaline_phosphatase', 'label' => 'Alkaline Phosphatase', 'value' => $checkup->alkaline_phosphatase, 'unit' => 'U/L', 'decimals' => 2],
             ['key' => 'aspartate_transaminase', 'label' => 'Aspartate Transaminase', 'value' => $checkup->aspartate_transaminase, 'unit' => 'U/L', 'decimals' => 2],
             ['key' => 'alanine_transaminase', 'label' => 'Alanine Transaminase', 'value' => $checkup->alanine_transaminase, 'unit' => 'U/L', 'decimals' => 2],
             ['key' => 'gamma_glutamyl_transferase', 'label' => 'Gamma Glutamyl Transferase', 'value' => $checkup->gamma_glutamyl_transferase, 'unit' => 'U/L', 'decimals' => 2],
         ],
-        'Renal Function Profile' => [
-            ['key' => 'sodium', 'label' => 'Sodium', 'value' => $checkup->sodium, 'unit' => 'mmol/L', 'decimals' => 2],
-            ['key' => 'renal_glucose', 'label' => 'Glucose', 'value' => $checkup->renal_glucose, 'unit' => 'mmol/L', 'decimals' => 2],
+        __('Renal Function Profile') => [
+            ['key' => 'sodium', 'label' => __('Sodium'), 'value' => $checkup->sodium, 'unit' => 'mmol/L', 'decimals' => 2],
+            ['key' => 'renal_glucose', 'label' => __('Glucose'), 'value' => $checkup->renal_glucose, 'unit' => 'mmol/L', 'decimals' => 2],
         ],
-        'Lipid Panel' => [
-            ['key' => 'cholesterol', 'label' => 'Total Cholesterol', 'value' => $checkup->cholesterol, 'unit' => 'mmol/L', 'decimals' => 2],
+        __('Lipid Panel') => [
+            ['key' => 'cholesterol', 'label' => __('Total Cholesterol'), 'value' => $checkup->cholesterol, 'unit' => 'mmol/L', 'decimals' => 2],
             ['key' => 'ldl', 'label' => 'LDL', 'value' => $checkup->ldl, 'unit' => 'mmol/L', 'decimals' => 2],
             ['key' => 'hdl', 'label' => 'HDL', 'value' => $checkup->hdl, 'unit' => 'mmol/L', 'decimals' => 2],
         ],
@@ -145,18 +145,18 @@
     @if($collapsible)<summary class="list-none cursor-pointer [&::-webkit-details-marker]:hidden">@endif
     <div class="flex items-start justify-between gap-3 border-b border-gray-100 bg-gray-50 px-5 py-4">
         <div>
-            <p class="text-xs font-bold uppercase tracking-wide text-teal-600">Health Check-up</p>
+            <p class="text-xs font-bold uppercase tracking-wide text-teal-600">{{ __('Health Check-up') }}</p>
             <h4 class="mt-1 text-base font-extrabold text-gray-900">
-                {{ \Carbon\Carbon::parse($checkup->checkup_date)->format('d M Y') }}
+                {{ \Carbon\Carbon::parse($checkup->checkup_date)->translatedFormat('d M Y') }}
                 <span class="{{ $compact ? 'block mt-0.5' : 'ml-1' }} text-xs font-semibold text-gray-400">{{ \Carbon\Carbon::parse($checkup->checkup_date)->diffForHumans() }}</span>
             </h4>
             @if($sourceLabel)
-                <p class="mt-1 text-xs font-semibold text-gray-500">Source: {{ $sourceLabel }}</p>
+                <p class="mt-1 text-xs font-semibold text-gray-500">{{ __('Source: :source', ['source' => $sourceLabel]) }}</p>
             @endif
         </div>
         <div class="flex shrink-0 items-center gap-2">
             <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold {{ $flaggedCount ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-700' }}">
-                {{ $flaggedCount ? $flaggedCount . ' ' . \Illuminate\Support\Str::plural('result', $flaggedCount) . ' to watch' : 'All normal' }}
+                {{ $flaggedCount ? trans_choice(':count result to watch|:count results to watch', $flaggedCount, ['count' => $flaggedCount]) : __('All normal') }}
             </span>
             @if($collapsible)
                 <svg class="h-5 w-5 text-gray-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
@@ -182,7 +182,7 @@
                                     {{ $valueWithUnit($metric['value'], $metric['unit'], $metric['decimals']) }}
                                 </p>
                                 @if($statusLabel)
-                                    <span class="text-[11px] font-bold uppercase tracking-wide {{ $statusLabel === 'Normal' ? 'text-emerald-600' : ($statusClass === 'text-red-600' ? 'text-red-600' : 'text-amber-700') }}">{{ $statusLabel }}</span>
+                                    <span class="text-[11px] font-bold uppercase tracking-wide {{ $statusLabel === 'Normal' ? 'text-emerald-600' : ($statusClass === 'text-red-600' ? 'text-red-600' : 'text-amber-700') }}">{{ __($statusLabel) }}</span>
                                 @endif
                             </div>
                         </div>
@@ -190,12 +190,12 @@
                 </div>
             </section>
         @empty
-            <p class="text-sm text-gray-500">No test results were recorded for this check-up.</p>
+            <p class="text-sm text-gray-500">{{ __('No test results were recorded for this check-up.') }}</p>
         @endforelse
 
         @if(filled($checkup->notes))
             <section class="rounded-xl border border-teal-100 bg-teal-50 px-4 py-3">
-                <h5 class="text-xs font-extrabold uppercase tracking-wide text-teal-700">Pharmacist Notes</h5>
+                <h5 class="text-xs font-extrabold uppercase tracking-wide text-teal-700">{{ __('Pharmacist Notes') }}</h5>
                 <p class="mt-2 text-sm font-medium leading-6 text-teal-950">{{ $checkup->notes }}</p>
             </section>
         @endif

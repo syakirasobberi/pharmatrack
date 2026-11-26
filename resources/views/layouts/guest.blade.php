@@ -28,7 +28,7 @@
             </div>
 
             <footer class="text-center text-xs text-gray-400 font-medium py-4">
-                &copy; {{ date('Y') }} PharmaTrack &mdash; Smart Pharmacy System.
+                &copy; {{ date('Y') }} PharmaTrack &mdash; {{ __('Smart Pharmacy System') }}.
             </footer>
         </div>
     </body>

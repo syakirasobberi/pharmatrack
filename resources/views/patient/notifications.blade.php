@@ -10,19 +10,19 @@
             <div class="rounded-3xl bg-white p-8 shadow-sm border border-gray-100">
                 <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
-                        <p class="text-xs font-bold uppercase tracking-wide text-teal-600">Notification Inbox</p>
-                        <h1 class="mt-1 text-3xl font-extrabold text-gray-900">Reminders and System Alerts</h1>
+                        <p class="text-xs font-bold uppercase tracking-wide text-teal-600">{{ __('Notification Inbox') }}</p>
+                        <h1 class="mt-1 text-3xl font-extrabold text-gray-900">{{ __('Reminders and System Alerts') }}</h1>
                         <p class="mt-2 max-w-2xl text-sm text-gray-500">
-                            View pharmacy reminders and mark them as read after reviewing the details.
+                            {{ __('View pharmacy reminders and mark them as read after reviewing the details.') }}
                         </p>
                     </div>
                     <div class="grid grid-cols-2 gap-3 sm:min-w-64">
                         <div class="rounded-2xl border border-teal-100 bg-teal-50 px-4 py-3">
-                            <p class="text-xs font-bold uppercase text-teal-700">Unread</p>
+                            <p class="text-xs font-bold uppercase text-teal-700">{{ __('Unread') }}</p>
                             <p class="mt-1 text-2xl font-black text-teal-950">{{ $unreadCount }}</p>
                         </div>
                         <div class="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-                            <p class="text-xs font-bold uppercase text-gray-500">Total</p>
+                            <p class="text-xs font-bold uppercase text-gray-500">{{ __('Total') }}</p>
                             <p class="mt-1 text-2xl font-black text-gray-900">{{ $notifications->total() }}</p>
                         </div>
                     </div>
@@ -61,29 +61,29 @@
                                 <div class="min-w-0">
                                     <div class="flex flex-wrap items-center gap-2">
                                         <h2 class="text-lg font-extrabold text-gray-900">
-                                            {{ $data['title'] ?? 'Notification' }}
+                                            {{ $data['title'] ?? __('Notification') }}
                                         </h2>
                                         <span class="inline-flex rounded-full px-3 py-1 text-xs font-extrabold {{ $isUnread ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-600' }}">
-                                            {{ $isUnread ? 'Unread' : 'Read' }}
+                                            {{ $isUnread ? __('Unread') : __('Read') }}
                                         </span>
                                     </div>
 
                                     <p class="mt-2 text-sm font-medium leading-6 text-gray-700">
-                                        {{ $data['message'] ?? 'You have a new system notification.' }}
+                                        {{ $data['message'] ?? __('You have a new system notification.') }}
                                     </p>
 
                                     <div class="mt-4 flex flex-wrap gap-2 text-xs font-bold text-gray-500">
                                         <span class="rounded-full bg-white px-3 py-1 ring-1 ring-gray-200">
-                                            Received {{ $notification->created_at->diffForHumans() }}
+                                            {{ __('Received :ago', ['ago' => $notification->created_at->diffForHumans()]) }}
                                         </span>
                                         @if($metaDate)
                                             <span class="rounded-full bg-white px-3 py-1 ring-1 ring-gray-200">
-                                                Related date: {{ \Carbon\Carbon::parse($metaDate)->format('d M Y') }}
+                                                {{ __('Related date: :date', ['date' => \Carbon\Carbon::parse($metaDate)->translatedFormat('d M Y')]) }}
                                             </span>
                                         @endif
                                         @if(! $isUnread && $notification->read_at)
                                             <span class="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 ring-1 ring-emerald-100">
-                                                Read {{ $notification->read_at->diffForHumans() }}
+                                                {{ __('Read :ago', ['ago' => $notification->read_at->diffForHumans()]) }}
                                             </span>
                                         @endif
                                     </div>
@@ -93,7 +93,7 @@
                             <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row lg:flex-col">
                                 @if($actionUrl)
                                     <a href="{{ $actionUrl }}" class="inline-flex items-center justify-center rounded-xl border border-teal-200 bg-white px-4 py-2.5 text-sm font-extrabold text-teal-700 hover:bg-teal-50">
-                                        Open Reminder
+                                        {{ __('Open Reminder') }}
                                     </a>
                                 @endif
 
@@ -101,12 +101,12 @@
                                     <form action="{{ route('patient.notifications.read', $notification->id) }}" method="POST">
                                         @csrf
                                         <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-sm hover:bg-teal-700">
-                                            Mark as Read
+                                            {{ __('Mark as Read') }}
                                         </button>
                                     </form>
                                 @else
                                     <span class="inline-flex items-center justify-center rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-extrabold text-emerald-700 ring-1 ring-emerald-100">
-                                        Already Read
+                                        {{ __('Already Read') }}
                                     </span>
                                 @endif
                             </div>
@@ -114,8 +114,8 @@
                     </article>
                 @empty
                     <div class="rounded-3xl border-2 border-dashed border-gray-300 bg-white p-12 text-center shadow-sm">
-                        <h2 class="text-xl font-extrabold text-gray-800">No Notifications Yet</h2>
-                        <p class="mt-2 text-sm text-gray-500">New check-up and medication reminders will appear here.</p>
+                        <h2 class="text-xl font-extrabold text-gray-800">{{ __('No Notifications Yet') }}</h2>
+                        <p class="mt-2 text-sm text-gray-500">{{ __('New check-up and medication reminders will appear here.') }}</p>
                     </div>
                 @endforelse
             </div>

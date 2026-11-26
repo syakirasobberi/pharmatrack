@@ -73,10 +73,10 @@ class PatientPortalController extends Controller
                 'exception' => $exception,
             ]);
 
-            return back()->with('summary_error', 'The PDF could not be sent right now. Please try again later.');
+            return back()->with('summary_error', __('The PDF could not be sent right now. Please try again later.'));
         }
 
-        return back()->with('summary_success', "Your health summary PDF has been sent to {$recipient}.");
+        return back()->with('summary_success', __('Your health summary PDF has been sent to :email.', ['email' => $recipient]));
     }
 
     /**
@@ -107,7 +107,7 @@ class PatientPortalController extends Controller
             'frequency' => 'nullable|string|max:255',
             'last_taken' => 'nullable|date|before_or_equal:today',
             'notes' => 'nullable|string|max:255',
-        ]);
+        ], [], self::fieldNames());
 
         $dosage = filled($validated['dosage'] ?? null) ? $validated['dosage'] : 'Not specified';
 
@@ -139,7 +139,7 @@ class PatientPortalController extends Controller
 
         return redirect()
             ->route('patient.medications')
-            ->with('success', 'Medication added successfully.');
+            ->with('success', __('Medication added successfully.'));
     }
 
     public function updateMedication(Request $request, Medication $medication)
@@ -150,13 +150,13 @@ class PatientPortalController extends Controller
 
         if ($medication->stopped_at) {
             return redirect()->route('patient.medications')
-                ->with('error', "{$medication->name} was stopped by your pharmacist, so it can no longer be updated. Please contact them if you are still taking it.");
+                ->with('error', __(':name was stopped by your pharmacist, so it can no longer be updated. Please contact them if you are still taking it.', ['name' => $medication->name]));
         }
 
         $validated = $request->validate([
             'last_taken' => 'nullable|date|before_or_equal:today',
             'notes' => 'nullable|string|max:255',
-        ]);
+        ], [], self::fieldNames());
 
         // Doses are logged with the "I took it" buttons now; the date field is only
         // applied if a form still sends it, so a notes-only update keeps last_taken.
@@ -167,7 +167,7 @@ class PatientPortalController extends Controller
 
         return redirect()
             ->route('patient.medications')
-            ->with('success', 'Medication update saved.');
+            ->with('success', __('Medication update saved.'));
     }
 
     /** "I took it" — log a dose for today or one of the previous 6 days. */
@@ -183,8 +183,8 @@ class PatientPortalController extends Controller
 
         return redirect()->route('patient.medications')
             ->with('success', $day->isToday()
-                ? "Logged: you took {$medication->name} today."
-                : "Logged: you took {$medication->name} on {$day->format('d M')}.");
+                ? __('Logged: you took :name today.', ['name' => $medication->name])
+                : __('Logged: you took :name on :date.', ['name' => $medication->name, 'date' => $day->translatedFormat('d M')]));
     }
 
     /** Ask the pharmacist for a refill; shows on the pharmacist's dashboard until they refill. */
@@ -197,13 +197,13 @@ class PatientPortalController extends Controller
 
         if ($medication->refill_requested_at) {
             return redirect()->route('patient.medications')
-                ->with('success', "You already requested a refill of {$medication->name} on {$medication->refill_requested_at->format('d M Y')}. Your pharmacist will prepare it.");
+                ->with('success', __('You already requested a refill of :name on :date. Your pharmacist will prepare it.', ['name' => $medication->name, 'date' => $medication->refill_requested_at->translatedFormat('d M Y')]));
         }
 
         $medication->forceFill(['refill_requested_at' => now()])->save();
 
         return redirect()->route('patient.medications')
-            ->with('success', "Refill of {$medication->name} requested. Your pharmacist will prepare it — please collect it at the pharmacy.");
+            ->with('success', __('Refill of :name requested. Your pharmacist will prepare it — please collect it at the pharmacy.', ['name' => $medication->name]));
     }
 
     /** Undo a dose logged by mistake. */
@@ -218,7 +218,7 @@ class PatientPortalController extends Controller
         $medication->removeDose($day);
 
         return redirect()->route('patient.medications')
-            ->with('success', "Removed the {$medication->name} dose for {$day->format('d M')}.");
+            ->with('success', __('Removed the :name dose for :date.', ['name' => $medication->name, 'date' => $day->translatedFormat('d M')]));
     }
 
     /** The patient's own medication that is still current, or a redirect explaining why not. */
@@ -229,7 +229,7 @@ class PatientPortalController extends Controller
 
         if (! $medication->isCurrent()) {
             return redirect()->route('patient.medications')
-                ->with('error', "{$medication->name} is no longer current, so doses can't be logged for it.");
+                ->with('error', __(':name is no longer current, so doses can\'t be logged for it.', ['name' => $medication->name]));
         }
 
         return $medication;
@@ -241,8 +241,8 @@ class PatientPortalController extends Controller
         $validated = $request->validate([
             'taken_on' => ['nullable', 'date', 'before_or_equal:today', 'after_or_equal:' . today()->subDays(6)->toDateString()],
         ], [
-            'taken_on.after_or_equal' => 'You can only log doses for the past 7 days.',
-            'taken_on.before_or_equal' => 'You cannot log a dose in the future.',
+            'taken_on.after_or_equal' => __('You can only log doses for the past 7 days.'),
+            'taken_on.before_or_equal' => __('You cannot log a dose in the future.'),
         ]);
 
         $day = Carbon::parse($validated['taken_on'] ?? today())->startOfDay();
@@ -250,11 +250,23 @@ class PatientPortalController extends Controller
         $firstDay = $forLogging?->firstDoseDay();
         if ($firstDay && $day->lt($firstDay)) {
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'taken_on' => "You started {$forLogging->name} on {$firstDay->format('d M')}, so you can't log a dose before that.",
+                'taken_on' => __('You started :name on :date, so you can\'t log a dose before that.', ['name' => $forLogging->name, 'date' => $firstDay->translatedFormat('d M')]),
             ]);
         }
 
         return $day;
+    }
+
+    /** Readable field names for validation messages (EN / BM). */
+    private static function fieldNames(): array
+    {
+        return [
+            'name' => __('medication name'),
+            'dosage' => __('dosage'),
+            'frequency' => __('how to take'),
+            'last_taken' => __('latest taken date'),
+            'notes' => __('note'),
+        ];
     }
 
     public function checkups(Request $request)
@@ -290,7 +302,7 @@ class PatientPortalController extends Controller
             return response()->json(['success' => true]);
         }
 
-        return redirect()->back()->with('success', 'Notification marked as read.');
+        return redirect()->back()->with('success', __('Notification marked as read.'));
     }
 
     private function summaryPatient(Request $request): Patient

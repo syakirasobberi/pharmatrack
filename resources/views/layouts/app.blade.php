@@ -116,7 +116,7 @@
                            class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium"
                            style="background:{{ request()->routeIs('patient.dashboard') ? '#0f766e' : 'transparent' }};color:{{ request()->routeIs('patient.dashboard') ? '#fff' : '#ccfbf1' }};border-left:{{ request()->routeIs('patient.dashboard') ? '4px solid #5eead4' : '4px solid transparent' }};">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                            My Health
+                            {{ __('My Health') }}
                         </a>
 
                         {{-- My Medications --}}
@@ -124,21 +124,21 @@
                            class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium"
                            style="background:{{ request()->routeIs('patient.medications') ? '#0f766e' : 'transparent' }};color:{{ request()->routeIs('patient.medications') ? '#fff' : '#ccfbf1' }};border-left:{{ request()->routeIs('patient.medications') ? '4px solid #5eead4' : '4px solid transparent' }};">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                            My Medications
+                            {{ __('My Medications') }}
                         </a>
 
                         <a href="{{ route('patient.checkups') }}"
                            class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium"
                            style="background:{{ request()->routeIs('patient.checkups') ? '#0f766e' : 'transparent' }};color:{{ request()->routeIs('patient.checkups') ? '#fff' : '#ccfbf1' }};border-left:{{ request()->routeIs('patient.checkups') ? '4px solid #5eead4' : '4px solid transparent' }};">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-3-3v6m8-3a8 8 0 11-16 0 8 8 0 0116 0z"></path></svg>
-                            My Checkups
+                            {{ __('My Checkups') }}
                         </a>
 
                         <a href="{{ route('patient.notifications.index') }}"
                            class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium"
                            style="background:{{ request()->routeIs('patient.notifications.*') ? '#0f766e' : 'transparent' }};color:{{ request()->routeIs('patient.notifications.*') ? '#fff' : '#ccfbf1' }};border-left:{{ request()->routeIs('patient.notifications.*') ? '4px solid #5eead4' : '4px solid transparent' }};">
                             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 01-6 0m6 0H9"></path></svg>
-                            <span class="min-w-0 flex-1">Notifications</span>
+                            <span class="min-w-0 flex-1">{{ __('Notifications') }}</span>
                             @if($patientUnreadNotificationsCount > 0)
                                 <span class="inline-flex min-w-6 items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-extrabold text-white">
                                     {{ $patientUnreadNotificationsCount }}
@@ -148,19 +148,19 @@
 
                         {{-- Health Summary PDF Options --}}
                         <div class="rounded-xl border border-teal-700/70 bg-teal-950/30 p-2">
-                            <p class="px-2 pb-2 text-xs font-bold uppercase tracking-wider text-teal-300">Health Summary PDF</p>
+                            <p class="px-2 pb-2 text-xs font-bold uppercase tracking-wider text-teal-300">{{ __('Health Summary PDF') }}</p>
                             <a href="{{ route('patient.summary.download') }}"
                                class="flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium text-teal-100 transition-colors hover:bg-teal-800">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                Download PDF
+                                {{ __('Download PDF') }}
                             </a>
                             <form action="{{ route('patient.summary.email') }}" method="POST">
                                 @csrf
                                 <button type="submit"
                                         class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left font-medium text-teal-100 transition-colors hover:bg-teal-800"
-                                        title="Send to {{ Auth::user()->email }}">
+                                        title="{{ __('Send to :email', ['email' => Auth::user()->email]) }}">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 8V6a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg>
-                                    Send to Email
+                                    {{ __('Send to Email') }}
                                 </button>
                             </form>
                         </div>
@@ -197,7 +197,7 @@
 
                 <div class="p-4 border-t {{ $borderClass }} bg-teal-950">
                     <p class="text-sm font-semibold">{{ Auth::user()->name }}</p>
-                    <p class="text-xs capitalize font-bold {{ $brandColor }}">{{ Auth::user()->role }}</p>
+                    <p class="text-xs capitalize font-bold {{ $brandColor }}">{{ Auth::user()->role === 'patient' ? __('Patient') : Auth::user()->role }}</p>
                 </div>
             </aside>
 
@@ -222,15 +222,18 @@
                     </div>
 
                     <div class="flex items-center gap-2 sm:gap-4">
+                        @if(Auth::user()->role == 'patient')
+                            <x-lang-toggle />
+                        @endif
                         <a href="{{ route('profile.edit') }}" class="text-sm font-semibold text-gray-600 hover:text-teal-700 transition-colors flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                            <span class="hidden sm:inline">My Profile</span>
+                            <span class="hidden sm:inline">{{ __('My Profile') }}</span>
                         </a>
                         
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="text-sm px-3 py-2 sm:px-4 bg-red-50 text-red-600 font-bold rounded-lg hover:bg-red-100 transition-colors">
-                                Log Out
+                                {{ __('Log Out') }}
                             </button>
                         </form>
                     </div>
@@ -258,7 +261,7 @@
 
                     {{ $slot }}
                     <footer class="text-center text-xs text-gray-400 font-medium py-4 border-t border-gray-100 mt-auto">
-                        &copy; {{ date('Y') }} PharmaTrack &mdash; Smart Pharmacy System.
+                        &copy; {{ date('Y') }} PharmaTrack &mdash; {{ __('Smart Pharmacy System') }}.
                     </footer>
                 </main>
 
@@ -272,28 +275,28 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 11.5a8.4 8.4 0 01-8.7 8.4 9 9 0 01-3.8-.8L3 21l1.8-5.2a8.2 8.2 0 01-1-4A8.4 8.4 0 0112.3 3 8.4 8.4 0 0121 11.5z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.5 10.1c.5 2 2 3.6 4 4.4l1.2-1.2c.2-.2.5-.3.8-.2 1 .3 1.7.4 2.3.4"></path>
                         </svg>
-                        Contact Us
+                        {{ __('Contact Us') }}
                     </summary>
 
                     <div class="pointer-events-auto mt-3 rounded-2xl border border-emerald-100 bg-white p-5 text-sm shadow-2xl">
-                        <p class="text-xs font-extrabold uppercase tracking-wide text-emerald-700">Need help?</p>
-                        <h3 class="mt-1 text-lg font-extrabold text-gray-900">Contact Pharmacy Support</h3>
-                        <p class="mt-2 text-gray-600">For urgent health questions, please visit the pharmacy counter.</p>
+                        <p class="text-xs font-extrabold uppercase tracking-wide text-emerald-700">{{ __('Need help?') }}</p>
+                        <h3 class="mt-1 text-lg font-extrabold text-gray-900">{{ __('Contact Pharmacy Support') }}</h3>
+                        <p class="mt-2 text-gray-600">{{ __('For urgent health questions, please visit the pharmacy counter.') }}</p>
 
                         <div class="mt-4 rounded-xl bg-emerald-50 p-4">
-                            <p class="text-xs font-bold uppercase text-emerald-700">Assigned Pharmacist</p>
-                            <p class="mt-1 font-extrabold text-gray-900">{{ $assignedPharmacist?->name ?? 'Pharmacy Counter' }}</p>
+                            <p class="text-xs font-bold uppercase text-emerald-700">{{ __('Assigned Pharmacist') }}</p>
+                            <p class="mt-1 font-extrabold text-gray-900">{{ $assignedPharmacist?->name ?? __('Pharmacy Counter') }}</p>
 
                             @if($whatsappLink)
                                 <a href="{{ $whatsappLink }}" target="_blank" rel="noopener" class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-extrabold text-white hover:bg-emerald-700">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 11.5a8.4 8.4 0 01-8.7 8.4 9 9 0 01-3.8-.8L3 21l1.8-5.2a8.2 8.2 0 01-1-4A8.4 8.4 0 0112.3 3 8.4 8.4 0 0121 11.5z"></path>
                                     </svg>
-                                    WhatsApp Pharmacist
+                                    {{ __('WhatsApp Pharmacist') }}
                                 </a>
                                 <p class="mt-2 text-xs font-semibold text-emerald-700">{{ $pharmacistPhone }}</p>
                             @else
-                                <p class="mt-2 text-sm font-semibold text-gray-600">WhatsApp is not available yet because the pharmacist has not added a phone number.</p>
+                                <p class="mt-2 text-sm font-semibold text-gray-600">{{ __('WhatsApp is not available yet because the pharmacist has not added a phone number.') }}</p>
                             @endif
 
                             @if($assignedPharmacist?->email)
