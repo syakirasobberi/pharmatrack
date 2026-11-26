@@ -239,7 +239,36 @@ class AdminController extends Controller
             'laravel_version' => app()->version(),
         ];
 
-        return view('admin.settings.index', compact('roleCounts', 'settings'));
+        $backups = \App\Support\DatabaseBackup::all();
+
+        return view('admin.settings.index', compact('roleCounts', 'settings', 'backups'));
+    }
+
+    /** "Back up now" on System Settings (the daily backup also runs automatically). */
+    public function createBackup()
+    {
+        try {
+            $path = \App\Support\DatabaseBackup::create();
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->route('admin.settings.index')->with('error', 'The backup could not be created: ' . $e->getMessage());
+        }
+
+        \App\Support\Audit::record('backup.created', 'Created database backup ' . basename($path));
+
+        return redirect()->route('admin.settings.index')->with('success', 'Backup created: ' . basename($path) . '. Download a copy to keep it off the server.');
+    }
+
+    /** A backup holds every patient record and password hash: admins only, and every download is audited. */
+    public function downloadBackup(string $file)
+    {
+        $path = \App\Support\DatabaseBackup::path($file);
+        abort_if($path === null, 404);
+
+        \App\Support\Audit::record('backup.downloaded', 'Downloaded database backup ' . $file);
+
+        return response()->download($path, $file, ['Cache-Control' => 'no-store']);
     }
 
     public function updateAppName(Request $request)

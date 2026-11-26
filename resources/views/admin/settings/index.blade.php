@@ -88,6 +88,43 @@
                 </div>
             </div>
 
+            {{-- Database backups: made daily automatically (App\Support\DailyTasks), newest 7 kept. --}}
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm" id="backups">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <h2 class="text-lg font-extrabold text-slate-800">Database Backups</h2>
+                        <p class="text-sm text-slate-500 mt-1">
+                            A full copy of the database is made automatically once a day; the newest {{ \App\Support\DatabaseBackup::KEEP }} are kept on the server.
+                            Download one regularly and keep it somewhere safe — a copy on the same server does not help if the server is lost.
+                        </p>
+                    </div>
+                    <form method="POST" action="{{ route('admin.backups.create') }}" class="shrink-0">
+                        @csrf
+                        <button type="submit" class="whitespace-nowrap px-4 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-bold hover:bg-teal-700">Back up now</button>
+                    </form>
+                </div>
+
+                <p class="mt-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-xs font-semibold text-amber-800">
+                    Backups contain every patient record and password hashes. Store downloads securely and do not email or share them. Each download is recorded in the audit log.
+                </p>
+
+                <div class="mt-4 divide-y divide-slate-100 rounded-xl border border-slate-100">
+                    @forelse($backups as $backup)
+                        <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                            <div>
+                                <p class="text-sm font-bold text-slate-800">{{ $backup['created_at']->format('d M Y, g:i a') }}</p>
+                                <p class="text-xs text-slate-500">{{ $backup['name'] }} · {{ number_format($backup['size'] / 1024, 1) }} KB</p>
+                            </div>
+                            <a href="{{ route('admin.backups.download', $backup['name']) }}" class="whitespace-nowrap px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-teal-700 hover:bg-teal-50">Download</a>
+                        </div>
+                    @empty
+                        <p class="px-4 py-6 text-sm text-slate-500 text-center">No backups yet. The first one is made automatically today, or click “Back up now”.</p>
+                    @endforelse
+                </div>
+
+                <p class="mt-3 text-xs text-slate-500">To restore: unzip the .sql.gz file and import the .sql in SIDU (or phpMyAdmin). This replaces all current data.</p>
+            </div>
+
             <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
                 <h2 class="text-lg font-extrabold text-slate-800 mb-4">Admin Shortcuts</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">

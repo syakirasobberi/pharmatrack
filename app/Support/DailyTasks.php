@@ -20,6 +20,7 @@ class DailyTasks
 {
     /** Commands to run once a day (also scheduled in routes/console.php for servers with cron). */
     public const COMMANDS = [
+        'backup:database',   // first: a copy of the data before the day's reminders change anything
         'checkups:send-reminders',
         'medications:send-update-reminders',
         'medications:send-refill-reminders',

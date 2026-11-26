@@ -8,6 +8,7 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+Schedule::command('backup:database')->daily();
 Schedule::command('checkups:send-reminders')->daily();
 Schedule::command('medications:send-update-reminders')->daily();
 Schedule::command('medications:send-refill-reminders')->daily();

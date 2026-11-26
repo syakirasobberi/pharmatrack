@@ -77,6 +77,8 @@ Route::middleware(['auth', 'force_password_change', 'role:admin'])->group(functi
     Route::patch('/admin/settings/app-name', [AdminController::class, 'updateAppName'])->name('admin.settings.updateAppName');
     Route::get('/admin/audit-log', [AuditLogController::class, 'index'])->name('admin.audit.index');
     Route::get('/admin/audit-log/export', [AuditLogController::class, 'export'])->name('admin.audit.export');
+    Route::post('/admin/backups', [AdminController::class, 'createBackup'])->middleware('throttle:5,1')->name('admin.backups.create');
+    Route::get('/admin/backups/{file}', [AdminController::class, 'downloadBackup'])->name('admin.backups.download');
 });
 
 Route::middleware(['auth', 'force_password_change', 'role:pharmacist'])->group(function () {
