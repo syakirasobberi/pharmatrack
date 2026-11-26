@@ -22,6 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Every web request: sign out accounts an admin has deactivated.
         $middleware->web(append: [
+            // EN / BM language chosen with the toggle on the welcome page.
+            \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\EnsureAccountActive::class,
             // Staff must enter the emailed sign-in code before any other page.
             \App\Http\Middleware\EnsureTwoFactor::class,

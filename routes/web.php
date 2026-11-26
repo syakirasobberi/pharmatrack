@@ -18,6 +18,12 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
+// EN / BM toggle: remember the choice for this visit and go back to the page.
+Route::get('/lang/{locale}', function (string $locale) {
+    session(['locale' => $locale]);
+    return redirect()->back(fallback: route('welcome'));
+})->whereIn('locale', \App\Http\Middleware\SetLocale::SUPPORTED)->name('locale.switch');
+
 // Kiosk: the browser computes a face descriptor and the server does the matching,
 // so stored biometric data and patient names are never sent to the client.
 Route::post('/kiosk/identify', [KioskController::class, 'identify'])

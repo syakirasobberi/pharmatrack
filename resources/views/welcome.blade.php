@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -332,6 +332,20 @@
         .top-nav a.nav-login:hover { background: #0f766e; color: #fff; }
         [id] { scroll-margin-top: 24px; }
 
+        /* ── EN / BM language toggle ── */
+        .lang-toggle {
+            display: inline-flex; padding: 4px; gap: 2px; flex-shrink: 0;
+            background: var(--surface-solid); border: 1px solid var(--border);
+            border-radius: 12px; box-shadow: var(--shadow-sm);
+        }
+        .lang-toggle a {
+            min-width: 42px; padding: 7px 10px; border-radius: 9px; text-align: center;
+            font-size: 0.82rem; font-weight: 800; letter-spacing: 0.04em;
+            color: var(--muted); text-decoration: none; transition: background .2s, color .2s;
+        }
+        .lang-toggle a:hover { color: var(--primary); }
+        .lang-toggle a.active { background: var(--primary); color: #fff; }
+
         /* ── Hero extras ── */
         .trust-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; list-style: none; }
         .trust-chips li {
@@ -578,15 +592,15 @@
          style="display:none; position:fixed; left:50%; bottom:32px; transform:translateX(-50%); z-index:1000; max-width:90vw;
                 padding:14px 22px; border-radius:14px; background:#7f1d1d; color:#fff; font-weight:600; font-size:15px;
                 box-shadow:0 10px 30px rgba(0,0,0,.25);">
-        <span id="toast-msg">Face not recognised. Please contact staff.</span>
+        <span id="toast-msg">{{ __('Face not recognised. Please contact staff.') }}</span>
     </div>
 
     <!-- Success overlay -->
     <div id="success-overlay">
         <div class="glass-card" style="align-items: center; text-align: center; max-width: 400px; width: 100%;">
             <div class="success-icon">✓</div>
-            <div class="section-headline" id="success-name" style="margin-top:24px;">Face Recognized</div>
-            <div class="section-desc" style="margin-bottom:0;">Retrieving medical profile securely...</div>
+            <div class="section-headline" id="success-name" style="margin-top:24px;">{{ __('Face Recognized') }}</div>
+            <div class="section-desc" style="margin-bottom:0;">{{ __('Retrieving medical profile securely...') }}</div>
         </div>
     </div>
 
@@ -594,16 +608,20 @@
     <div id="welcome-screen">
         <header class="header">
             <div class="logo">
-                <x-brand :size="48" tagline="Smart Pharmacy System" />
+                <x-brand :size="48" :tagline="__('Smart Pharmacy System')" />
             </div>
             <div class="header-right">
                 <nav class="top-nav" aria-label="Page sections">
-                    <a href="#how-it-works">How it works</a>
-                    <a href="#patient-portal">Patient portal</a>
-                    <a href="#faq">FAQ</a>
-                    <a href="#visit">Contact</a>
-                    <a href="{{ route('login') }}" class="nav-login">Log in</a>
+                    <a href="#how-it-works">{{ __('How it works') }}</a>
+                    <a href="#patient-portal">{{ __('Patient portal') }}</a>
+                    <a href="#faq">{{ __('FAQ') }}</a>
+                    <a href="#visit">{{ __('Contact') }}</a>
+                    <a href="{{ route('login') }}" class="nav-login">{{ __('Log in') }}</a>
                 </nav>
+                <div class="lang-toggle" role="group" aria-label="{{ __('Language') }}">
+                    <a href="{{ route('locale.switch', 'en') }}" lang="en" hreflang="en" @class(['active' => app()->getLocale() !== 'ms']) @if (app()->getLocale() !== 'ms') aria-current="true" @endif>EN</a>
+                    <a href="{{ route('locale.switch', 'ms') }}" lang="ms" hreflang="ms" @class(['active' => app()->getLocale() === 'ms']) @if (app()->getLocale() === 'ms') aria-current="true" @endif>BM</a>
+                </div>
                 <div id="clock">--:--:--</div>
             </div>
         </header>
@@ -620,60 +638,60 @@
             <div class="welcome-hero">
                 <!-- Check-in (primary action, shown first) -->
                 <section class="glass-card welcome-card" aria-labelledby="hero-title">
-                    <span class="badge">Patient check-in</span>
-                    <h1 class="section-headline" id="hero-title">Check in with <span>your face</span></h1>
+                    <span class="badge">{{ __('Patient check-in') }}</span>
+                    <h1 class="section-headline" id="hero-title">{!! __('Check in with <span>your face</span>') !!}</h1>
                     <p class="section-desc">
-                        Look at the camera, turn your head when asked, and your pharmacist will have your records ready. No card or password needed.
+                        {{ __('Look at the camera, turn your head when asked, and your pharmacist will have your records ready. No card or password needed.') }}
                     </p>
 
                     <ul class="trust-chips" aria-label="Check-in at a glance">
                         <li>
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9.5 2h5"/></svg>
-                            About 10 seconds
+                            {{ __('About 10 seconds') }}
                         </li>
                         <li>
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2"/><path d="M13 10h5M13 14h3"/><path d="M3 3l18 18"/></svg>
-                            No card or IC needed
+                            {{ __('No card or IC needed') }}
                         </li>
                         <li>
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
-                            No photo saved
+                            {{ __('No photo saved') }}
                         </li>
                     </ul>
 
                     <button type="button" class="btn-start" id="btn-start-verification">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                        Start Face Verification
+                        {{ __('Start Face Verification') }}
                     </button>
 
                     <div class="login-grid">
-                        <a href="{{ route('login') }}" class="btn-staff">Log in with email &amp; password</a>
+                        <a href="{{ route('login') }}" class="btn-staff">{!! __('Log in with email &amp; password') !!}</a>
                     </div>
                     <div class="hero-links">
-                        <a href="{{ route('password.request') }}">Forgot your password?</a>
-                        <a href="#faq">Need help?</a>
+                        <a href="{{ route('password.request') }}">{{ __('Forgot your password?') }}</a>
+                        <a href="#faq">{{ __('Need help?') }}</a>
                     </div>
                 </section>
 
                 <!-- About + who it is for -->
                 <section class="glass-card about-card" aria-labelledby="about-title">
-                    <span class="badge">About PharmaTrack</span>
-                    <h2 class="section-headline" id="about-title">Smarter care at your <span>community pharmacy</span></h2>
+                    <span class="badge">{{ __('About PharmaTrack') }}</span>
+                    <h2 class="section-headline" id="about-title">{!! __('Smarter care at your <span>community pharmacy</span>') !!}</h2>
                     <p class="section-desc">
-                        PharmaTrack keeps your medications and health check-ups in one place, and uses AI-assisted clinical decision support to help your pharmacist spot possible health risks early.
+                        {{ __('PharmaTrack keeps your medications and health check-ups in one place, and uses AI-assisted clinical decision support to help your pharmacist spot possible health risks early.') }}
                     </p>
                     <ul class="fact-list">
                         <li>
                             <span class="fact-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>
-                            <span><strong>Registered patients</strong><span class="fact-sub">Check in at the kiosk, or log in to see your medicines and results.</span></span>
+                            <span><strong>{{ __('Registered patients') }}</strong><span class="fact-sub">{{ __('Check in at the kiosk, or log in to see your medicines and results.') }}</span></span>
                         </li>
                         <li>
                             <span class="fact-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>
-                            <span><strong>New patients</strong><span class="fact-sub">Visit the counter. Our pharmacist registers you; it only takes a few minutes.</span></span>
+                            <span><strong>{{ __('New patients') }}</strong><span class="fact-sub">{{ __('Visit the counter. Our pharmacist registers you; it only takes a few minutes.') }}</span></span>
                         </li>
                         <li>
                             <span class="fact-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
-                            <span><strong>Pharmacy staff</strong><span class="fact-sub">Use “Log in”. Staff sign-in is protected with an emailed code.</span></span>
+                            <span><strong>{{ __('Pharmacy staff') }}</strong><span class="fact-sub">{{ __('Use “Log in”. Staff sign-in is protected with an emailed code.') }}</span></span>
                         </li>
                     </ul>
                 </section>
@@ -682,30 +700,30 @@
             <!-- "How it Works" Steps Section -->
             <div class="content-section" id="how-it-works">
                 <div class="section-header">
-                    <h2>How to use <span>PharmaTrack</span></h2>
-                    <p style="color: var(--muted); font-size: 0.95rem; margin-top: 8px;">For registered patients using the kiosk counter.</p>
+                    <h2>{!! __('How to use <span>PharmaTrack</span>') !!}</h2>
+                    <p style="color: var(--muted); font-size: 0.95rem; margin-top: 8px;">{{ __('For registered patients using the kiosk counter.') }}</p>
                 </div>
                 
                 <div class="steps-grid">
                     <div class="step-card">
                         <div class="step-number">1</div>
-                        <h3 class="step-title">Position Your Face</h3>
-                        <p class="step-desc">Simply stand in front of the kiosk and look directly into the camera frame.</p>
+                        <h3 class="step-title">{{ __('Position Your Face') }}</h3>
+                        <p class="step-desc">{{ __('Simply stand in front of the kiosk and look directly into the camera frame.') }}</p>
                     </div>
                     <div class="step-card">
                         <div class="step-number">2</div>
-                        <h3 class="step-title">Turn Your Head</h3>
-                        <p class="step-desc">Turn your head to the side shown on screen until you hear a beep, then look back at the camera. This proves a real person is in front of the camera.</p>
+                        <h3 class="step-title">{{ __('Turn Your Head') }}</h3>
+                        <p class="step-desc">{{ __('Turn your head to the side shown on screen until you hear a beep, then look back at the camera. This proves a real person is in front of the camera.') }}</p>
                     </div>
                     <div class="step-card">
                         <div class="step-number">3</div>
-                        <h3 class="step-title">AI Verification</h3>
-                        <p class="step-desc">Hold still while our facial recognition model matches your profile.</p>
+                        <h3 class="step-title">{{ __('AI Verification') }}</h3>
+                        <p class="step-desc">{{ __('Hold still while our facial recognition model matches your profile.') }}</p>
                     </div>
                     <div class="step-card">
                         <div class="step-number">4</div>
-                        <h3 class="step-title">Ready for Pharmacist</h3>
-                        <p class="step-desc">Your health and medication records are automatically routed to the pharmacist.</p>
+                        <h3 class="step-title">{{ __('Ready for Pharmacist') }}</h3>
+                        <p class="step-desc">{{ __('Your health and medication records are automatically routed to the pharmacist.') }}</p>
                     </div>
                 </div>
 
@@ -719,8 +737,8 @@
                         </svg>
                     </div>
                     <div class="registration-content">
-                        <h3>Not registered for face check-in yet?</h3>
-                        <p>Please proceed to the pharmacy counter. Once our pharmacist registers your profile, you can use this check-in kiosk or log in to the portal instantly.</p>
+                        <h3>{{ __('Not registered for face check-in yet?') }}</h3>
+                        <p>{{ __('Please proceed to the pharmacy counter. Once our pharmacist registers your profile, you can use this check-in kiosk or log in to the portal instantly.') }}</p>
                     </div>
                 </div>
             </div>
@@ -728,47 +746,47 @@
             <!-- Patient portal -->
             <div class="content-section" id="patient-portal">
                 <div class="section-header">
-                    <h2>Your <span>patient portal</span></h2>
-                    <p style="color: var(--muted); font-size: 0.95rem; margin-top: 8px;">Log in from any phone or computer to manage your care between visits.</p>
+                    <h2>{!! __('Your <span>patient portal</span>') !!}</h2>
+                    <p style="color: var(--muted); font-size: 0.95rem; margin-top: 8px;">{{ __('Log in from any phone or computer to manage your care between visits.') }}</p>
                 </div>
 
                 <div class="portal-grid">
                     <div class="portal-item">
                         <span class="fact-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5 3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7z"/><path d="m8.5 8.5 7 7"/></svg></span>
-                        <div><h3>My medicines</h3><p>See every medicine, its dose and instructions, all in one list.</p></div>
+                        <div><h3>{{ __('My medicines') }}</h3><p>{{ __('See every medicine, its dose and instructions, all in one list.') }}</p></div>
                     </div>
                     <div class="portal-item">
                         <span class="fact-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
-                        <div><h3>Dose log</h3><p>Tick off each dose you take and track how well you are keeping up.</p></div>
+                        <div><h3>{{ __('Dose log') }}</h3><p>{{ __('Tick off each dose you take and track how well you are keeping up.') }}</p></div>
                     </div>
                     <div class="portal-item">
                         <span class="fact-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.5 15a9 9 0 1 1-2.1-9.4L23 10"/></svg></span>
-                        <div><h3>Refill requests &amp; reminders</h3><p>Ask for a refill online and get reminded before you run out or a check-up is due.</p></div>
+                        <div><h3>{!! __('Refill requests &amp; reminders') !!}</h3><p>{{ __('Ask for a refill online and get reminded before you run out or a check-up is due.') }}</p></div>
                     </div>
                     <div class="portal-item">
                         <span class="fact-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
-                        <div><h3>Check-up results</h3><p>Blood pressure, sugar, cholesterol and BMI, with clear Normal / High / Low labels.</p></div>
+                        <div><h3>{{ __('Check-up results') }}</h3><p>{{ __('Blood pressure, sugar, cholesterol and BMI, with clear Normal / High / Low labels.') }}</p></div>
                     </div>
                     <div class="portal-item">
                         <span class="fact-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></span>
-                        <div><h3>Health summary</h3><p>Download or email yourself a summary to show your doctor or clinic.</p></div>
+                        <div><h3>{{ __('Health summary') }}</h3><p>{{ __('Download or email yourself a summary to show your doctor or clinic.') }}</p></div>
                     </div>
                     <div class="portal-item">
                         <span class="fact-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
-                        <div><h3>Control your face data</h3><p>Remove your face template at any time and use email login instead.</p></div>
+                        <div><h3>{{ __('Control your face data') }}</h3><p>{{ __('Remove your face template at any time and use email login instead.') }}</p></div>
                     </div>
                 </div>
 
                 <div class="section-cta">
-                    <a href="{{ route('login') }}">Log in to the portal</a>
-                    <a href="{{ route('password.request') }}" class="secondary">Set or reset password</a>
+                    <a href="{{ route('login') }}">{{ __('Log in to the portal') }}</a>
+                    <a href="{{ route('password.request') }}" class="secondary">{{ __('Set or reset password') }}</a>
                 </div>
             </div>
 
             <!-- "Why PharmaTrack?" Visual Section -->
             <div class="content-section">
                 <div class="section-header">
-                    <h2>What PharmaTrack <span>does for you</span></h2>
+                    <h2>{!! __('What PharmaTrack <span>does for you</span>') !!}</h2>
                 </div>
                 
                 <div class="features-grid">
@@ -779,8 +797,8 @@
                                 <path d="M9 18h6"></path><path d="M10 22h4"></path>
                             </svg>
                         </div>
-                        <h3 class="feature-title">Early Health Warnings</h3>
-                        <p class="feature-desc">AI-assisted clinical decision support helps your pharmacist spot possible health risks from your check-up results early.</p>
+                        <h3 class="feature-title">{{ __('Early Health Warnings') }}</h3>
+                        <p class="feature-desc">{{ __('AI-assisted clinical decision support helps your pharmacist spot possible health risks from your check-up results early.') }}</p>
                     </div>
 
                     <div class="feature-card">
@@ -790,8 +808,8 @@
                                 <path d="M9 3v18"></path><path d="M14 9h4"></path><path d="M14 15h4"></path>
                             </svg>
                         </div>
-                        <h3 class="feature-title">All Your Records in One Place</h3>
-                        <p class="feature-desc">Your medications and health check-ups are kept together, so your pharmacist sees the full picture every visit.</p>
+                        <h3 class="feature-title">{{ __('All Your Records in One Place') }}</h3>
+                        <p class="feature-desc">{{ __('Your medications and health check-ups are kept together, so your pharmacist sees the full picture every visit.') }}</p>
                     </div>
 
                     <div class="feature-card">
@@ -801,8 +819,8 @@
                                 <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line>
                             </svg>
                         </div>
-                        <h3 class="feature-title">Touchless Check-in</h3>
-                        <p class="feature-desc">No card, queue number or password: check in at the kiosk with your face in a few seconds.</p>
+                        <h3 class="feature-title">{{ __('Touchless Check-in') }}</h3>
+                        <p class="feature-desc">{{ __('No card, queue number or password: check in at the kiosk with your face in a few seconds.') }}</p>
                     </div>
                 </div>
             </div>
@@ -816,41 +834,41 @@
                     </svg>
                 </div>
                 <div class="privacy-content">
-                    <h3>Your Data is Secure</h3>
-                    <p>No photo of your face is saved. The camera image is turned into a numeric face template on this device, and only that template is sent to our server to match you against registered patients. It is used solely for identity verification. Your face is only enrolled with your consent (PDPA 2010), and you can remove it at any time from your patient portal or at the counter.</p>
+                    <h3>{{ __('Your Data is Secure') }}</h3>
+                    <p>{{ __('No photo of your face is saved. The camera image is turned into a numeric face template on this device, and only that template is sent to our server to match you against registered patients. It is used solely for identity verification. Your face is only enrolled with your consent (PDPA 2010), and you can remove it at any time from your patient portal or at the counter.') }}</p>
                 </div>
             </div>
 
             <!-- FAQ -->
             <div class="content-section" id="faq">
                 <div class="section-header">
-                    <h2>Frequently asked <span>questions</span></h2>
+                    <h2>{!! __('Frequently asked <span>questions</span>') !!}</h2>
                 </div>
 
                 <div class="faq-list">
                     <details>
-                        <summary>The kiosk does not recognise my face. What should I do?</summary>
-                        <div class="faq-body">Remove glasses, mask or hat, face the camera in good light and turn your head when asked. If it still fails, tap <strong>Login Instead</strong> to sign in with your email, or ask the pharmacist at the counter, who can also update your face profile.</div>
+                        <summary>{{ __('The kiosk does not recognise my face. What should I do?') }}</summary>
+                        <div class="faq-body">{!! __('Remove glasses, mask or hat, face the camera in good light and turn your head when asked. If it still fails, tap <strong>Login Instead</strong> to sign in with your email, or ask the pharmacist at the counter, who can also update your face profile.') !!}</div>
                     </details>
                     <details>
-                        <summary>How do I get an account?</summary>
-                        <div class="faq-body">Accounts are created by our pharmacist at the counter. You will receive an email with a link to set your own password. Didn't get it? Check your spam folder, or use <a href="{{ route('password.request') }}">Forgot password</a> with the same email.</div>
+                        <summary>{{ __('How do I get an account?') }}</summary>
+                        <div class="faq-body">{!! __('Accounts are created by our pharmacist at the counter. You will receive an email with a link to set your own password. Didn\'t get it? Check your spam folder, or use <a href=":url">Forgot password</a> with the same email.', ['url' => e(route('password.request'))]) !!}</div>
                     </details>
                     <details>
-                        <summary>Do I have to use face check-in?</summary>
-                        <div class="faq-body">No. Face check-in is optional and only set up with your consent. You can always log in with your email and password instead, and you can remove your face data at any time.</div>
+                        <summary>{{ __('Do I have to use face check-in?') }}</summary>
+                        <div class="faq-body">{{ __('No. Face check-in is optional and only set up with your consent. You can always log in with your email and password instead, and you can remove your face data at any time.') }}</div>
                     </details>
                     <details>
-                        <summary>Is my face photo stored?</summary>
-                        <div class="faq-body">No. Only a numeric face template (a list of numbers that cannot be turned back into a photo) is kept, and it is used only to recognise you at this pharmacy.</div>
+                        <summary>{{ __('Is my face photo stored?') }}</summary>
+                        <div class="faq-body">{{ __('No. Only a numeric face template (a list of numbers that cannot be turned back into a photo) is kept, and it is used only to recognise you at this pharmacy.') }}</div>
                     </details>
                     <details>
-                        <summary>Is the AI health risk result a diagnosis?</summary>
-                        <div class="faq-body">No. It is a decision-support tool that helps your pharmacist notice possible risks early. Any concern is discussed with you, and you may be referred to a doctor for proper diagnosis.</div>
+                        <summary>{{ __('Is the AI health risk result a diagnosis?') }}</summary>
+                        <div class="faq-body">{{ __('No. It is a decision-support tool that helps your pharmacist notice possible risks early. Any concern is discussed with you, and you may be referred to a doctor for proper diagnosis.') }}</div>
                     </details>
                     <details>
-                        <summary>I forgot my password.</summary>
-                        <div class="faq-body">Use <a href="{{ route('password.request') }}">Forgot password</a> and we will email you a reset link. If you no longer have access to that email, ask the pharmacist to update it.</div>
+                        <summary>{{ __('I forgot my password.') }}</summary>
+                        <div class="faq-body">{!! __('Use <a href=":url">Forgot password</a> and we will email you a reset link. If you no longer have access to that email, ask the pharmacist to update it.', ['url' => e(route('password.request'))]) !!}</div>
                     </details>
                 </div>
             </div>
@@ -858,32 +876,32 @@
             <!-- Visit / contact -->
             <div class="content-section" id="visit">
                 <div class="section-header">
-                    <h2>Visit or <span>contact us</span></h2>
+                    <h2>{!! __('Visit or <span>contact us</span>') !!}</h2>
                 </div>
 
                 <div class="visit-grid">
                     @if (!empty($pharmacy['hours']))
                         <div class="visit-card">
-                            <h3>Opening hours</h3>
+                            <h3>{{ __('Opening hours') }}</h3>
                             <p>{!! collect(explode('|', $pharmacy['hours']))->map(fn ($l) => e(trim($l)))->implode('<br>') !!}</p>
                         </div>
                     @endif
                     @if (!empty($pharmacy['address']))
                         <div class="visit-card">
-                            <h3>Address</h3>
+                            <h3>{{ __('Address') }}</h3>
                             <p>{{ $pharmacy['address'] }}</p>
-                            <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($pharmacy['address']) }}" target="_blank" rel="noopener">Get directions →</a>
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($pharmacy['address']) }}" target="_blank" rel="noopener">{{ __('Get directions →') }}</a>
                         </div>
                     @endif
                     <div class="visit-card">
                         <h3>WhatsApp</h3>
-                        <p>Questions about your medicines, refills or account.</p>
-                        <a href="{{ $waLink }}" target="_blank" rel="noopener">Chat on {{ $waPretty }} →</a>
+                        <p>{{ __('Questions about your medicines, refills or account.') }}</p>
+                        <a href="{{ $waLink }}" target="_blank" rel="noopener">{{ __('Chat on :number →', ['number' => $waPretty]) }}</a>
                     </div>
                     @if (!empty($pharmacy['phone']))
                         <div class="visit-card">
-                            <h3>Phone</h3>
-                            <p>Call the pharmacy counter during opening hours.</p>
+                            <h3>{{ __('Phone') }}</h3>
+                            <p>{{ __('Call the pharmacy counter during opening hours.') }}</p>
                             <a href="tel:{{ preg_replace('/[^\d+]/', '', $pharmacy['phone']) }}">{{ $pharmacy['phone'] }}</a>
                         </div>
                     @endif
@@ -894,8 +912,8 @@
             <div class="disclaimer" role="note">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
                 <div>
-                    <strong>Medical emergency? Call 999 or go to the nearest hospital.</strong>
-                    PharmaTrack supports your pharmacist's care and does not replace advice from a doctor. Do not stop or change any medicine without speaking to your pharmacist or doctor first.
+                    <strong>{{ __('Medical emergency? Call 999 or go to the nearest hospital.') }}</strong>
+                    {{ __('PharmaTrack supports your pharmacist\'s care and does not replace advice from a doctor. Do not stop or change any medicine without speaking to your pharmacist or doctor first.') }}
                 </div>
             </div>
 
@@ -908,19 +926,19 @@
     <div class="kiosk">
         <header class="header">
             <div class="logo">
-                <x-brand :size="48" tagline="Smart Pharmacy System" />
+                <x-brand :size="48" :tagline="__('Smart Pharmacy System')" />
             </div>
         </header>
 
         <section class="main" aria-label="Face check-in">
             <!-- Left Info Panel on Scanning Screen -->
             <div class="glass-card" style="max-width: 440px; width: 100%;">
-                <h2 class="section-headline" style="font-size: clamp(2rem, 5vw, 2.5rem);">Ready to verify your <span>identity</span></h2>
+                <h2 class="section-headline" style="font-size: clamp(2rem, 5vw, 2.5rem);">{!! __('Ready to verify your <span>identity</span>') !!}</h2>
 
                 <ol class="kiosk-steps">
-                    <li class="kiosk-step"><span class="kiosk-step-num" aria-hidden="true">1</span>Face the camera directly</li>
-                    <li class="kiosk-step"><span class="kiosk-step-num" aria-hidden="true">2</span>Turn your head to the side shown, then look back</li>
-                    <li class="kiosk-step"><span class="kiosk-step-num" aria-hidden="true">3</span>Records retrieved instantly</li>
+                    <li class="kiosk-step"><span class="kiosk-step-num" aria-hidden="true">1</span>{{ __('Face the camera directly') }}</li>
+                    <li class="kiosk-step"><span class="kiosk-step-num" aria-hidden="true">2</span>{{ __('Turn your head to the side shown, then look back') }}</li>
+                    <li class="kiosk-step"><span class="kiosk-step-num" aria-hidden="true">3</span>{{ __('Records retrieved instantly') }}</li>
                 </ol>
             </div>
 
@@ -933,10 +951,10 @@
                 
                 <div class="status-badge" id="status-badge" role="status" aria-live="polite">
                     <div class="status-dot" id="status-dot" aria-hidden="true"></div>
-                    <span id="status-text">Initializing AI Engine…</span>
+                    <span id="status-text">{{ __('Initializing AI Engine…') }}</span>
                 </div>
 
-                <button type="button" class="btn-retry" id="btn-retry">Try again</button>
+                <button type="button" class="btn-retry" id="btn-retry">{{ __('Try again') }}</button>
 
                 <div class="timeout-wrap">
                     <span id="timeout-label">30s</span>
@@ -946,24 +964,55 @@
                 <div class="scan-actions">
                     <button type="button" class="btn-back" id="btn-back">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-                        Cancel & Return
+                        {{ __('Cancel & Return') }}
                     </button>
                     <a href="{{ route('login') }}" class="btn-login-instead">
-                        Login Instead
+                        {{ __('Login Instead') }}
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </a>
                 </div>
             </div>
         </section>
-        <x-footer>Facial recognition data is used strictly for localized patient identification.</x-footer>
+        <x-footer>{{ __('Facial recognition data is used strictly for localized patient identification.') }}</x-footer>
     </div>
 
     <script>
+    // Kiosk status messages come from face-utils.js and this script in English;
+    // t() swaps them for the chosen language (falls back to English when not listed).
+    @php
+    $kioskStrings = [
+        'No face detected — please look at the camera.', 'Face unclear — improve lighting and hold still.',
+        'Please move closer to the camera.', 'Please face the camera directly.', 'Look straight at the camera.',
+        'Other way — turn your head to your LEFT.', 'Other way — turn your head to your RIGHT.',
+        'Slowly turn your head to your LEFT and hold until the beep.', 'Slowly turn your head to your RIGHT and hold until the beep.',
+        'Turn ✓ — now look straight at the camera.', 'Liveness confirmed ✓',
+        'Loading AI models…', 'Could not load the face recognition engine. Check the connection and try again.',
+        'Timeout: Face not recognised.', 'System live — scanning for faces…',
+        'Could not start the camera. Allow camera access, then try again.',
+        'Liveness confirmed ✓ — hold still and look at the camera…', 'Face changed — please do the head turn again.',
+        'Could not get a clear view — face the camera and do the head turn again.', 'Liveness confirmed ✓ — hold still…',
+        'Verifying identity…', 'Too many attempts — please wait a moment.',
+        'Not recognised yet — look straight at the camera and do the head turn again.', 'Could not reach the server.',
+        'Patient identified! Redirecting…', 'Welcome, :name!',
+    ];
+    $kioskT = collect($kioskStrings)->mapWithKeys(fn ($s) => [$s => __($s)]);
+    @endphp
+    const LOCALE = @json(app()->getLocale());
+    const KIOSK_T = @json($kioskT);
+    function t(msg, vars = {}) {
+        const count = msg.match(/ \(\d+\/\d+\)$/);           // "hold still… (2/3)"
+        const base = count ? msg.slice(0, -count[0].length) : msg;
+        let out = KIOSK_T[base] ?? base;
+        for (const [k, v] of Object.entries(vars)) out = out.replace(`:${k}`, () => v);
+        return count ? out + count[0] : out;
+    }
+
     const clockEl = document.getElementById('clock');
     const tick = () => {
         const now = new Date();
-        clockEl.textContent = now.toLocaleDateString('en-MY', { weekday:'short', day:'numeric', month:'short' })
-            + ' · ' + now.toLocaleTimeString('en-MY', { hour:'2-digit', minute:'2-digit' });
+        const loc = LOCALE === 'ms' ? 'ms-MY' : 'en-MY';
+        clockEl.textContent = now.toLocaleDateString(loc, { weekday:'short', day:'numeric', month:'short' })
+            + ' · ' + now.toLocaleTimeString(loc, { hour:'2-digit', minute:'2-digit' });
     };
     tick(); setInterval(tick, 1000);
 
@@ -1002,7 +1051,7 @@
     // Non-blocking message (an alert() would freeze an unattended kiosk until someone clicks OK).
     function showToast(message, ms = 5000) {
         const toast = document.getElementById('verify-toast');
-        document.getElementById('toast-msg').textContent = message;
+        document.getElementById('toast-msg').textContent = t(message);
         toast.style.display = 'block';
         clearTimeout(window._toastTimer);
         window._toastTimer = setTimeout(() => { toast.style.display = 'none'; }, ms);
@@ -1130,7 +1179,7 @@
 
             const resetLiveness = () => { challenge.reset(); recent = []; describeAttempts = 0; missedFrames = 0; phase = 'liveness'; };
             const debug = (msg) => FaceUtils.DEBUG
-                ? `${msg}  [${tick()} fps, turn ${challenge.lastYaw?.toFixed(2) ?? '-'} (+ = your left), ask ${challenge.direction}, stage ${challenge.stage}]`
+                ? `${t(msg)}  [${tick()} fps, turn ${challenge.lastYaw?.toFixed(2) ?? '-'} (+ = your left), ask ${challenge.direction}, stage ${challenge.stage}]`
                 : msg;
 
             const drawBox = (detection, ok) => {
@@ -1256,7 +1305,7 @@
                         setStatus('Patient identified! Redirecting…', 'success');
                         scanLine.style.display = 'none';
 
-                        successName.textContent = `Welcome, ${data.name}!`;
+                        successName.textContent = t('Welcome, :name!', { name: data.name });
                         successOv.classList.add('show');
 
                         setTimeout(() => { window.location.href = data.redirect; }, 2000);
@@ -1271,7 +1320,7 @@
         video.addEventListener('play', window._kioskPlayHandler);
 
         function setStatus(msg, state) {
-            statusText.textContent = msg;
+            statusText.textContent = t(msg);
             statusBadge.className = `status-badge ${state}`;
         }
     }

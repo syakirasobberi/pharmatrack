@@ -58,6 +58,8 @@ class KioskController extends Controller
             'kiosk_patient_id' => $patient->id,
             'kiosk_auth_at' => now()->timestamp,
         ]);
+        // Shared kiosk: a BM choice applies to this check-in only; the next person starts in English.
+        $request->session()->forget('locale');
 
         return response()->json([
             'matched' => true,
