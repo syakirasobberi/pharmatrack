@@ -17,6 +17,9 @@ class RunDailyTasks
 
     public function terminate(Request $request, Response $response): void
     {
+        // Reminder emails go to many users: don't inherit this visitor's EN / BM choice.
+        app()->setLocale(config('app.fallback_locale', 'en'));
+
         DailyTasks::runIfDue();
     }
 }

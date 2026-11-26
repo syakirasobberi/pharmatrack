@@ -74,6 +74,35 @@ class LocaleToggleTest extends TestCase
             ->assertSessionHasErrors(['email' => 'E-mel atau kata laluan tidak sah.']);
     }
 
+    public function test_forgot_password_page_follows_the_language_choice(): void
+    {
+        $this->get('/forgot-password')->assertOk()->assertSee('Email Password Reset Link')->assertSee('Back to Login');
+
+        $this->get('/lang/ms');
+
+        $this->get('/forgot-password')
+            ->assertOk()
+            ->assertSee('<html lang="ms">', false)
+            ->assertSee('Set Semula Kata Laluan')
+            ->assertSee('Hantar Pautan Set Semula')
+            ->assertSee('Kembali ke Log Masuk')
+            ->assertSee('Sistem Farmasi Pintar')
+            ->assertDontSee('Email Password Reset Link');
+
+        $this->from('/forgot-password')->post('/forgot-password', ['email' => 'nobody@example.com'])
+            ->assertSessionHasErrors(['email' => 'Tiada akaun didaftarkan dengan e-mel ini.']);
+    }
+
+    public function test_daily_reminders_do_not_inherit_the_visitors_language(): void
+    {
+        $this->get('/lang/ms');
+        $this->get('/');
+
+        (new \App\Http\Middleware\RunDailyTasks())->terminate(request(), response(''));
+
+        $this->assertSame('en', app()->getLocale());
+    }
+
     public function test_unknown_language_is_rejected(): void
     {
         $this->get('/lang/fr')->assertNotFound();

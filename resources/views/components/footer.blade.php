@@ -2,7 +2,7 @@
 
 <footer {{ $attributes->merge(['class' => 'footer ' . $class]) }}>
     @if ($slot->isEmpty())
-        &copy; {{ date('Y') }} PharmaTrack &mdash; Smart Pharmacy System.
+        &copy; {{ date('Y') }} PharmaTrack &mdash; {{ __('Smart Pharmacy System') }}.
     @else
         {{ $slot }}
     @endif

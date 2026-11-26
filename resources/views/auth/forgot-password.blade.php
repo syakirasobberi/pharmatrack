@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'PharmaTrack') }} - Forgot Password</title>
+    <title>{{ config('app.name', 'PharmaTrack') }} - {{ __('Forgot Password') }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -31,15 +31,29 @@
                     </div>
                     <h2 class="text-3xl font-bold mb-3 tracking-tight">PharmaTrack</h2>
                     <p class="text-teal-100 text-sm max-w-xs mx-auto leading-relaxed">
-                        Secure management of health records and efficient patient medication monitoring.
+                        {{ __('Secure management of health records and efficient patient medication monitoring.') }}
                     </p>
                 </div>
             </div>
 
             <div class="md:w-1/2 p-8 sm:p-12 flex flex-col justify-center">
-                
+
+                {{-- EN / BM switch (inline styles: this page uses the prebuilt Vite CSS) --}}
+                @php
+                    $isMs = app()->getLocale() === 'ms';
+                    $langOn  = 'background:#0d9488;color:#fff;';
+                    $langOff = 'color:#64748b;';
+                    $langBtn = 'min-width:42px;padding:6px 10px;border-radius:8px;text-align:center;font-size:12px;font-weight:800;letter-spacing:.04em;text-decoration:none;';
+                @endphp
+                <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+                    <div role="group" aria-label="{{ __('Language') }}" style="display:inline-flex;gap:2px;padding:4px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.05);">
+                        <a href="{{ route('locale.switch', 'en') }}" lang="en" hreflang="en" @if (!$isMs) aria-current="true" @endif style="{{ $langBtn }}{{ $isMs ? $langOff : $langOn }}">EN</a>
+                        <a href="{{ route('locale.switch', 'ms') }}" lang="ms" hreflang="ms" @if ($isMs) aria-current="true" @endif style="{{ $langBtn }}{{ $isMs ? $langOn : $langOff }}">BM</a>
+                    </div>
+                </div>
+
                 <div class="mb-8">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-3">Reset Password</h3>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-3">{{ __('Reset Your Password') }}</h3>
                     <p class="text-sm text-gray-500 leading-relaxed">
                         {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}
                     </p>
@@ -60,7 +74,7 @@
                             </div>
                             <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus 
                                 class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl text-gray-900 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition duration-200 ease-in-out shadow-sm" 
-                                placeholder="pharmacist@pharmaceutical.com">
+                                placeholder="{{ __('e.g. name@email.com') }}">
                         </div>
                         <x-input-error :messages="$errors->get('email')" class="mt-2 text-red-500 text-sm" />
                     </div>
@@ -77,7 +91,7 @@
                     <div class="text-center mt-6">
                         <a href="{{ route('login') }}" class="text-sm font-medium text-teal-600 hover:text-teal-800 transition duration-150 ease-in-out flex justify-center items-center">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                            Back to Secure Login
+                            {{ __('Back to Login') }}
                         </a>
                     </div>
                 </form>
