@@ -24,8 +24,8 @@ class LocaleToggleTest extends TestCase
         $this->get('/')
             ->assertOk()
             ->assertSee('<html lang="ms">', false)
-            ->assertSee('Mula Pengesahan Wajah')
-            ->assertSee('Sembang di +')
+            ->assertSee('Mula Imbas Wajah')
+            ->assertSee('WhatsApp +')
             ->assertDontSee('Start Face Verification');
 
         $this->get('/lang/en');
@@ -38,13 +38,40 @@ class LocaleToggleTest extends TestCase
         $this->patientOf($this->pharmacist(), ['face_descriptor' => json_encode($face), 'face_consent_at' => now()]);
 
         $this->get('/lang/ms');
-        $this->get('/')->assertSee('Mula Pengesahan Wajah');
+        $this->get('/')->assertSee('Mula Imbas Wajah');
 
         $this->postJson(route('kiosk.identify'), ['descriptors' => [$face, $face, $face]])
             ->assertOk()
             ->assertJson(['matched' => true]);
 
         $this->get('/')->assertSee('<html lang="en">', false)->assertSee('Start Face Verification');
+    }
+
+    public function test_login_page_follows_the_language_choice(): void
+    {
+        $this->get('/login')->assertOk()->assertSee('Secure Login')->assertSee('Back to Kiosk');
+
+        $this->get('/lang/ms');
+
+        $this->get('/login')
+            ->assertOk()
+            ->assertSee('<html lang="ms">', false)
+            ->assertSee('Lupa Kata Laluan?')
+            ->assertSee('Kembali ke Kiosk')
+            ->assertSee('Ingat Saya')
+            ->assertDontSee('Secure Login');
+    }
+
+    public function test_login_errors_are_in_malay_when_bm_is_chosen(): void
+    {
+        $this->get('/lang/ms');
+
+        $this->from('/login')->post('/login', ['email' => '', 'password' => ''])
+            ->assertSessionHasErrors(['email' => 'Sila masukkan e-mel.']);
+
+        $user = \App\Models\User::factory()->create(['role' => 'patient']);
+        $this->from('/login')->post('/login', ['email' => $user->email, 'password' => 'wrong-password'])
+            ->assertSessionHasErrors(['email' => 'E-mel atau kata laluan tidak sah.']);
     }
 
     public function test_unknown_language_is_rejected(): void
