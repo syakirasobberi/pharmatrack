@@ -85,6 +85,26 @@ class PatientPortalMalayTest extends TestCase
         $this->get(route('pharmacist.patients.index'))->assertStatus(200);
     }
 
+    public function test_profile_page_is_in_malay_for_patients(): void
+    {
+        $this->malayPatient();
+
+        $this->get(route('profile.edit'))->assertOk()
+            ->assertSee('<html lang="ms">', false)
+            ->assertSee('Maklumat Profil')
+            ->assertSee('Tukar Kata Laluan')
+            ->assertSee('Imbasan Wajah')
+            ->assertSee('Status: tidak aktif.')
+            ->assertSee('Padam Akaun')
+            ->assertDontSee('Profile Information');
+
+        $this->from(route('profile.edit'))->put(route('password.update'), [
+            'current_password' => 'not-the-password',
+            'password' => 'new-password-123',
+            'password_confirmation' => 'new-password-123',
+        ])->assertSessionHasErrorsIn('updatePassword', ['current_password' => 'Kata laluan tidak betul.']);
+    }
+
     public function test_reset_and_first_login_password_pages_in_malay(): void
     {
         $this->get('/lang/ms');
