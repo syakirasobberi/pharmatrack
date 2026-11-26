@@ -1,6 +1,6 @@
 <x-app-layout>
     @php
-        $patientName = $patient->user->name ?: ('Patient #' . $patient->id);
+        $patientName = $patient->user->name ?: __('Patient #:id', ['id' => $patient->id]);
         $totalMedications = $medications->count();
         $today = \Carbon\Carbon::today();
 
@@ -39,11 +39,11 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <a href="{{ route('pharmacist.patients.summary', $patient->id) }}" class="inline-flex items-center text-slate-500 hover:text-teal-700 font-bold transition-colors text-sm">
-                    &larr; Back to Patient Summary
+                    {!! __('&larr; Back to Patient Summary') !!}
                 </a>
 
                 <button @click="addModalOpen = true" class="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-md transition-colors">
-                    Add Medication
+                    {{ __('Add Medication') }}
                 </button>
             </div>
 
@@ -53,23 +53,23 @@
                         <div class="flex items-center gap-4">
                             <img
                                 src="https://ui-avatars.com/api/?name={{ urlencode($patientName) }}&background=ffffff&color=0d9488&size=128&font-size=0.35&bold=true"
-                                alt="Patient avatar"
+                                alt="{{ __('Patient avatar') }}"
                                 class="w-18 h-18 rounded-full border-4 border-white/50 shadow-sm"
                             >
                             <div>
-                                <p class="text-sm font-bold uppercase tracking-[0.2em] text-teal-100">Medication Overview</p>
+                                <p class="text-sm font-bold uppercase tracking-[0.2em] text-teal-100">{{ __('Medication Overview') }}</p>
                                 <h1 class="text-3xl font-extrabold">{{ $patientName }}</h1>
                                 <div class="flex flex-wrap gap-3 text-sm text-teal-50 mt-2">
-                                    <span>{{ $patient->gender }}</span>
-                                    <span>{{ $patient->age }} years</span>
+                                    <span>{{ __($patient->gender) }}</span>
+                                    <span>{{ __(':age years', ['age' => $patient->age]) }}</span>
                                     <span>{{ $patient->weight }} kg</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="max-w-md text-sm text-teal-50">
-                            <p class="font-bold">How to use this page</p>
-                            <p class="mt-1">Review the status cards first, then check the medication table. Use “Add Medication” to record a new prescription with start date, end date, and latest dose date.</p>
+                            <p class="font-bold">{{ __('How to use this page') }}</p>
+                            <p class="mt-1">{{ __('Review the status cards first, then check the medication table. Use “Add Medication” to record a new prescription with start date, end date, and latest dose date.') }}</p>
                         </div>
                     </div>
                 </div>
@@ -99,7 +99,7 @@
 
                     @if($errors->any())
                         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl">
-                            <p class="font-bold mb-2">Please fix these items before saving:</p>
+                            <p class="font-bold mb-2">{{ __('Please fix these items before saving:') }}</p>
                             <ul class="list-disc ml-5 text-sm space-y-1">
                                 @foreach($errors->all() as $error)
                                     <li>{{ $error }}</li>
@@ -109,13 +109,13 @@
                     @endif
 
                     <div class="flex flex-wrap items-center gap-2 text-sm">
-                        <span class="font-bold text-slate-600">Drug allergies:</span>
+                        <span class="font-bold text-slate-600">{{ __('Drug allergies:') }}</span>
                         @forelse($drugAllergies as $allergy)
                             <span class="px-2.5 py-1 rounded-full bg-red-100 text-red-700 font-bold border border-red-200">{{ ucfirst($allergy) }}</span>
                         @empty
-                            <span class="text-slate-500">None recorded</span>
+                            <span class="text-slate-500">{{ __('None recorded') }}</span>
                         @endforelse
-                        <a href="{{ route('pharmacist.patients.medical.edit', $patient->id) }}" class="ml-1 text-xs font-bold text-teal-600 hover:text-teal-800">Edit medical history</a>
+                        <a href="{{ route('pharmacist.patients.medical.edit', $patient->id) }}" class="ml-1 text-xs font-bold text-teal-600 hover:text-teal-800">{{ __('Edit medical history') }}</a>
                     </div>
 
                     @if($safetyWarnings)
@@ -125,31 +125,31 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                         @php $adhTone = \App\Support\Adherence::classes($adherence['status']); @endphp
                         <div class="rounded-2xl border {{ $adhTone['border'] }} bg-white p-5">
-                            <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Adherence · {{ \App\Support\Adherence::WINDOW_DAYS }} days</p>
+                            <p class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('Adherence · :days days', ['days' => \App\Support\Adherence::WINDOW_DAYS]) }}</p>
                             <p class="mt-3 text-3xl font-extrabold {{ $adhTone['text'] }}">{{ $adherence['percent'] !== null ? $adherence['percent'] . '%' : '—' }}</p>
                             <p class="mt-1 text-sm text-slate-500">
-                                {{ $adherence['label'] }}
-                                @if($adherence['tracking_since']) · logging since {{ $adherence['tracking_since']->format('d M Y') }} @endif
-                                · {{ $totalMedications }} current {{ \Illuminate\Support\Str::plural('medication', $totalMedications) }}
+                                {{ __($adherence['label']) }}
+                                @if($adherence['tracking_since']) · {{ __('logging since :date', ['date' => $adherence['tracking_since']->translatedFormat('d M Y')]) }} @endif
+                                · {{ trans_choice(':count current medication|:count current medications', $totalMedications, ['count' => $totalMedications]) }}
                             </p>
                         </div>
 
                         <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
-                            <p class="text-xs font-bold uppercase tracking-wide text-emerald-700">On Track</p>
+                            <p class="text-xs font-bold uppercase tracking-wide text-emerald-700">{{ __('On Track') }}</p>
                             <p class="mt-3 text-3xl font-extrabold text-emerald-700">{{ $onTrackCount }}</p>
-                            <p class="mt-1 text-sm text-emerald-600">Taken within the past 7 days.</p>
+                            <p class="mt-1 text-sm text-emerald-600">{{ __('Taken within the past 7 days.') }}</p>
                         </div>
 
                         <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-                            <p class="text-xs font-bold uppercase tracking-wide text-amber-700">Need Review</p>
+                            <p class="text-xs font-bold uppercase tracking-wide text-amber-700">{{ __('Need Review') }}</p>
                             <p class="mt-3 text-3xl font-extrabold text-amber-700">{{ $reviewCount }}</p>
-                            <p class="mt-1 text-sm text-amber-600">Last dose was 8 to 30 days ago.</p>
+                            <p class="mt-1 text-sm text-amber-600">{{ __('Last dose was 8 to 30 days ago.') }}</p>
                         </div>
 
                         <div class="rounded-2xl border border-red-200 bg-red-50 p-5">
-                            <p class="text-xs font-bold uppercase tracking-wide text-red-700">Need Restart</p>
+                            <p class="text-xs font-bold uppercase tracking-wide text-red-700">{{ __('Need Restart') }}</p>
                             <p class="mt-3 text-3xl font-extrabold text-red-700">{{ $restartCount }}</p>
-                            <p class="mt-1 text-sm text-red-600">No recent dose for more than 30 days.</p>
+                            <p class="mt-1 text-sm text-red-600">{{ __('No recent dose for more than 30 days.') }}</p>
                         </div>
                     </div>
 
@@ -168,25 +168,25 @@
                         <div class="rounded-3xl border {{ $isNonCompliant ? 'border-red-300 bg-red-50' : 'border-emerald-200 bg-emerald-50' }} p-6">
                             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
                                 <div>
-                                    <p class="text-xs font-bold uppercase tracking-[0.2em] {{ $isNonCompliant ? 'text-red-600' : 'text-emerald-700' }}">TB Treatment Tracker</p>
+                                    <p class="text-xs font-bold uppercase tracking-[0.2em] {{ $isNonCompliant ? 'text-red-600' : 'text-emerald-700' }}">{{ __('TB Treatment Tracker') }}</p>
                                     <h2 class="mt-2 text-2xl font-extrabold {{ $isNonCompliant ? 'text-red-800' : 'text-emerald-800' }}">{{ $tbMedication->name }}</h2>
                                     <p class="mt-2 text-sm {{ $isNonCompliant ? 'text-red-700' : 'text-emerald-700' }}">
                                         {{ $isNonCompliant
-                                            ? "Attention needed: the patient has not taken this TB medication for {$diffDays} days."
-                                            : "Treatment appears active. Latest dose was " . ($diffDays === 0 ? 'today' : ($diffDays === 1 ? 'yesterday' : "{$diffDays} days ago")) . "." }}
+                                            ? __('Attention needed: the patient has not taken this TB medication for :days days.', ['days' => $diffDays])
+                                            : ($diffDays === 0 ? __('Treatment appears active. Latest dose was today.') : ($diffDays === 1 ? __('Treatment appears active. Latest dose was yesterday.') : __('Treatment appears active. Latest dose was :days days ago.', ['days' => $diffDays]))) }}
                                     </p>
                                 </div>
 
                                 <div class="min-w-[260px]">
                                     <div class="flex justify-between text-xs font-bold {{ $isNonCompliant ? 'text-red-600' : 'text-emerald-700' }} mb-2">
-                                        <span>Treatment progress</span>
+                                        <span>{{ __('Treatment progress') }}</span>
                                         <span>{{ number_format($progressPercent, 1) }}%</span>
                                     </div>
                                     <div class="h-3 rounded-full overflow-hidden {{ $isNonCompliant ? 'bg-red-100' : 'bg-emerald-100' }}">
                                         <div class="h-3 rounded-full {{ $isNonCompliant ? 'bg-red-500' : 'bg-teal-500' }}" style="width: {{ $progressPercent }}%"></div>
                                     </div>
                                     <p class="mt-2 text-xs {{ $isNonCompliant ? 'text-red-600' : 'text-emerald-700' }}">
-                                        Start: {{ $startDate?->format('d M Y') ?? 'not recorded' }} | End: {{ $endDate?->format('d M Y') ?? 'ongoing' }}
+                                        {{ __('Start: :start | End: :end', ['start' => $startDate?->translatedFormat('d M Y') ?? __('not recorded'), 'end' => $endDate?->translatedFormat('d M Y') ?? __('ongoing')]) }}
                                     </p>
                                 </div>
                             </div>
@@ -194,19 +194,19 @@
                     @endif
 
                     <div class="bg-slate-50 border border-slate-200 rounded-3xl p-5">
-                        <h2 class="text-lg font-extrabold text-slate-800">Medication Status Guide</h2>
+                        <h2 class="text-lg font-extrabold text-slate-800">{{ __('Medication Status Guide') }}</h2>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 text-sm">
                             <div class="rounded-2xl bg-white border border-emerald-200 p-4">
-                                <p class="font-bold text-emerald-700">On Track</p>
-                                <p class="text-slate-600 mt-1">The medication was taken recently and does not need urgent action.</p>
+                                <p class="font-bold text-emerald-700">{{ __('On Track') }}</p>
+                                <p class="text-slate-600 mt-1">{{ __('The medication was taken recently and does not need urgent action.') }}</p>
                             </div>
                             <div class="rounded-2xl bg-white border border-amber-200 p-4">
-                                <p class="font-bold text-amber-700">Review Required</p>
-                                <p class="text-slate-600 mt-1">Check with the patient because the last dose is getting delayed.</p>
+                                <p class="font-bold text-amber-700">{{ __('Review Required') }}</p>
+                                <p class="text-slate-600 mt-1">{{ __('Check with the patient because the last dose is getting delayed.') }}</p>
                             </div>
                             <div class="rounded-2xl bg-white border border-red-200 p-4">
-                                <p class="font-bold text-red-700">Needs Restart</p>
-                                <p class="text-slate-600 mt-1">The therapy looks interrupted and may need pharmacist or doctor review.</p>
+                                <p class="font-bold text-red-700">{{ __('Needs Restart') }}</p>
+                                <p class="text-slate-600 mt-1">{{ __('The therapy looks interrupted and may need pharmacist or doctor review.') }}</p>
                             </div>
                         </div>
                     </div>
@@ -214,11 +214,11 @@
                     <div class="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
                         <div class="px-6 py-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                             <div>
-                                <h2 class="text-lg font-extrabold text-slate-800">Medication List</h2>
-                                <p class="text-sm text-slate-500 mt-1">Each row shows what the patient is taking, for how long, and whether follow-up is needed.</p>
+                                <h2 class="text-lg font-extrabold text-slate-800">{{ __('Medication List') }}</h2>
+                                <p class="text-sm text-slate-500 mt-1">{{ __('Each row shows what the patient is taking, for how long, and whether follow-up is needed.') }}</p>
                             </div>
                             <button @click="addModalOpen = true" class="px-4 py-2 rounded-xl bg-teal-600 text-white font-bold hover:bg-teal-700 transition-colors">
-                                Add Medication
+                                {{ __('Add Medication') }}
                             </button>
                         </div>
 
@@ -227,14 +227,14 @@
                             <table class="w-full min-w-[60rem] text-sm text-left">
                                 <thead class="bg-slate-50 text-slate-600 font-bold border-y border-slate-200">
                                     <tr>
-                                        <th class="py-4 px-4 whitespace-nowrap">Medication</th>
-                                        <th class="py-4 px-4 whitespace-nowrap">How To Take</th>
-                                        <th class="py-4 px-4 whitespace-nowrap">Treatment Period</th>
-                                        <th class="py-4 px-4 whitespace-nowrap">Latest Dose Date</th>
-                                        <th class="py-4 px-4 whitespace-nowrap">Adherence (last 7 days)</th>
-                                        <th class="py-4 px-4 whitespace-nowrap">Notes</th>
-                                        <th class="py-4 px-4 whitespace-nowrap text-right">Status</th>
-                                        <th class="py-4 px-4 whitespace-nowrap text-right"><span class="sr-only">Actions</span></th>
+                                        <th class="py-4 px-4 whitespace-nowrap">{{ __('Medication') }}</th>
+                                        <th class="py-4 px-4 whitespace-nowrap">{{ __('How To Take') }}</th>
+                                        <th class="py-4 px-4 whitespace-nowrap">{{ __('Treatment Period') }}</th>
+                                        <th class="py-4 px-4 whitespace-nowrap">{{ __('Latest Dose Date') }}</th>
+                                        <th class="py-4 px-4 whitespace-nowrap">{{ __('Adherence (last 7 days)') }}</th>
+                                        <th class="py-4 px-4 whitespace-nowrap">{{ __('Notes') }}</th>
+                                        <th class="py-4 px-4 whitespace-nowrap text-right">{{ __('Status') }}</th>
+                                        <th class="py-4 px-4 whitespace-nowrap text-right"><span class="sr-only">{{ __('Actions') }}</span></th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
@@ -245,20 +245,20 @@
 
                                             if ($diffDays === null) {
                                                 $statusClass = 'bg-amber-100 text-amber-700 border-amber-200';
-                                                $statusLabel = 'Review Required';
-                                                $statusHint = 'No dose recorded yet';
+                                                $statusLabel = __('Review Required');
+                                                $statusHint = __('No dose recorded yet');
                                             } elseif ($diffDays > 30) {
                                                 $statusClass = 'bg-red-100 text-red-700 border-red-200';
-                                                $statusLabel = 'Needs Restart';
-                                                $statusHint = 'More than 30 days since last dose';
+                                                $statusLabel = __('Needs Restart');
+                                                $statusHint = __('More than 30 days since last dose');
                                             } elseif ($diffDays > 7) {
                                                 $statusClass = 'bg-amber-100 text-amber-700 border-amber-200';
-                                                $statusLabel = 'Review Required';
-                                                $statusHint = '8 to 30 days since last dose';
+                                                $statusLabel = __('Review Required');
+                                                $statusHint = __('8 to 30 days since last dose');
                                             } else {
                                                 $statusClass = 'bg-emerald-100 text-emerald-700 border-emerald-200';
-                                                $statusLabel = 'On Track';
-                                                $statusHint = 'Taken within the last 7 days';
+                                                $statusLabel = __('On Track');
+                                                $statusHint = __('Taken within the last 7 days');
                                             }
                                         @endphp
 
@@ -267,11 +267,11 @@
                                                 <p class="font-bold text-slate-800">{{ $medication->name }}</p>
                                                 @if($medication->needsReview())
                                                     <div class="mt-1.5 flex flex-wrap items-center gap-2">
-                                                        <span class="px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200 text-[11px] font-bold">Recorded by patient · not reviewed</span>
+                                                        <span class="px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200 text-[11px] font-bold">{{ __('Recorded by patient · not reviewed') }}</span>
                                                         <form method="POST" action="{{ route('pharmacist.medication.review', $medication->id) }}">
                                                             @csrf
                                                             <button type="submit" class="px-2 py-0.5 rounded-lg border border-slate-300 bg-white text-[11px] font-bold text-slate-700 hover:bg-slate-50"
-                                                                    title="Confirms you have checked this medicine and the safety warnings above">Mark reviewed</button>
+                                                                    title="{{ __('Confirms you have checked this medicine and the safety warnings above') }}">{{ __('Mark reviewed') }}</button>
                                                         </form>
                                                     </div>
                                                 @endif
@@ -281,24 +281,24 @@
                                             </td>
                                             <td class="py-4 px-4 text-slate-600">
                                                 <div class="flex flex-col">
-                                                    <span>{{ $medication->start_date?->format('d M Y') ?? 'Start not recorded' }}</span>
-                                                    <span class="text-xs text-slate-400">{{ $medication->end_date ? 'until ' . $medication->end_date->format('d M Y') : 'Ongoing (no end date)' }}</span>
+                                                    <span>{{ $medication->start_date?->translatedFormat('d M Y') ?? __('Start not recorded') }}</span>
+                                                    <span class="text-xs text-slate-400">{{ $medication->end_date ? __('until :date', ['date' => $medication->end_date->translatedFormat('d M Y')]) : __('Ongoing (no end date)') }}</span>
                                                     <div class="mt-1.5">@include('medications.partials.supply-badge', ['medication' => $medication])</div>
                                                 </div>
                                             </td>
                                             <td class="py-4 px-4 text-slate-600">
-                                                {{ $lastTaken?->format('d M Y') ?? 'Not recorded' }}
+                                                {{ $lastTaken?->translatedFormat('d M Y') ?? __('Not recorded') }}
                                             </td>
                                             <td class="py-4 px-4">
                                                 @php $medAdh = $adherence['medications'][$medication->id]; @endphp
                                                 @include('medications.partials.dose-dots', ['last7' => $medAdh['last7']])
                                                 <span class="mt-1.5 inline-block px-2 py-0.5 rounded-full border text-[11px] font-bold {{ \App\Support\Adherence::classes($medAdh['status'])['badge'] }}"
-                                                      @if($medAdh['expected']) title="{{ $medAdh['taken'] }} of {{ $medAdh['expected'] }} expected doses logged" @endif>
-                                                    {{ $medAdh['percent'] !== null ? $medAdh['percent'] . '% · ' : '' }}{{ $medAdh['label'] }}
+                                                      @if($medAdh['expected']) title="{{ __(':taken of :expected expected doses logged', ['taken' => $medAdh['taken'], 'expected' => $medAdh['expected']]) }}" @endif>
+                                                    {{ $medAdh['percent'] !== null ? $medAdh['percent'] . '% · ' : '' }}{{ __($medAdh['label']) }}
                                                 </span>
                                             </td>
                                             <td class="py-4 px-4 text-slate-500">
-                                                {{ $medication->notes ?: 'No notes recorded' }}
+                                                {{ $medication->notes ?: __('No notes recorded') }}
                                             </td>
                                             <td class="py-4 px-4 text-right">
                                                 <div class="inline-flex flex-col items-end gap-1">
@@ -312,65 +312,65 @@
                                                 <div class="flex flex-col items-end gap-2">
                                                     <a href="{{ route('pharmacist.medication.edit', $medication->id) }}"
                                                        class="whitespace-nowrap px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-teal-600 hover:bg-teal-50"
-                                                       aria-label="Edit {{ $medication->name }}">Edit</a>
+                                                       aria-label="{{ __('Edit :name', ['name' => $medication->name]) }}">{{ __('Edit') }}</a>
                                                     {{-- Refill dispensed today; leftover supply carries forward. --}}
                                                     <details class="text-left">
-                                                        <summary class="list-none cursor-pointer whitespace-nowrap px-3 py-1.5 rounded-lg border {{ in_array($medication->refillStatus(), ['due', 'overdue']) || $medication->refill_requested_at ? 'border-teal-400 bg-teal-50' : 'border-teal-200' }} text-xs font-bold text-teal-700 hover:bg-teal-50 text-right">Refill…</summary>
+                                                        <summary class="list-none cursor-pointer whitespace-nowrap px-3 py-1.5 rounded-lg border {{ in_array($medication->refillStatus(), ['due', 'overdue']) || $medication->refill_requested_at ? 'border-teal-400 bg-teal-50' : 'border-teal-200' }} text-xs font-bold text-teal-700 hover:bg-teal-50 text-right">{{ __('Refill…') }}</summary>
                                                         <form method="POST" action="{{ route('pharmacist.medication.refill', $medication->id) }}"
                                                               class="mt-2 w-64 rounded-xl border border-teal-200 bg-teal-50 p-3 space-y-2" x-data="{ days: 30 }">
                                                             @csrf
-                                                            <label for="refill-days-{{ $medication->id }}" class="block text-xs font-bold text-slate-700">Dispensed today: supply for how many days?</label>
+                                                            <label for="refill-days-{{ $medication->id }}" class="block text-xs font-bold text-slate-700">{{ __('Dispensed today: supply for how many days?') }}</label>
                                                             <div class="flex gap-1">
                                                                 @foreach([30, 60, 90] as $preset)
                                                                     <button type="button" @click="days = {{ $preset }}" :class="days == {{ $preset }} ? 'bg-teal-600 text-white' : 'bg-white text-teal-700'" class="flex-1 rounded-lg border border-teal-300 px-2 py-1 text-xs font-bold">{{ $preset }}</button>
                                                                 @endforeach
                                                             </div>
                                                             <input id="refill-days-{{ $medication->id }}" type="number" name="days" min="1" max="365" required x-model="days" class="w-full rounded-lg border-slate-300 text-xs">
-                                                            <p class="text-[11px] text-slate-500">{{ $medication->supply_until && $medication->supply_until->isFuture() ? 'Added on top of the current supply (until ' . $medication->supply_until->format('d M') . ').' : 'Counted from today.' }}</p>
-                                                            <button type="submit" class="w-full px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg text-xs">Record refill</button>
+                                                            <p class="text-[11px] text-slate-500">{{ $medication->supply_until && $medication->supply_until->isFuture() ? __('Added on top of the current supply (until :date).', ['date' => $medication->supply_until->translatedFormat('d M')]) : __('Counted from today.') }}</p>
+                                                            <button type="submit" class="w-full px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg text-xs">{{ __('Record refill') }}</button>
                                                         </form>
                                                     </details>
                                                     {{-- Dose the patient reports at the counter / by phone. --}}
                                                     <details class="text-left">
-                                                        <summary class="list-none cursor-pointer whitespace-nowrap px-3 py-1.5 rounded-lg border border-emerald-200 text-xs font-bold text-emerald-700 hover:bg-teal-50 text-right">Log dose…</summary>
+                                                        <summary class="list-none cursor-pointer whitespace-nowrap px-3 py-1.5 rounded-lg border border-emerald-200 text-xs font-bold text-emerald-700 hover:bg-teal-50 text-right">{{ __('Log dose…') }}</summary>
                                                         <div class="mt-2 w-64 rounded-xl border border-emerald-200 bg-emerald-50 p-3 space-y-3">
                                                             <form method="POST" action="{{ route('pharmacist.medication.doses.store', $medication->id) }}" class="space-y-2">
                                                                 @csrf
-                                                                <label for="dose-date-{{ $medication->id }}" class="block text-xs font-bold text-slate-700">Patient took {{ $medication->name }} on</label>
+                                                                <label for="dose-date-{{ $medication->id }}" class="block text-xs font-bold text-slate-700">{{ __('Patient took :name on', ['name' => $medication->name]) }}</label>
                                                                 <input id="dose-date-{{ $medication->id }}" type="date" name="taken_on" required
                                                                        value="{{ today()->toDateString() }}" max="{{ today()->toDateString() }}" min="{{ collect([\App\Support\Adherence::windowStart(), $medication->firstDoseDay()])->filter()->max()->toDateString() }}"
                                                                        class="w-full rounded-lg border-slate-300 text-xs">
-                                                                <button type="submit" class="w-full px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg text-xs">Log dose</button>
+                                                                <button type="submit" class="w-full px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg text-xs">{{ __('Log dose') }}</button>
                                                             </form>
                                                             @php $loggedDays = $medication->doses->sortByDesc('taken_on'); @endphp
                                                             @if($loggedDays->isNotEmpty())
                                                                 <form method="POST" action="{{ route('pharmacist.medication.doses.destroy', $medication->id) }}" class="space-y-2 border-t border-emerald-200 pt-3">
                                                                     @csrf
                                                                     @method('DELETE')
-                                                                    <label for="dose-remove-{{ $medication->id }}" class="block text-xs font-bold text-slate-700">Remove a dose logged by mistake</label>
+                                                                    <label for="dose-remove-{{ $medication->id }}" class="block text-xs font-bold text-slate-700">{{ __('Remove a dose logged by mistake') }}</label>
                                                                     <select id="dose-remove-{{ $medication->id }}" name="taken_on" class="w-full rounded-lg border-slate-300 text-xs">
                                                                         @foreach($loggedDays as $dose)
-                                                                            <option value="{{ $dose->taken_on->toDateString() }}">{{ $dose->taken_on->format('D d M') }} ({{ \Illuminate\Support\Str::before($dose->source, \App\Models\Medication::CONFIRMS_ENTERED) }})</option>
+                                                                            <option value="{{ $dose->taken_on->toDateString() }}">{{ $dose->taken_on->translatedFormat('D d M') }} ({{ \Illuminate\Support\Str::before($dose->source, \App\Models\Medication::CONFIRMS_ENTERED) }})</option>
                                                                         @endforeach
                                                                     </select>
-                                                                    <button type="submit" class="w-full px-3 py-1.5 border border-slate-300 bg-white text-slate-700 font-bold rounded-lg text-xs hover:bg-slate-50">Remove</button>
+                                                                    <button type="submit" class="w-full px-3 py-1.5 border border-slate-300 bg-white text-slate-700 font-bold rounded-lg text-xs hover:bg-slate-50">{{ __('Remove') }}</button>
                                                                 </form>
                                                             @endif
                                                         </div>
                                                     </details>
                                                     {{-- Two-step stop: open the panel, give a reason, confirm. --}}
                                                     <details class="text-left">
-                                                        <summary class="list-none cursor-pointer whitespace-nowrap px-3 py-1.5 rounded-lg border border-red-200 text-xs font-bold text-red-600 hover:bg-red-50 text-right">Stop…</summary>
+                                                        <summary class="list-none cursor-pointer whitespace-nowrap px-3 py-1.5 rounded-lg border border-red-200 text-xs font-bold text-red-600 hover:bg-red-50 text-right">{{ __('Stop…') }}</summary>
                                                         <form method="POST" action="{{ route('pharmacist.medication.stop', $medication->id) }}"
                                                               class="mt-2 w-64 rounded-xl border border-red-200 bg-red-50 p-3 space-y-2">
                                                             @csrf
                                                             @method('PATCH')
-                                                            <label for="stop-reason-{{ $medication->id }}" class="block text-xs font-bold text-slate-700">Why is {{ $medication->name }} being stopped?</label>
+                                                            <label for="stop-reason-{{ $medication->id }}" class="block text-xs font-bold text-slate-700">{{ __('Why is :name being stopped?', ['name' => $medication->name]) }}</label>
                                                             <input id="stop-reason-{{ $medication->id }}" type="text" name="stopped_reason" required maxlength="255"
-                                                                   placeholder="e.g. side effects, switched to another drug"
+                                                                   placeholder="{{ __('e.g. side effects, switched to another drug') }}"
                                                                    class="w-full rounded-lg border-slate-300 text-xs">
-                                                            <p class="text-[11px] text-red-800">It moves to Past Medications and is no longer shown as current. You can resume it later.</p>
-                                                            <button type="submit" class="w-full px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs">Confirm stop</button>
+                                                            <p class="text-[11px] text-red-800">{{ __('It moves to Past Medications and is no longer shown as current. You can resume it later.') }}</p>
+                                                            <button type="submit" class="w-full px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs">{{ __('Confirm stop') }}</button>
                                                         </form>
                                                     </details>
                                                 </div>
@@ -380,8 +380,8 @@
                                         <tr>
                                             <td colspan="8" class="py-14 text-center text-slate-500">
                                                 <div class="flex flex-col items-center justify-center">
-                                                    <p class="font-bold text-slate-700 text-lg">No medications recorded yet.</p>
-                                                    <p class="text-sm mt-1">Use the Add Medication button to create the first prescription for this patient.</p>
+                                                    <p class="font-bold text-slate-700 text-lg">{{ __('No medications recorded yet.') }}</p>
+                                                    <p class="text-sm mt-1">{{ __('Use the Add Medication button to create the first prescription for this patient.') }}</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -393,7 +393,7 @@
                         {{-- History: stopped by a pharmacist, or past their end date. --}}
                         @if($pastMedications->isNotEmpty())
                             <div class="border-t border-slate-200">
-                                <h3 class="px-6 pt-5 pb-3 text-sm font-extrabold uppercase tracking-wide text-slate-500">Past Medications ({{ $pastMedications->count() }})</h3>
+                                <h3 class="px-6 pt-5 pb-3 text-sm font-extrabold uppercase tracking-wide text-slate-500">{{ __('Past Medications (:count)', ['count' => $pastMedications->count()]) }}</h3>
                                 <div class="overflow-x-auto">
                                     <table class="w-full text-sm text-left">
                                         <tbody class="divide-y divide-slate-100">
@@ -404,23 +404,23 @@
                                                         <p class="text-xs">{{ $past->dosage }}</p>
                                                     </td>
                                                     <td class="py-3 px-6 text-xs">
-                                                        {{ $past->start_date?->format('d M Y') ?? '—' }} – {{ $past->end_date?->format('d M Y') ?? '—' }}
+                                                        {{ $past->start_date?->translatedFormat('d M Y') ?? '—' }} – {{ $past->end_date?->translatedFormat('d M Y') ?? '—' }}
                                                     </td>
                                                     <td class="py-3 px-6 text-xs">
                                                         @if($past->status() === 'Stopped')
-                                                            <span class="px-2.5 py-1 rounded-full bg-red-100 text-red-700 font-bold">Stopped {{ $past->stopped_at->format('d M Y') }}</span>
-                                                            <p class="mt-1">Reason: {{ $past->stopped_reason }}</p>
+                                                            <span class="px-2.5 py-1 rounded-full bg-red-100 text-red-700 font-bold">{{ __('Stopped :date', ['date' => $past->stopped_at->translatedFormat('d M Y')]) }}</span>
+                                                            <p class="mt-1">{{ __('Reason: :reason', ['reason' => $past->stopped_reason]) }}</p>
                                                         @else
-                                                            <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 font-bold">Completed</span>
+                                                            <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 font-bold">{{ __('Completed') }}</span>
                                                         @endif
                                                     </td>
                                                     <td class="py-3 px-6 text-right whitespace-nowrap">
-                                                        <a href="{{ route('pharmacist.medication.edit', $past->id) }}" class="whitespace-nowrap px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-teal-600 hover:bg-teal-50">Edit</a>
+                                                        <a href="{{ route('pharmacist.medication.edit', $past->id) }}" class="whitespace-nowrap px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-teal-600 hover:bg-teal-50">{{ __('Edit') }}</a>
                                                         @if($past->status() === 'Stopped')
                                                             <form method="POST" action="{{ route('pharmacist.medication.resume', $past->id) }}" class="inline">
                                                                 @csrf
                                                                 @method('PATCH')
-                                                                <button class="ml-1 px-3 py-1.5 rounded-lg border border-teal-300 bg-white text-xs font-bold text-teal-700 hover:bg-teal-50">Resume</button>
+                                                                <button class="ml-1 px-3 py-1.5 rounded-lg border border-teal-300 bg-white text-xs font-bold text-teal-700 hover:bg-teal-50">{{ __('Resume') }}</button>
                                                             </form>
                                                         @endif
                                                     </td>
@@ -477,7 +477,7 @@
                                 type="button"
                                 @click="addModalOpen = false"
                                 class="absolute top-4 right-1 h-10 w-10 rounded-full border border-slate-200 bg-white text-slate-400 hover:text-slate-700 hover:border-slate-300 transition-colors"
-                                aria-label="Close form"
+                                aria-label="{{ __('Close form') }}"
                             >
                                 <span class="text-xl leading-none">&times;</span>
                             </button>
@@ -490,9 +490,9 @@
                                         </svg>
                                     </div>
                                     <div class="pr-12">
-                                        <p class="text-xs font-bold uppercase tracking-[0.24em] text-teal-600">Medication Form</p>
-                                        <h2 class="text-[28px] leading-tight font-extrabold text-slate-900 mt-2">Add medication for {{ $patientName }}</h2>
-                                        <p class="text-sm text-slate-500 mt-3 max-w-xl">Record one medication clearly so the system can track timing, dose status, and treatment progress without confusion.</p>
+                                        <p class="text-xs font-bold uppercase tracking-[0.24em] text-teal-600">{{ __('Medication Form') }}</p>
+                                        <h2 class="text-[28px] leading-tight font-extrabold text-slate-900 mt-2">{{ __('Add medication for :name', ['name' => $patientName]) }}</h2>
+                                        <p class="text-sm text-slate-500 mt-3 max-w-xl">{{ __('Record one medication clearly so the system can track timing, dose status, and treatment progress without confusion.') }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -508,83 +508,83 @@
                             <div class="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-6">
                                 <div class="space-y-5">
                                     <div class="rounded-3xl border border-slate-200 bg-slate-50/80 p-5">
-                                        <p class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 mb-4">Medicine Details</p>
+                                        <p class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 mb-4">{{ __('Medicine Details') }}</p>
                                         <div class="space-y-4">
                                             <div>
-                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">Medication name</label>
-                                                <input type="text" name="name" value="{{ old('name') }}" placeholder="Metformin, Rifampicin, Isoniazid..." required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">
+                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">{{ __('Medication name') }}</label>
+                                                <input type="text" name="name" value="{{ old('name') }}" placeholder="{{ __('Metformin, Rifampicin, Isoniazid...') }}" required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">
                                             </div>
 
                                             <div>
-                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">Dosage</label>
-                                                <input type="text" name="dosage" value="{{ old('dosage') }}" placeholder="500mg twice daily after meals" required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">
+                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">{{ __('Dosage') }}</label>
+                                                <input type="text" name="dosage" value="{{ old('dosage') }}" placeholder="{{ __('500mg twice daily after meals') }}" required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">
                                             </div>
 
                                             <div>
-                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">Frequency</label>
-                                                <input type="text" name="frequency" value="{{ old('frequency') }}" placeholder="Twice daily, once at night, every 8 hours..." class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">
+                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">{{ __('Frequency') }}</label>
+                                                <input type="text" name="frequency" value="{{ old('frequency') }}" placeholder="{{ __('Twice daily, once at night, every 8 hours...') }}" class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">
                                             </div>
 
                                             <div>
-                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">Extra notes</label>
-                                                <input type="text" name="notes" value="{{ old('notes') }}" placeholder="Before breakfast, avoid dairy, take with water..." class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">
+                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">{{ __('Extra notes') }}</label>
+                                                <input type="text" name="notes" value="{{ old('notes') }}" placeholder="{{ __('Before breakfast, avoid dairy, take with water...') }}" class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">
                                             </div>
                                         </div>
                                     </div>
 
                                     <div class="rounded-3xl border border-slate-200 bg-slate-50/80 p-5">
-                                        <p class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 mb-4">Treatment Dates</p>
+                                        <p class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 mb-4">{{ __('Treatment Dates') }}</p>
                                         {{-- 2 columns: three date boxes side by side in this narrow panel cut off the year. --}}
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div>
-                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">Start date</label>
+                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">{{ __('Start date') }}</label>
                                                 <input type="date" name="start_date" id="start_date" value="{{ old('start_date') }}" required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">End date <span class="font-normal text-slate-400">(leave blank if long-term)</span></label>
+                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">{{ __('End date') }} <span class="font-normal text-slate-400">{{ __('(leave blank if long-term)') }}</span></label>
                                                 <input type="date" name="end_date" id="end_date" value="{{ old('end_date') }}" class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">Latest dose date</label>
+                                                <label class="block text-sm font-bold text-slate-700 mb-1.5">{{ __('Latest dose date') }}</label>
                                                 <input type="date" name="last_taken" value="{{ old('last_taken') }}" required class="w-full rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 transition-colors">
                                             </div>
                                         </div>
 
                                         <div class="mt-4" x-data="{ supply: @js(old('supply_days', '')) }">
-                                            <label for="supply_days" class="block text-sm font-bold text-slate-700 mb-1.5">Supply dispensed today <span class="font-normal text-slate-400">(days — for refill reminders; leave blank if not dispensed here)</span></label>
+                                            <label for="supply_days" class="block text-sm font-bold text-slate-700 mb-1.5">{{ __('Supply dispensed today') }} <span class="font-normal text-slate-400">{{ __('(days — for refill reminders; leave blank if not dispensed here)') }}</span></label>
                                             <div class="flex flex-wrap items-center gap-2">
                                                 @foreach([30, 60, 90] as $preset)
-                                                    <button type="button" @click="supply = {{ $preset }}" :class="supply == {{ $preset }} ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-teal-700 border-teal-300'" class="rounded-xl border px-3 py-2 text-sm font-bold">{{ $preset }} days</button>
+                                                    <button type="button" @click="supply = {{ $preset }}" :class="supply == {{ $preset }} ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-teal-700 border-teal-300'" class="rounded-xl border px-3 py-2 text-sm font-bold">{{ __(':count days', ['count' => $preset]) }}</button>
                                                 @endforeach
-                                                <input id="supply_days" type="number" name="supply_days" min="1" max="365" x-model="supply" placeholder="Other" class="w-28 rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200">
+                                                <input id="supply_days" type="number" name="supply_days" min="1" max="365" x-model="supply" placeholder="{{ __('Other') }}" class="w-28 rounded-2xl border-slate-300 bg-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200">
                                             </div>
-                                            <p class="mt-1 text-xs text-slate-500" x-show="supply" x-text="'Runs out on ' + new Date(Date.now() + supply * 86400000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + '. The patient is reminded {{ \App\Models\Medication::REFILL_NOTICE_DAYS }} days before.'"></p>
+                                            <p class="mt-1 text-xs text-slate-500" x-show="supply" x-text="{{ \Illuminate\Support\Js::from(__('Runs out on')) }} + ' ' + new Date(Date.now() + supply * 86400000).toLocaleDateString({{ \Illuminate\Support\Js::from(app()->getLocale() === 'ms' ? 'ms-MY' : 'en-GB') }}, { day: '2-digit', month: 'short', year: 'numeric' }) + '. ' + {{ \Illuminate\Support\Js::from(__('The patient is reminded :days days before.', ['days' => \App\Models\Medication::REFILL_NOTICE_DAYS])) }}"></p>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="space-y-4">
                                     <div class="rounded-3xl border border-emerald-200 bg-emerald-50 p-5">
-                                        <p class="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">Quick Guide</p>
+                                        <p class="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">{{ __('Quick Guide') }}</p>
                                         <ul class="mt-4 space-y-3 text-sm text-emerald-900">
                                             <li class="flex gap-2">
                                                 <span class="mt-1 h-2 w-2 rounded-full bg-teal-500"></span>
-                                                <span>Use the full medication name to make searching easier later.</span>
+                                                <span>{{ __('Use the full medication name to make searching easier later.') }}</span>
                                             </li>
                                             <li class="flex gap-2">
                                                 <span class="mt-1 h-2 w-2 rounded-full bg-teal-500"></span>
-                                                <span>Write dosage as the patient should actually take it.</span>
+                                                <span>{{ __('Write dosage as the patient should actually take it.') }}</span>
                                             </li>
                                             <li class="flex gap-2">
                                                 <span class="mt-1 h-2 w-2 rounded-full bg-teal-500"></span>
-                                                <span>The latest dose date helps the status tracker know if treatment is on time.</span>
+                                                <span>{{ __('The latest dose date helps the status tracker know if treatment is on time.') }}</span>
                                             </li>
                                         </ul>
                                     </div>
 
                                     <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-                                        <p class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">TB Tip</p>
-                                        <p class="mt-3 text-sm leading-6 text-slate-600">For long-term TB treatment, choose the correct start and end dates so the progress tracker can calculate treatment progress accurately.</p>
+                                        <p class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">{{ __('TB Tip') }}</p>
+                                        <p class="mt-3 text-sm leading-6 text-slate-600">{{ __('For long-term TB treatment, choose the correct start and end dates so the progress tracker can calculate treatment progress accurately.') }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -593,10 +593,10 @@
                         <div class="bg-white px-6 md:px-8 py-5 border-t border-slate-100">
                             <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
                                 <button type="button" @click="addModalOpen = false" class="w-full sm:w-44 inline-flex justify-center rounded-xl border border-slate-300 shadow-sm px-5 py-3 bg-white text-sm font-bold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors">
-                                    Cancel
+                                    {{ __('Cancel') }}
                                 </button>
                                 <button type="submit" class="w-full sm:w-56 inline-flex justify-center rounded-xl border border-transparent shadow-sm px-5 py-3 bg-teal-600 text-sm font-bold text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors">
-                                Save Medication
+                                {{ __('Save Medication') }}
                                 </button>
                             </div>
                         </div>

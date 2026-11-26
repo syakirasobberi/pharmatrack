@@ -1,18 +1,18 @@
 <x-app-layout>
     <div class="py-8 sm:py-12 bg-gray-50 min-h-screen">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 mb-6">Quick Patient Recognition</h2>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 mb-6">{{ __('Quick Patient Recognition') }}</h2>
 
             <div class="bg-white p-4 sm:p-8 rounded-3xl shadow-lg border border-gray-200">
-                <p id="status" class="mb-4 text-teal-600 font-bold animate-pulse">Initializing AI system...</p>
+                <p id="status" class="mb-4 text-teal-600 font-bold animate-pulse">{{ __('Initializing AI system...') }}</p>
 
                 <div class="mb-4">
-                    <label for="camera-select" class="block text-sm font-medium text-gray-700 mb-1">Select Camera</label>
+                    <label for="camera-select" class="block text-sm font-medium text-gray-700 mb-1">{{ __('Select Camera') }}</label>
                     <select
                         id="camera-select"
                         class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm rounded-md shadow-sm border"
                     >
-                        <option value="">Loading cameras...</option>
+                        <option value="">{{ __('Loading cameras...') }}</option>
                     </select>
                 </div>
 
@@ -22,22 +22,23 @@
 
                 {{-- Shown after a match: the pharmacist confirms the name before any record opens. --}}
                 <div id="confirm-panel" class="hidden mt-6 rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-5 text-left">
-                    <p class="text-xs font-bold uppercase tracking-wide text-emerald-700">Possible match — please confirm</p>
+                    <p class="text-xs font-bold uppercase tracking-wide text-emerald-700">{{ __('Possible match — please confirm') }}</p>
                     <p class="mt-1 text-xl font-extrabold text-gray-900" id="confirm-name"></p>
                     <p class="text-xs text-gray-500" id="confirm-detail"></p>
                     <div class="mt-4 flex flex-wrap gap-3">
-                        <a id="confirm-open" href="#" class="inline-flex items-center px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700">Yes, open this patient</a>
-                        <button id="confirm-reject" type="button" class="inline-flex items-center px-4 py-2 rounded-xl bg-white border border-gray-300 text-gray-700 font-bold hover:bg-gray-50">Not this patient — scan again</button>
+                        <a id="confirm-open" href="#" class="inline-flex items-center px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700">{{ __('Yes, open this patient') }}</a>
+                        <button id="confirm-reject" type="button" class="inline-flex items-center px-4 py-2 rounded-xl bg-white border border-gray-300 text-gray-700 font-bold hover:bg-gray-50">{{ __('Not this patient — scan again') }}</button>
                     </div>
                 </div>
 
                 <div class="mt-6">
-                    <p class="text-gray-500 text-sm">Ask the patient to look directly at the camera with eyes open. Always check the name before opening a record.</p>
+                    <p class="text-gray-500 text-sm">{{ __('Ask the patient to look directly at the camera with eyes open. Always check the name before opening a record.') }}</p>
                 </div>
             </div>
         </div>
     </div>
 
+    @include('partials.js-i18n')
     <script src="{{ asset('js/face-api.min.js') }}"></script>
     <script src="{{ asset('js/face-utils.js') }}?v={{ filemtime(public_path('js/face-utils.js')) }}"></script>
     <script>
@@ -65,19 +66,19 @@
 
             try {
                 if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-                    setStatus('Camera access is blocked because this page is not using HTTPS. Open PharmaTrack on https:// or localhost.', 'error');
-                    cameraSelect.innerHTML = '<option value="">HTTPS required for camera access</option>';
+                    setStatus(t('Camera access is blocked because this page is not using HTTPS. Open PharmaTrack on https:// or localhost.'), 'error');
+                    cameraSelect.innerHTML = '<option value="">' + t('HTTPS required for camera access') + '</option>';
                     return;
                 }
 
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    setStatus('This browser does not allow camera access on the current page. Try HTTPS, localhost, or a supported browser.', 'error');
-                    cameraSelect.innerHTML = '<option value="">Camera API unavailable</option>';
+                    setStatus(t('This browser does not allow camera access on the current page. Try HTTPS, localhost, or a supported browser.'), 'error');
+                    cameraSelect.innerHTML = '<option value="">' + t('Camera API unavailable') + '</option>';
                     return;
                 }
 
                 if (faceCount === 0) {
-                    setStatus('No usable patient face data found. Please register a face first.', 'error');
+                    setStatus(t('No usable patient face data found. Please register a face first.'), 'error');
                     return;
                 }
 
@@ -96,17 +97,17 @@
                 const message = error && error.message ? error.message : '';
 
                 if (message.includes('Permission denied') || message.includes('Permission dismissed') || message.includes('NotAllowedError')) {
-                    setStatus('Camera permission was denied. Please allow camera access in the browser address bar and reload the page.', 'error');
+                    setStatus(t('Camera permission was denied. Please allow camera access in the browser address bar and reload the page.'), 'error');
                 } else if (message.includes('Requested device not found') || message.includes('NotFoundError')) {
-                    setStatus('No camera was found. Please connect a webcam or phone camera and try again.', 'error');
+                    setStatus(t('No camera was found. Please connect a webcam or phone camera and try again.'), 'error');
                 } else {
-                    setStatus('Face recognition failed to initialize. Please check camera permission, HTTPS, and model files.', 'error');
+                    setStatus(t('Face recognition failed to initialize. Please check camera permission, HTTPS, and model files.'), 'error');
                 }
             }
 
             document.getElementById('confirm-reject').addEventListener('click', () => {
                 confirmPanel.classList.add('hidden');
-                resumeScanning('Scanning again...');
+                resumeScanning(t('Scanning again...'));
             });
 
             async function populateCameras() {
@@ -125,7 +126,7 @@
                 videoDevices.forEach((device, index) => {
                     const option = document.createElement('option');
                     option.value = device.deviceId;
-                    option.text = device.label || `Camera ${index + 1}`;
+                    option.text = device.label || t('Camera :number', { number: index + 1 });
                     cameraSelect.appendChild(option);
                 });
             }
@@ -141,7 +142,7 @@
                 window.stream = stream;
                 video.srcObject = stream;
                 confirmPanel.classList.add('hidden');
-                resumeScanning('System live: scanning for faces...');
+                resumeScanning(t('System live: scanning for faces...'));
             }
 
             function stopCurrentStream() {
@@ -220,10 +221,10 @@
                 paused = true;
                 document.getElementById('confirm-name').innerText = result.name;
                 document.getElementById('confirm-detail').innerText =
-                    `Patient ID ${result.patient_id} · match distance ${result.distance} (lower is closer; 0.45 is the limit)`;
+                    t('Patient ID :id · match distance :distance (lower is closer; 0.45 is the limit)', { id: result.patient_id, distance: result.distance });
                 document.getElementById('confirm-open').href = result.redirect;
                 confirmPanel.classList.remove('hidden');
-                setStatus('Possible match found. Check the name with the patient before opening.', 'success');
+                setStatus(t('Possible match found. Check the name with the patient before opening.'), 'success');
             }
 
             async function scanLoop() {
@@ -241,12 +242,12 @@
                         const quality = FaceUtils.checkQuality(result, video.videoWidth);
                         if (!quality.ok) {
                             samples = [];
-                            setStatus(quality.reason, 'info');
+                            setStatus(t(quality.reason), 'info');
                             continue;
                         }
 
                         if (FaceUtils.averageEar(result.landmarks) <= 0.18) {
-                            setStatus('Please keep your eyes open.', 'info');
+                            setStatus(t('Please keep your eyes open.'), 'info');
                             continue;
                         }
 
@@ -258,7 +259,7 @@
                         }
 
                         samples.push(d);
-                        setStatus(`Capturing... ${samples.length}/${FRAMES_NEEDED} — hold still`, 'info');
+                        setStatus(t('Capturing... :count/:total — hold still', { count: samples.length, total: FRAMES_NEEDED }), 'info');
 
                         if (samples.length < FRAMES_NEEDED) {
                             continue;
@@ -267,7 +268,7 @@
                         const frames = samples;
                         samples = [];
                         paused = true;
-                        setStatus('Checking...', 'info');
+                        setStatus(t('Checking...'), 'info');
 
                         const response = await identify(frames);
 
@@ -277,14 +278,14 @@
                         }
 
                         const messages = {
-                            ambiguous: 'Face matches more than one patient closely. Adjust lighting or angle and try again.',
-                            busy: 'Too many scans. Please wait a moment...',
+                            ambiguous: t('Face matches more than one patient closely. Adjust lighting or angle and try again.'),
+                            busy: t('Too many scans. Please wait a moment...'),
                         };
-                        setStatus(messages[response.reason] || 'Face not recognized among your patients.', 'error');
+                        setStatus(messages[response.reason] || t('Face not recognized among your patients.'), 'error');
                         setTimeout(() => { if (confirmPanel.classList.contains('hidden')) { paused = false; } }, 1500);
                     } catch (error) {
                         console.error(error);
-                        setStatus('Recognition failed. Check the connection and try again.', 'error');
+                        setStatus(t('Recognition failed. Check the connection and try again.'), 'error');
                         samples = [];
                         setTimeout(() => { paused = false; }, 2000);
                     }

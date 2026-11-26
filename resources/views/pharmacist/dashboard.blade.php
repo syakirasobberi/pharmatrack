@@ -35,13 +35,13 @@
                 $c = $patient->latestCheckup;
                 $flags = [];
                 if (is_numeric($c->blood_sugar) && ($c->blood_sugar < 3.9 || $c->blood_sugar > 6.0)) {
-                    $flags[] = ['Blood sugar', $c->blood_sugar . ' mmol/L', $c->blood_sugar >= 7.0 || $c->blood_sugar < 3.0 ? 'rose' : 'amber'];
+                    $flags[] = [__('Blood sugar'), $c->blood_sugar . ' mmol/L', $c->blood_sugar >= 7.0 || $c->blood_sugar < 3.0 ? 'rose' : 'amber'];
                 }
                 if (is_numeric($c->cholesterol) && $c->cholesterol >= 5.2) {
-                    $flags[] = ['Cholesterol', $c->cholesterol . ' mmol/L', $c->cholesterol >= 6.2 ? 'rose' : 'amber'];
+                    $flags[] = [__('Cholesterol'), $c->cholesterol . ' mmol/L', $c->cholesterol >= 6.2 ? 'rose' : 'amber'];
                 }
                 if (($bp = $bpParts($c->blood_pressure)) && ($bp[0] >= 140 || $bp[1] >= 90)) {
-                    $flags[] = ['Blood pressure', $c->blood_pressure . ' mmHg', $bp[0] >= 160 || $bp[1] >= 100 ? 'rose' : 'amber'];
+                    $flags[] = [__('Blood pressure'), $c->blood_pressure . ' mmHg', $bp[0] >= 160 || $bp[1] >= 100 ? 'rose' : 'amber'];
                 }
                 return $flags ? (object) ['patient' => $patient, 'checkup' => $c, 'flags' => $flags] : null;
             })
@@ -122,13 +122,13 @@
         $shownAlerts = $healthAlerts->count() + $medicationAlerts->count() + $adherenceAlerts->count() + $refillAlerts->count() + $reviewAlerts->count() + $patientsNeedingCheckup->count();
 
         $bmiBadge = function ($bmi) {
-            if (! is_numeric($bmi) || $bmi <= 0) return ['—', 'bg-slate-100 text-slate-500', 'bg-slate-400', 'Not recorded'];
+            if (! is_numeric($bmi) || $bmi <= 0) return ['—', 'bg-slate-100 text-slate-500', 'bg-slate-400', __('Not recorded')];
             $label = number_format($bmi, 1);
             return match (true) {
-                $bmi < 18.5 => [$label, 'bg-sky-100 text-sky-700', 'bg-sky-500', 'Underweight'],
-                $bmi < 25 => [$label, 'bg-emerald-100 text-emerald-700', 'bg-emerald-500', 'Normal'],
-                $bmi < 30 => [$label, 'bg-orange-100 text-orange-700', 'bg-orange-500', 'Overweight'],
-                default => [$label, 'bg-rose-100 text-rose-700', 'bg-rose-500', 'Obese'],
+                $bmi < 18.5 => [$label, 'bg-sky-100 text-sky-700', 'bg-sky-500', __('Underweight')],
+                $bmi < 25 => [$label, 'bg-emerald-100 text-emerald-700', 'bg-emerald-500', __('Normal')],
+                $bmi < 30 => [$label, 'bg-orange-100 text-orange-700', 'bg-orange-500', __('Overweight')],
+                default => [$label, 'bg-rose-100 text-rose-700', 'bg-rose-500', __('Obese')],
             };
         };
     @endphp
@@ -147,11 +147,11 @@
                 <div class="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900 shadow-sm">
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <p class="font-extrabold">Add your WhatsApp phone number</p>
-                            <p class="mt-1 text-sm font-medium text-amber-800">Patients can contact you from Contact Us after you update your phone number.</p>
+                            <p class="font-extrabold">{{ __('Add your WhatsApp phone number') }}</p>
+                            <p class="mt-1 text-sm font-medium text-amber-800">{{ __('Patients can contact you from Contact Us after you update your phone number.') }}</p>
                         </div>
                         <a href="{{ route('profile.edit') }}" class="inline-flex items-center justify-center rounded-xl bg-amber-600 px-4 py-2 text-sm font-bold text-white hover:bg-amber-700">
-                            Update Profile
+                            {{ __('Update Profile') }}
                         </a>
                     </div>
                 </div>
@@ -166,14 +166,14 @@
 
                 <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div>
-                        <h1 class="text-3xl md:text-4xl font-extrabold mb-2 tracking-tight text-white drop-shadow-md">Welcome back, {{ $pharmacist->name }}</h1>
+                        <h1 class="text-3xl md:text-4xl font-extrabold mb-2 tracking-tight text-white drop-shadow-md">{{ __('Welcome back, :name', ['name' => $pharmacist->name]) }}</h1>
                         <p class="text-teal-100/90 text-sm md:text-base font-medium max-w-xl">
-                            Here is the latest health summary and clinical alerts for your community patients today.
+                            {{ __('Here is the latest health summary and clinical alerts for your community patients today.') }}
                         </p>
                     </div>
                     <div class="bg-white/10 backdrop-blur-xl px-5 py-3 rounded-2xl border border-white/20 text-center shadow-lg shrink-0">
-                        <span class="block text-[10px] text-teal-200 font-bold uppercase tracking-widest mb-1">Today's Date</span>
-                        <span class="block text-lg font-extrabold text-white">{{ now()->format('d M Y') }}</span>
+                        <span class="block text-[10px] text-teal-200 font-bold uppercase tracking-widest mb-1">{{ __('Today\'s Date') }}</span>
+                        <span class="block text-lg font-extrabold text-white">{{ now()->translatedFormat('d M Y') }}</span>
                     </div>
                 </div>
 
@@ -181,18 +181,18 @@
                     <a href="{{ route('pharmacist.quickScan') }}" id="dashboard-quick-scan"
                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-extrabold text-teal-700 shadow-lg hover:bg-teal-50 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2m8-16h2a2 2 0 012 2v2m-4 12h2a2 2 0 002-2v-2M9 10h.01M15 10h.01M9.5 15a3.5 3.5 0 005 0"/></svg>
-                        Quick Scan Patient
+                        {{ __('Quick Scan Patient') }}
                     </a>
                     <a href="{{ route('pharmacist.patients.create') }}"
                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-white/15 px-5 py-3 text-sm font-bold text-white border border-white/30 hover:bg-white/25 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                        Register Patient
+                        {{ __('Register Patient') }}
                     </a>
                     <form method="GET" action="{{ route('pharmacist.patients.index') }}" class="flex flex-1 lg:max-w-md gap-2" role="search">
-                        <label for="dashboard-search" class="sr-only">Find a patient</label>
-                        <input id="dashboard-search" type="search" name="search" placeholder="Find patient by name, email or ID"
+                        <label for="dashboard-search" class="sr-only">{{ __('Find a patient') }}</label>
+                        <input id="dashboard-search" type="search" name="search" placeholder="{{ __('Find patient by name, email or ID') }}"
                                class="w-full rounded-xl border-0 bg-white/95 px-4 py-3 text-sm text-slate-800 placeholder-slate-400 shadow-lg focus:ring-2 focus:ring-white">
-                        <button type="submit" class="rounded-xl bg-teal-900/60 px-4 py-3 text-sm font-bold text-white border border-white/20 hover:bg-teal-900/80">Search</button>
+                        <button type="submit" class="rounded-xl bg-teal-900/60 px-4 py-3 text-sm font-bold text-white border border-white/20 hover:bg-teal-900/80">{{ __('Search') }}</button>
                     </form>
                 </div>
             </div>
@@ -204,7 +204,7 @@
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m6-6a4 4 0 11-8 0 4 4 0 018 0zm6 2a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </div>
                     <div>
-                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Patients</p>
+                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">{{ __('Total Patients') }}</p>
                         <h3 class="text-3xl font-extrabold text-slate-800">{{ $totalPatients }}</h3>
                     </div>
                 </a>
@@ -214,7 +214,7 @@
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-3-3v6m8-3a8 8 0 11-16 0 8 8 0 0116 0z"/></svg>
                     </div>
                     <div>
-                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Check-ups Today</p>
+                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">{{ __('Check-ups Today') }}</p>
                         <h3 class="text-3xl font-extrabold text-slate-800">{{ $todayCheckups }}</h3>
                     </div>
                 </div>
@@ -224,9 +224,9 @@
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
                     <div>
-                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Due for Check-up</p>
+                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">{{ __('Due for Check-up') }}</p>
                         <h3 class="text-3xl font-extrabold text-slate-800">{{ $dueCount }}</h3>
-                        <p class="text-[11px] text-slate-400 font-medium">No check-up in 90 days</p>
+                        <p class="text-[11px] text-slate-400 font-medium">{{ __('No check-up in 90 days') }}</p>
                     </div>
                 </div>
 
@@ -235,10 +235,10 @@
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2m8-16h2a2 2 0 012 2v2m-4 12h2a2 2 0 002-2v-2M9 10h.01M15 10h.01M9.5 15a3.5 3.5 0 005 0"/></svg>
                     </div>
                     <div>
-                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Faces Registered</p>
+                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">{{ __('Faces Registered') }}</p>
                         <h3 class="text-3xl font-extrabold text-slate-800">{{ $facesRegistered }}<span class="text-base text-slate-400 font-bold"> / {{ $totalPatients }}</span></h3>
                         <p class="text-[11px] font-medium {{ $facesPending > 0 ? 'text-amber-600' : 'text-slate-400' }}">
-                            {{ $facesPending > 0 ? $facesPending . ' pending — not findable by Quick Scan' : 'All patients can use Quick Scan' }}
+                            {{ $facesPending > 0 ? __(':count pending — not findable by Quick Scan', ['count' => $facesPending]) : __('All patients can use Quick Scan') }}
                         </p>
                     </div>
                 </a>
@@ -254,19 +254,19 @@
                             <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center border border-teal-100">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>
                             </div>
-                            Recently Added Patients
+                            {{ __('Recently Added Patients') }}
                         </h3>
-                        <a href="{{ route('pharmacist.patients.index') }}" class="text-sm text-teal-600 hover:text-teal-800 font-bold px-4 py-2 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors whitespace-nowrap">View All</a>
+                        <a href="{{ route('pharmacist.patients.index') }}" class="text-sm text-teal-600 hover:text-teal-800 font-bold px-4 py-2 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors whitespace-nowrap">{{ __('View All') }}</a>
                     </div>
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm text-left border-separate border-spacing-y-2">
                             <thead class="text-slate-500 font-bold uppercase tracking-wider text-xs">
                                 <tr>
-                                    <th class="py-3 px-4">Patient</th>
+                                    <th class="py-3 px-4">{{ __('Patient') }}</th>
                                     <th class="py-3 px-4">BMI</th>
-                                    <th class="py-3 px-4">Last Check-up</th>
-                                    <th class="py-3 px-4 text-right">Actions</th>
+                                    <th class="py-3 px-4">{{ __('Last Check-up') }}</th>
+                                    <th class="py-3 px-4 text-right">{{ __('Actions') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -279,11 +279,11 @@
                                                 {{ strtoupper(mb_substr($pt->user->name ?? '?', 0, 1)) }}
                                             </span>
                                             <span>
-                                                <span class="block text-base">{{ $pt->user->name ?? 'Unknown' }}</span>
+                                                <span class="block text-base">{{ $pt->user->name ?? __('Unknown') }}</span>
                                                 <span class="block text-xs text-slate-400 font-medium mt-0.5">
-                                                    {{ $pt->gender }}, {{ $pt->age }}y · ID {{ $pt->id }}
+                                                    {{ __($pt->gender) }}, {{ __(':age y', ['age' => $pt->age]) }} · ID {{ $pt->id }}
                                                     @if(blank($pt->face_descriptor))
-                                                        · <span class="text-amber-600">no face</span>
+                                                        · <span class="text-amber-600">{{ __('no face') }}</span>
                                                     @endif
                                                 </span>
                                             </span>
@@ -296,22 +296,22 @@
                                         </span>
                                     </td>
                                     <td class="py-4 px-4 border-y border-slate-100 text-slate-600 font-medium text-xs">
-                                        {{ $pt->latestCheckup ? \Carbon\Carbon::parse($pt->latestCheckup->checkup_date)->format('d M Y') : 'None yet' }}
+                                        {{ $pt->latestCheckup ? \Carbon\Carbon::parse($pt->latestCheckup->checkup_date)->translatedFormat('d M Y') : __('None yet') }}
                                     </td>
                                     <td class="py-4 px-4 text-right rounded-r-2xl border-y border-r border-slate-100 whitespace-nowrap">
                                         <a href="{{ route('pharmacist.checkups.create', $pt->id) }}" class="inline-flex items-center px-3 py-2 bg-teal-600 text-white hover:bg-teal-700 font-bold rounded-xl text-xs shadow-sm">
-                                            + Check-up
+                                            {{ __('+ Check-up') }}
                                         </a>
                                         <a href="{{ route('pharmacist.patients.show', $pt->id) }}" class="inline-flex items-center px-3 py-2 bg-white text-slate-700 hover:text-teal-700 font-bold rounded-xl text-xs border border-slate-200 shadow-sm hover:border-teal-200">
-                                            View
+                                            {{ __('View') }}
                                         </a>
                                     </td>
                                 </tr>
                                 @empty
                                 <tr>
                                     <td colspan="4" class="py-12 text-center text-slate-400 font-medium bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                                        No patients registered yet.
-                                        <a href="{{ route('pharmacist.patients.create') }}" class="text-teal-600 font-bold hover:underline">Register the first patient</a>
+                                        {{ __('No patients registered yet.') }}
+                                        <a href="{{ route('pharmacist.patients.create') }}" class="text-teal-600 font-bold hover:underline">{{ __('Register the first patient') }}</a>
                                     </td>
                                 </tr>
                                 @endforelse
@@ -332,12 +332,12 @@
                             @endif
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                         </div>
-                        Clinical Alerts
+                        {{ __('Clinical Alerts') }}
                         <span class="ml-auto rounded-full px-2.5 py-0.5 text-xs font-extrabold {{ $workflowAlerts > 0 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700' }}">{{ $workflowAlerts }}</span>
                     </h3>
                     <p class="text-xs text-slate-400 font-medium mb-5">
-                        {{ $healthAlertsAll->count() }} health · {{ $medicationAlertCount }} medication · {{ $adherenceAlertsAll->count() }} adherence · {{ $refillAlertsAll->count() }} refill · {{ $reviewAlertsAll->count() }} to review · {{ $dueCount }} check-up due
-                        @if($shownAlerts < $workflowAlerts) — showing {{ $shownAlerts }} @endif
+                        {{ __(':health health · :medication medication · :adherence adherence · :refill refill · :review to review · :due check-up due', ['health' => $healthAlertsAll->count(), 'medication' => $medicationAlertCount, 'adherence' => $adherenceAlertsAll->count(), 'refill' => $refillAlertsAll->count(), 'review' => $reviewAlertsAll->count(), 'due' => $dueCount]) }}
+                        @if($shownAlerts < $workflowAlerts) — {{ __('showing :count', ['count' => $shownAlerts]) }} @endif
                     </p>
 
                     <div class="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
@@ -347,8 +347,8 @@
                             <div class="w-12 h-12 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             </div>
-                            <p class="text-sm font-bold text-emerald-800">All Clear!</p>
-                            <p class="text-xs text-emerald-600 mt-1 font-medium">No alerts need your attention.</p>
+                            <p class="text-sm font-bold text-emerald-800">{{ __('All Clear!') }}</p>
+                            <p class="text-xs text-emerald-600 mt-1 font-medium">{{ __('No alerts need your attention.') }}</p>
                         </div>
                         @endif
 
@@ -356,8 +356,8 @@
                         @foreach($healthAlerts as $alert)
                         <div class="p-4 border border-rose-100 bg-rose-50/50 rounded-2xl group hover:bg-rose-50 transition-colors shadow-sm">
                             <div class="flex justify-between items-start mb-2">
-                                <h4 class="font-bold text-sm text-slate-800">{{ $alert->patient->user->name ?? 'Unknown' }}</h4>
-                                <span class="px-2 py-1 bg-white rounded-md text-[10px] font-bold text-rose-500 shadow-sm border border-rose-100">{{ \Carbon\Carbon::parse($alert->checkup->checkup_date)->format('d M') }}</span>
+                                <h4 class="font-bold text-sm text-slate-800">{{ $alert->patient->user->name ?? __('Unknown') }}</h4>
+                                <span class="px-2 py-1 bg-white rounded-md text-[10px] font-bold text-rose-500 shadow-sm border border-rose-100">{{ \Carbon\Carbon::parse($alert->checkup->checkup_date)->translatedFormat('d M') }}</span>
                             </div>
                             <div class="text-xs text-slate-600 space-y-1.5 bg-white/50 p-2.5 rounded-xl border border-rose-100/50">
                                 @foreach($alert->flags as [$label, $value, $tone])
@@ -368,7 +368,7 @@
                                 @endforeach
                             </div>
                             <a href="{{ route('pharmacist.patients.show', $alert->patient->id) }}" class="mt-3 text-xs font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1 group-hover:gap-2 transition-all">
-                                Review Case <span aria-hidden="true">&rarr;</span>
+                                {{ __('Review Case') }} <span aria-hidden="true">&rarr;</span>
                             </a>
                         </div>
                         @endforeach
@@ -379,24 +379,24 @@
                             <div class="p-4 border {{ $major ? 'border-rose-300 bg-rose-50/70' : ($alert->warnings ? 'border-amber-200/60 bg-amber-50/50' : 'border-sky-200/60 bg-sky-50/50') }} rounded-2xl shadow-sm">
                                 <div class="flex items-center gap-2 mb-2">
                                     <svg class="w-4 h-4 {{ $major ? 'text-rose-500' : ($alert->warnings ? 'text-amber-500' : 'text-sky-500') }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                    <h4 class="font-bold text-sm text-slate-800">{{ $med->patient->user->name ?? 'Unknown' }}</h4>
-                                    <span class="ml-auto px-2 py-1 bg-white rounded-md text-[10px] font-bold shadow-sm border {{ $major ? 'text-rose-600 border-rose-100' : 'text-slate-500 border-slate-100' }}">{{ $major ? 'Safety warning' : 'Added by patient' }}</span>
+                                    <h4 class="font-bold text-sm text-slate-800">{{ $med->patient->user->name ?? __('Unknown') }}</h4>
+                                    <span class="ml-auto px-2 py-1 bg-white rounded-md text-[10px] font-bold shadow-sm border {{ $major ? 'text-rose-600 border-rose-100' : 'text-slate-500 border-slate-100' }}">{{ $major ? __('Safety warning') : __('Added by patient') }}</span>
                                 </div>
                                 <div class="text-xs font-medium bg-white/60 p-2.5 rounded-xl border border-slate-100 text-slate-700">
-                                    <p><span class="font-bold">{{ $med->name }}</span> was recorded by the patient on {{ $med->created_at->format('d M') }}.</p>
+                                    <p>{!! __('<span class="font-bold">:name</span> was recorded by the patient on :date.', ['name' => e($med->name), 'date' => $med->created_at->translatedFormat('d M')]) !!}</p>
                                     @foreach(array_slice($alert->warnings, 0, 2) as $w)
                                         <p class="mt-1 {{ $w['severity'] === 'major' ? 'text-rose-700 font-bold' : 'text-amber-800' }}">&#9888; {{ $w['title'] }}</p>
                                     @endforeach
                                     @if(count($alert->warnings) > 2)
-                                        <p class="mt-1 text-slate-500">+ {{ count($alert->warnings) - 2 }} more</p>
+                                        <p class="mt-1 text-slate-500">{{ __('+ :count more', ['count' => count($alert->warnings) - 2]) }}</p>
                                     @endif
                                 </div>
                                 <div class="mt-3 flex items-center gap-3">
-                                    <a href="{{ route('pharmacist.medication.index', $med->patient_id) }}" class="text-xs font-bold text-teal-600 hover:text-teal-800">Review medications &rarr;</a>
+                                    <a href="{{ route('pharmacist.medication.index', $med->patient_id) }}" class="text-xs font-bold text-teal-600 hover:text-teal-800">{!! __('Review medications &rarr;') !!}</a>
                                     @unless($alert->warnings)
                                         <form method="POST" action="{{ route('pharmacist.medication.review', $med->id) }}" class="ml-auto">
                                             @csrf
-                                            <button type="submit" class="text-xs font-bold text-slate-600 hover:text-slate-900 underline">Mark reviewed</button>
+                                            <button type="submit" class="text-xs font-bold text-slate-600 hover:text-slate-900 underline">{{ __('Mark reviewed') }}</button>
                                         </form>
                                     @endunless
                                 </div>
@@ -409,22 +409,22 @@
                             <div class="p-4 border {{ $out ? 'border-rose-200/60 bg-rose-50/50' : 'border-teal-200/60 bg-teal-50/50' }} rounded-2xl group shadow-sm">
                                 <div class="flex items-center gap-2 mb-2">
                                     <svg class="w-4 h-4 {{ $out ? 'text-rose-500' : 'text-teal-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                    <h4 class="font-bold text-sm text-slate-800">{{ $med->patient->user->name ?? 'Unknown' }}</h4>
+                                    <h4 class="font-bold text-sm text-slate-800">{{ $med->patient->user->name ?? __('Unknown') }}</h4>
                                     @if($med->refill_requested_at)
-                                        <span class="ml-auto px-2 py-1 bg-white rounded-md text-[10px] font-bold text-teal-600 shadow-sm border border-teal-100">Requested</span>
+                                        <span class="ml-auto px-2 py-1 bg-white rounded-md text-[10px] font-bold text-teal-600 shadow-sm border border-teal-100">{{ __('Requested') }}</span>
                                     @endif
                                 </div>
                                 <p class="text-xs {{ $out ? 'text-rose-800' : 'text-teal-900' }} font-medium bg-white/60 p-2.5 rounded-xl border {{ $out ? 'border-rose-100/50' : 'border-teal-100/50' }}">
                                     <span class="font-bold">{{ $med->name }}:</span>
                                     @if($med->refill_requested_at)
-                                        patient asked for a refill on {{ $med->refill_requested_at->format('d M') }}.
+                                        {{ __('patient asked for a refill on :date.', ['date' => $med->refill_requested_at->translatedFormat('d M')]) }}
                                     @endif
                                     @if($days !== null)
-                                        {{ $days < 0 ? 'Supply ran out ' . abs($days) . ' days ago.' : ($days === 0 ? 'Supply runs out today.' : "Supply runs out in {$days} " . \Illuminate\Support\Str::plural('day', $days) . '.') }}
+                                        {{ $days < 0 ? __('Supply ran out :count days ago.', ['count' => abs($days)]) : ($days === 0 ? __('Supply runs out today.') : trans_choice('Supply runs out in :count day.|Supply runs out in :count days.', $days, ['count' => $days])) }}
                                     @endif
                                 </p>
                                 <a href="{{ route('pharmacist.medication.index', $med->patient_id) }}" class="mt-3 text-xs font-bold {{ $out ? 'text-rose-600 hover:text-rose-800' : 'text-teal-600 hover:text-teal-800' }} flex items-center gap-1 group-hover:gap-2 transition-all">
-                                    Record Refill <span aria-hidden="true">&rarr;</span>
+                                    {{ __('Record Refill') }} <span aria-hidden="true">&rarr;</span>
                                 </a>
                             </div>
                         @endforeach
@@ -435,14 +435,14 @@
                             <div class="p-4 border {{ $poor ? 'border-rose-200/60 bg-rose-50/50' : 'border-amber-200/60 bg-amber-50/50' }} rounded-2xl group shadow-sm">
                                 <div class="flex items-center gap-2 mb-2">
                                     <svg class="w-4 h-4 {{ $poor ? 'text-rose-500' : 'text-amber-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    <h4 class="font-bold text-sm text-slate-800">{{ $alert->patient->user->name ?? 'Unknown' }}</h4>
+                                    <h4 class="font-bold text-sm text-slate-800">{{ $alert->patient->user->name ?? __('Unknown') }}</h4>
                                     <span class="ml-auto px-2 py-1 bg-white rounded-md text-[10px] font-bold {{ $poor ? 'text-rose-600 border-rose-100' : 'text-amber-600 border-amber-100' }} shadow-sm border">{{ $alert->adherence['percent'] }}%</span>
                                 </div>
                                 <p class="text-xs {{ $poor ? 'text-rose-800' : 'text-amber-800' }} font-medium bg-white/60 p-2.5 rounded-xl border {{ $poor ? 'border-rose-100/50' : 'border-amber-100/50' }}">
-                                    Adherence {{ strtolower($alert->adherence['label']) }} — {{ $alert->adherence['percent'] }}% of expected doses logged in the last {{ \App\Support\Adherence::WINDOW_DAYS }} days.
+                                    {{ __('Adherence :label — :percent% of expected doses logged in the last :days days.', ['label' => mb_strtolower(__($alert->adherence['label'])), 'percent' => $alert->adherence['percent'], 'days' => \App\Support\Adherence::WINDOW_DAYS]) }}
                                 </p>
                                 <a href="{{ route('pharmacist.medication.index', $alert->patient->id) }}" class="mt-3 text-xs font-bold {{ $poor ? 'text-rose-600 hover:text-rose-800' : 'text-amber-600 hover:text-amber-800' }} flex items-center gap-1 group-hover:gap-2 transition-all">
-                                    Review Adherence <span aria-hidden="true">&rarr;</span>
+                                    {{ __('Review Adherence') }} <span aria-hidden="true">&rarr;</span>
                                 </a>
                             </div>
                         @endforeach
@@ -457,20 +457,20 @@
                             <div class="p-4 border border-amber-200/60 bg-amber-50/50 rounded-2xl group shadow-sm">
                                 <div class="flex items-center gap-2 mb-2">
                                     <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002 2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                                    <h4 class="font-bold text-sm text-slate-800">{{ $medication->patient->user->name ?? 'Unknown' }}</h4>
+                                    <h4 class="font-bold text-sm text-slate-800">{{ $medication->patient->user->name ?? __('Unknown') }}</h4>
                                 </div>
                                 <p class="text-xs text-amber-800 font-medium bg-white/60 p-2.5 rounded-xl border border-amber-100/50">
                                     <span class="font-bold">{{ $medication->name }}:</span>
                                     @if($isEndingSoon)
-                                        Treatment ends on {{ $endDate->format('d M Y') }}.
+                                        {{ __('Treatment ends on :date.', ['date' => $endDate->translatedFormat('d M Y')]) }}
                                     @elseif($lastTaken)
-                                        Last dose was {{ (int) $lastTaken->diffInDays(today()) }} days ago.
+                                        {{ __('Last dose was :days days ago.', ['days' => (int) $lastTaken->diffInDays(today())]) }}
                                     @else
-                                        Latest dose date is missing.
+                                        {{ __('Latest dose date is missing.') }}
                                     @endif
                                 </p>
                                 <a href="{{ route('pharmacist.medication.index', $medication->patient_id) }}" class="mt-3 text-xs font-bold text-amber-600 hover:text-amber-800 flex items-center gap-1 group-hover:gap-2 transition-all">
-                                    Manage Medication <span aria-hidden="true">&rarr;</span>
+                                    {{ __('Manage Medication') }} <span aria-hidden="true">&rarr;</span>
                                 </a>
                             </div>
                         @endforeach
@@ -478,16 +478,16 @@
                         <!-- Check-up Reminders -->
                         @foreach($patientsNeedingCheckup as $patientDue)
                             <div class="p-4 border border-teal-200/60 bg-teal-50/50 rounded-2xl group shadow-sm">
-                                <h4 class="font-bold text-sm text-slate-800 mb-2">{{ $patientDue->user->name ?? 'Unknown' }}</h4>
+                                <h4 class="font-bold text-sm text-slate-800 mb-2">{{ $patientDue->user->name ?? __('Unknown') }}</h4>
                                 <p class="text-xs text-teal-800 font-medium bg-white/60 p-2.5 rounded-xl border border-teal-100/50">
                                     {{ $patientDue->latestCheckup
-                                        ? 'Last check-up: ' . \Carbon\Carbon::parse($patientDue->latestCheckup->checkup_date)->format('d M Y') . '.'
-                                        : 'No health check-up on record.' }}
+                                        ? __('Last check-up: :date.', ['date' => \Carbon\Carbon::parse($patientDue->latestCheckup->checkup_date)->translatedFormat('d M Y')])
+                                        : __('No health check-up on record.') }}
                                 </p>
                                 <div class="mt-3 grid gap-2">
                                     <a href="{{ route('pharmacist.checkups.create', $patientDue->id) }}" class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-teal-600 border border-transparent text-white text-xs font-semibold rounded-lg shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-teal-500 transition-all">
                                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                                        Record Check-up
+                                        {{ __('Record Check-up') }}
                                     </a>
                                     @if ($patientDue->user)
                                         <x-reminder-button :patient="$patientDue" size="sm" class="w-full" />
@@ -496,7 +496,7 @@
                                 @if ($patientDue->user)
                                     @php $sentAt = $lastReminderAt[$patientDue->user_id] ?? null; @endphp
                                     <p class="mt-2 text-[11px] font-medium text-slate-500">
-                                        {{ $sentAt ? 'Last reminder sent ' . \Illuminate\Support\Carbon::parse($sentAt)->diffForHumans() : 'No reminder sent yet' }}
+                                        {{ $sentAt ? __('Last reminder sent :ago', ['ago' => \Illuminate\Support\Carbon::parse($sentAt)->diffForHumans()]) : __('No reminder sent yet') }}
                                     </p>
                                 @endif
                             </div>

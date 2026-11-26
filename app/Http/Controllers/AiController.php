@@ -40,7 +40,7 @@ class AiController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'AI features are not configured on this server. Please contact the administrator.',
+                'message' => __('AI features are not configured on this server. Please contact the administrator.'),
             ], 500);
         }
 
@@ -51,7 +51,7 @@ class AiController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Could not reach the AI service. Please try again in a moment.',
+                'message' => __('Could not reach the AI service. Please try again in a moment.'),
             ], 502);
         }
 
@@ -64,7 +64,7 @@ class AiController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'The AI service returned an error. Please try again later.',
+                'message' => __('The AI service returned an error. Please try again later.'),
             ], 502);
         }
 
@@ -73,7 +73,7 @@ class AiController extends Controller
         if (! $text) {
             return response()->json([
                 'success' => false,
-                'message' => 'AI response was empty.',
+                'message' => __('AI response was empty.'),
             ], 502);
         }
 
@@ -95,16 +95,16 @@ class AiController extends Controller
         if (! config('services.gemini.report_uploads')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Smart Extract is turned off. Use Extract Readings, which reads the report on this computer.',
+                'message' => __('Smart Extract is turned off. Use Extract Readings, which reads the report on this computer.'),
             ], 403);
         }
 
         $request->validate([
             'report' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
         ], [
-            'report.uploaded' => 'The report could not be uploaded. Try a smaller file (under 10 MB).',
-            'report.mimes' => 'Please upload a JPG, PNG, WEBP image or a PDF.',
-            'report.max' => 'The report must be smaller than 10 MB.',
+            'report.uploaded' => __('The report could not be uploaded. Try a smaller file (under 10 MB).'),
+            'report.mimes' => __('Please upload a JPG, PNG, WEBP image or a PDF.'),
+            'report.max' => __('The report must be smaller than 10 MB.'),
         ]);
 
         $file = $request->file('report');
@@ -148,7 +148,7 @@ class AiController extends Controller
         if (! is_array($raw)) {
             Log::warning('Gemini report extraction returned non-JSON.', ['length' => strlen($text)]);
 
-            return response()->json(['success' => false, 'message' => 'The AI could not read this report. Please try a clearer image.'], 502);
+            return response()->json(['success' => false, 'message' => __('The AI could not read this report. Please try a clearer image.')], 502);
         }
 
         $result = ReportReadings::normalize($raw);
@@ -251,7 +251,7 @@ class AiController extends Controller
         if (! $latest) {
             return response()->json([
                 'success' => false,
-                'message' => 'No check-up record is available for AI suggestion.',
+                'message' => __('No check-up record is available for AI suggestion.'),
             ], 422);
         }
 

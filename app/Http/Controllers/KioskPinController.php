@@ -15,7 +15,7 @@ class KioskPinController extends Controller
             'current_password' => ['required', 'current_password'],
             'kiosk_pin' => ['required', 'regex:/^\d{6,12}$/', 'confirmed'],
         ], [
-            'kiosk_pin.regex' => 'The kiosk PIN must be 6 to 12 digits.',
+            'kiosk_pin.regex' => __('The kiosk PIN must be 6 to 12 digits.'),
         ]);
 
         $user = $request->user();

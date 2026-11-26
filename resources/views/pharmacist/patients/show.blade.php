@@ -7,7 +7,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <div>
                 <a href="{{ route('pharmacist.patients.index') }}" class="inline-flex items-center text-gray-500 hover:text-teal-700 font-bold transition-colors">
-                    &larr; Back to Patient List
+                    {!! __('&larr; Back to Patient List') !!}
                 </a>
             </div>
 
@@ -30,7 +30,7 @@
             alt="{{ $patient->user->name }}'s Profile Photo"
             class="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover shadow-sm ring-4 ring-gray-50"
         >
-        <div class="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full shadow-sm" title="Online"></div>
+        <div class="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full shadow-sm" title="{{ __('Online') }}"></div>
     </div>
 
     <div class="flex-1 w-full flex flex-col md:flex-row justify-between items-start gap-5">
@@ -41,14 +41,14 @@
                     {{ $patient->user->name }}
                 </h2>
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20">
-                    Normal
+                    {{ __('Normal') }}
                 </span>
             </div>
 
             <div class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-gray-500">
                 <div class="flex items-center gap-1.5">
                     <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                    <span>{{ $patient->gender }}, {{ $patient->age }} years old</span>
+                    <span>{{ __($patient->gender) }}, {{ __(':age years old', ['age' => $patient->age]) }}</span>
                 </div>
                 <span class="hidden sm:inline text-gray-300">&bull;</span>
                 <div class="flex items-center gap-1.5">
@@ -59,7 +59,7 @@
 
             <div class="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 bg-teal-50 px-3 py-1.5 rounded-lg border border-teal-100 w-fit">
                 <svg class="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
-                Assigned Pharmacist: {{ $patient->pharmacist?->name ?? 'Unassigned' }}
+                {{ __('Assigned Pharmacist: :name', ['name' => $patient->pharmacist?->name ?? __('Unassigned')]) }}
             </div>
         </div>
 
@@ -67,7 +67,7 @@
             <div class="flex flex-row w-full md:w-auto gap-3">
                 <a href="{{ route('pharmacist.patients.edit', $patient->id) }}" class="flex-1 md:flex-none inline-flex justify-center items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-semibold text-sm rounded-xl hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all">
                     <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.232-6.232a2.5 2.5 0 113.536 3.536L12.536 16.536 8 18l1.464-4.536z" /></svg>
-                    Edit Profile
+                    {{ __('Edit Profile') }}
                 </a>
 
                 @php
@@ -83,15 +83,15 @@
                 <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 @if ($lastReminderAt)
                     Last reminder sent {{ \Illuminate\Support\Carbon::parse($lastReminderAt)->diffForHumans() }}
-                    <span class="text-gray-400">({{ \Illuminate\Support\Carbon::parse($lastReminderAt)->format('d M Y') }})</span>
+                    <span class="text-gray-400">({{ \Illuminate\Support\Carbon::parse($lastReminderAt)->translatedFormat('d M Y') }})</span>
                 @else
-                    No reminder sent yet
+                    {{ __('No reminder sent yet') }}
                 @endif
             </span>
             
             <span class="text-xs text-gray-400 font-medium flex items-center gap-1 mt-1">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                Last Update: {{ $patient->updated_at->format('d M Y, h:i A') }}
+                {{ __('Last Update: :date', ['date' => $patient->updated_at->translatedFormat('d M Y, h:i A')]) }}
             </span>
         </div>
     </div>
@@ -112,23 +112,23 @@
 
                 $alerts = collect();
                 if (!$latestCheckup) {
-                    $alerts->push(['No check-up recorded for this patient.', 'critical']);
+                    $alerts->push([__('No check-up recorded for this patient.'), 'critical']);
                 } elseif (\Carbon\Carbon::parse($latestCheckup->checkup_date)->diffInDays(now()) > 90) {
-                    $alerts->push(['No check-up in the last 90 days. Review recommended.', 'review']);
+                    $alerts->push([__('No check-up in the last 90 days. Review recommended.'), 'review']);
                 }
-                if ($activeMedCount === 0) $alerts->push(['No active medications recorded.', 'review']);
-                if ($activeMedCount >= 5)  $alerts->push(['Polypharmacy detected (' . $activeMedCount . ' meds). Review recommended.', 'review']);
-                if (filled(optional($medicalHistory)->drug_allergies)) $alerts->push(['Drug allergies: ' . $medicalHistory->drug_allergies, 'critical']);
+                if ($activeMedCount === 0) $alerts->push([__('No active medications recorded.'), 'review']);
+                if ($activeMedCount >= 5)  $alerts->push([__('Polypharmacy detected (:count meds). Review recommended.', ['count' => $activeMedCount]), 'review']);
+                if (filled(optional($medicalHistory)->drug_allergies)) $alerts->push([__('Drug allergies: :value', ['value' => $medicalHistory->drug_allergies]), 'critical']);
                 $drugSafety = collect(\App\Support\DrugSafety::review($medications, $medicalHistory));
-                foreach ($drugSafety->where('severity', 'major') as $w) $alerts->push(['Medication safety: ' . $w['title'] . '.', 'critical']);
-                if (($moderateCount = $drugSafety->where('severity', 'moderate')->count()) > 0) $alerts->push([$moderateCount . ' moderate medication ' . \Illuminate\Support\Str::plural('caution', $moderateCount) . ' — see the Medications page.', 'review']);
-                if (filled(optional($medicalHistory)->allergies))      $alerts->push(['General allergies: ' . $medicalHistory->allergies, 'review']);
-                if (filled(optional($medicalHistory)->others) && str_contains(strtolower(optional($medicalHistory)->others ?? ''), 'hypertension')) $alerts->push(['Hypertension noted: ' . $medicalHistory->others, 'critical']);
-                elseif (filled(optional($medicalHistory)->others)) $alerts->push(['Other condition: ' . $medicalHistory->others, 'review']);
-                if (filled(optional($medicalHistory)->diabetes) && optional($medicalHistory)->diabetes !== 'None') $alerts->push(['Diabetes: ' . $medicalHistory->diabetes, 'review']);
-                if ($latestCheckup && (float)$latestCheckup->blood_sugar > 7.0)  $alerts->push(['Elevated blood sugar (' . $latestCheckup->blood_sugar . ' mmol/L).', 'critical']);
-                if ($latestCheckup && (float)$latestCheckup->cholesterol > 5.2)  $alerts->push(['High cholesterol (' . $latestCheckup->cholesterol . ' mmol/L).', 'review']);
-                if ($alerts->isEmpty()) $alerts->push(['No high-priority alerts. Patient is stable.', 'stable']);
+                foreach ($drugSafety->where('severity', 'major') as $w) $alerts->push([__('Medication safety: :value.', ['value' => $w['title']]), 'critical']);
+                if (($moderateCount = $drugSafety->where('severity', 'moderate')->count()) > 0) $alerts->push([trans_choice(':count moderate medication caution — see the Medications page.|:count moderate medication cautions — see the Medications page.', $moderateCount, ['count' => $moderateCount]), 'review']);
+                if (filled(optional($medicalHistory)->allergies))      $alerts->push([__('General allergies: :value', ['value' => $medicalHistory->allergies]), 'review']);
+                if (filled(optional($medicalHistory)->others) && str_contains(strtolower(optional($medicalHistory)->others ?? ''), 'hypertension')) $alerts->push([__('Hypertension noted: :value', ['value' => __($medicalHistory->others)]), 'critical']);
+                elseif (filled(optional($medicalHistory)->others)) $alerts->push([__('Other condition: :value', ['value' => __($medicalHistory->others)]), 'review']);
+                if (filled(optional($medicalHistory)->diabetes) && optional($medicalHistory)->diabetes !== 'None') $alerts->push([__('Diabetes: :value', ['value' => __($medicalHistory->diabetes)]), 'review']);
+                if ($latestCheckup && (float)$latestCheckup->blood_sugar > 7.0)  $alerts->push([__('Elevated blood sugar (:value mmol/L).', ['value' => $latestCheckup->blood_sugar]), 'critical']);
+                if ($latestCheckup && (float)$latestCheckup->cholesterol > 5.2)  $alerts->push([__('High cholesterol (:value mmol/L).', ['value' => $latestCheckup->cholesterol]), 'review']);
+                if ($alerts->isEmpty()) $alerts->push([__('No high-priority alerts. Patient is stable.'), 'stable']);
             @endphp
 
             {{-- ── STAT TILES ── --}}
@@ -136,20 +136,20 @@
                 <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col items-center justify-center">
                     <span class="text-gray-500 text-sm font-bold mb-1">BMI</span>
                     <span class="text-3xl font-extrabold text-gray-800">{{ number_format($patient->bmi, 1) }}</span>
-                    <span class="text-xs font-bold mt-1 px-2 py-0.5 rounded-full {{ $bmiColor }}">{{ $bmiLabel }}</span>
+                    <span class="text-xs font-bold mt-1 px-2 py-0.5 rounded-full {{ $bmiColor }}">{{ __($bmiLabel) }}</span>
                 </div>
                 <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col items-center justify-center">
-                    <span class="text-gray-500 text-sm font-bold mb-1">Weight</span>
+                    <span class="text-gray-500 text-sm font-bold mb-1">{{ __('Weight') }}</span>
                     <span class="text-3xl font-extrabold text-gray-800">{{ $patient->weight }} <span class="text-lg text-gray-400">kg</span></span>
                 </div>
                 <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col items-center justify-center">
-                    <span class="text-gray-500 text-sm font-bold mb-1">Height</span>
+                    <span class="text-gray-500 text-sm font-bold mb-1">{{ __('Height') }}</span>
                     <span class="text-3xl font-extrabold text-gray-800">{{ $patient->height }} <span class="text-lg text-gray-400">cm</span></span>
                 </div>
                 <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col items-center justify-center">
-                    <span class="text-gray-500 text-sm font-bold mb-1">Blood Pressure</span>
+                    <span class="text-gray-500 text-sm font-bold mb-1">{{ __('Blood Pressure') }}</span>
                     <span class="text-3xl font-extrabold text-gray-800">
-                        {{ $latestCheckup ? $latestCheckup->blood_pressure : 'N/A' }}
+                        {{ $latestCheckup ? $latestCheckup->blood_pressure : __('N/A') }}
                         <span class="text-lg text-gray-400">mmHg</span>
                     </span>
                 </div>
@@ -162,9 +162,9 @@
                 <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                     <h3 class="font-extrabold text-base text-gray-800 mb-4 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-teal-500 inline-block"></span>
-                        Latest Vitals
+                        {{ __('Latest Vitals') }}
                         @if($latestCheckup)
-                            <span class="ml-auto text-xs font-medium text-gray-400">{{ \Carbon\Carbon::parse($latestCheckup->checkup_date)->format('d M Y') }}</span>
+                            <span class="ml-auto text-xs font-medium text-gray-400">{{ \Carbon\Carbon::parse($latestCheckup->checkup_date)->translatedFormat('d M Y') }}</span>
                         @endif
                     </h3>
                     @if($latestCheckup)
@@ -195,13 +195,13 @@
                             @endforeach
                             @if($latestCheckup->notes)
                                 <div class="pt-2">
-                                    <dt class="font-medium text-gray-500 text-xs mb-1">Notes</dt>
+                                    <dt class="font-medium text-gray-500 text-xs mb-1">{{ __('Notes') }}</dt>
                                     <dd class="text-gray-700 text-xs leading-relaxed bg-gray-50 rounded-lg p-2">{{ $latestCheckup->notes }}</dd>
                                 </div>
                             @endif
                         </dl>
                     @else
-                        <p class="text-sm text-gray-400 italic">No check-up recorded yet.</p>
+                        <p class="text-sm text-gray-400 italic">{{ __('No check-up recorded yet.') }}</p>
                     @endif
                 </div>
 
@@ -210,26 +210,26 @@
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="font-extrabold text-base text-gray-800 flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-purple-500 inline-block"></span>
-                            Medical History
+                            {{ __('Medical History') }}
                         </h3>
-                        <a href="{{ route('pharmacist.patients.medical.edit', $patient->id) }}" class="text-xs bg-purple-100 text-purple-700 hover:bg-purple-200 px-3 py-1.5 rounded-lg font-bold">+ Update</a>
+                        <a href="{{ route('pharmacist.patients.medical.edit', $patient->id) }}" class="text-xs bg-purple-100 text-purple-700 hover:bg-purple-200 px-3 py-1.5 rounded-lg font-bold">{{ __('+ Update') }}</a>
                     </div>
                     <div class="grid grid-cols-1 gap-3">
                         <div class="border border-gray-200 rounded-xl p-3">
-                            <p class="text-xs text-gray-500 font-bold mb-1">Diabetes</p>
-                            <p class="text-sm font-bold text-gray-800">{{ optional($medicalHistory)->diabetes ?: 'None' }}</p>
+                            <p class="text-xs text-gray-500 font-bold mb-1">{{ __('Diabetes') }}</p>
+                            <p class="text-sm font-bold text-gray-800">{{ optional($medicalHistory)->diabetes ? __($medicalHistory->diabetes) : __('None') }}</p>
                         </div>
                         <div class="border {{ optional($medicalHistory)->allergies ? 'border-red-200 bg-red-50' : 'border-gray-200' }} rounded-xl p-3">
-                            <p class="text-xs {{ optional($medicalHistory)->allergies ? 'text-red-500' : 'text-gray-500' }} font-bold mb-1">Allergies</p>
-                            <p class="text-sm font-bold {{ optional($medicalHistory)->allergies ? 'text-red-800' : 'text-gray-800' }}">{{ optional($medicalHistory)->allergies ?: 'No known allergies' }}</p>
+                            <p class="text-xs {{ optional($medicalHistory)->allergies ? 'text-red-500' : 'text-gray-500' }} font-bold mb-1">{{ __('Allergies') }}</p>
+                            <p class="text-sm font-bold {{ optional($medicalHistory)->allergies ? 'text-red-800' : 'text-gray-800' }}">{{ optional($medicalHistory)->allergies ?: __('No known allergies') }}</p>
                         </div>
                         <div class="border border-gray-200 rounded-xl p-3">
-                            <p class="text-xs text-gray-500 font-bold mb-1">Drug Allergies</p>
-                            <p class="text-sm font-bold text-gray-800">{{ optional($medicalHistory)->drug_allergies ?: 'No known drug allergies' }}</p>
+                            <p class="text-xs text-gray-500 font-bold mb-1">{{ __('Drug Allergies') }}</p>
+                            <p class="text-sm font-bold text-gray-800">{{ optional($medicalHistory)->drug_allergies ?: __('No known drug allergies') }}</p>
                         </div>
                         <div class="border {{ optional($medicalHistory)->others ? 'border-teal-200 bg-teal-50' : 'border-gray-200' }} rounded-xl p-3">
-                            <p class="text-xs {{ optional($medicalHistory)->others ? 'text-teal-600' : 'text-gray-500' }} font-bold mb-1">Other Conditions</p>
-                            <p class="text-sm font-bold {{ optional($medicalHistory)->others ? 'text-teal-800' : 'text-gray-800' }}">{{ optional($medicalHistory)->others ?: 'None recorded' }}</p>
+                            <p class="text-xs {{ optional($medicalHistory)->others ? 'text-teal-600' : 'text-gray-500' }} font-bold mb-1">{{ __('Other Conditions') }}</p>
+                            <p class="text-sm font-bold {{ optional($medicalHistory)->others ? 'text-teal-800' : 'text-gray-800' }}">{{ optional($medicalHistory)->others ? __($medicalHistory->others) : __('None recorded') }}</p>
                         </div>
                     </div>
                 </div>
@@ -238,8 +238,8 @@
                 <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                     <h3 class="font-extrabold text-base text-gray-800 mb-4 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
-                        Clinical Alerts
-                        <span class="ml-auto text-xs font-medium text-gray-400">Rule-based</span>
+                        {{ __('Clinical Alerts') }}
+                        <span class="ml-auto text-xs font-medium text-gray-400">{{ __('Rule-based') }}</span>
                     </h3>
                     <div class="space-y-2">
                         @foreach($alerts as [$message, $severity])
@@ -266,15 +266,15 @@
 
             <div id="face-registration" class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                 <h3 class="font-extrabold text-lg text-gray-800 mb-4 flex items-center gap-2">
-                    Facial Biometrics Status
+                    {{ __('Facial Biometrics Status') }}
                 </h3>
 
                 @if($patient->face_descriptor)
                     <div class="p-4 bg-green-50 text-green-700 border border-green-200 rounded-xl font-bold">
-                        Facial biometric data is registered. Patient is ready for Quick Scan.
+                        {{ __('Facial biometric data is registered. Patient is ready for Quick Scan.') }}
                         @if($patient->face_consent_at)
                             <p class="mt-1 text-xs font-semibold text-green-800">
-                                Consent recorded {{ $patient->face_consent_at->format('d M Y') }}{{ $patient->faceConsentRecorder ? ' by ' . $patient->faceConsentRecorder->name : '' }}.
+                                {{ $patient->faceConsentRecorder ? __('Consent recorded :date by :name.', ['date' => $patient->face_consent_at->translatedFormat('d M Y'), 'name' => $patient->faceConsentRecorder->name]) : __('Consent recorded :date.', ['date' => $patient->face_consent_at->translatedFormat('d M Y')]) }}
                             </p>
                         @endif
                     </div>
@@ -284,31 +284,31 @@
                         <form method="POST" action="{{ route('pharmacist.patients.faceConsent', $patient->id) }}"
                               class="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4">
                             @csrf
-                            <p class="font-bold text-amber-900">Consent not recorded</p>
-                            <p class="mt-1 text-sm text-amber-800">This face was registered before consent was recorded. Ask the patient, then record their consent — or remove the face if they do not agree.</p>
+                            <p class="font-bold text-amber-900">{{ __('Consent not recorded') }}</p>
+                            <p class="mt-1 text-sm text-amber-800">{{ __('This face was registered before consent was recorded. Ask the patient, then record their consent — or remove the face if they do not agree.') }}</p>
                             @include('pharmacist.patients.partials.face-consent-checkbox', ['name' => 'consent'])
-                            <button type="submit" class="mt-3 px-5 py-2 rounded-full bg-amber-600 text-white text-sm font-bold hover:bg-amber-700">Record consent</button>
+                            <button type="submit" class="mt-3 px-5 py-2 rounded-full bg-amber-600 text-white text-sm font-bold hover:bg-amber-700">{{ __('Record consent') }}</button>
                         </form>
                     @endif
                     <div class="mt-4 flex flex-col gap-3 sm:flex-row">
                         <a href="#face-registration"
                            onclick="document.getElementById('registered-face-actions').classList.toggle('hidden'); return false;"
                            class="inline-flex justify-center px-5 py-2 bg-teal-600 text-white font-bold text-sm rounded-full shadow hover:bg-teal-700 transition-colors">
-                            Update Face
+                            {{ __('Update Face') }}
                         </a>
                         <form action="{{ route('pharmacist.patients.deleteFace', $patient->id) }}" method="POST"
-                              onsubmit="return confirm('Remove this patient face data? Quick Scan will no longer recognise this patient until a new face is registered.');">
+                              onsubmit="return confirm(@js(__('Remove this patient face data? Quick Scan will no longer recognise this patient until a new face is registered.')));">
                             @csrf
                             @method('DELETE')
                             <button type="submit"
                                 class="inline-flex justify-center px-5 py-2 bg-red-50 text-red-700 border border-red-200 font-bold text-sm rounded-full hover:bg-red-100 transition-colors">
-                                Remove Face
+                                {{ __('Remove Face') }}
                             </button>
                         </form>
                     </div>
                     <div id="registered-face-actions" class="hidden mt-4">
                         <div class="p-4 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-xl mb-4 font-bold text-sm">
-                            This will replace the current face data after patient consent.
+                            {{ __('This will replace the current face data after patient consent.') }}
                         </div>
 
                         <div class="flex flex-col items-center bg-gray-50 p-4 rounded-xl border border-dashed border-gray-300">
@@ -321,20 +321,20 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0"/>
                                     </svg>
                                 </div>
-                                <p class="text-sm font-bold text-gray-700">Camera is off</p>
-                                <p class="text-xs text-gray-400 text-center max-w-xs">Click the button below to turn on the camera and update this patient's facial biometric.</p>
+                                <p class="text-sm font-bold text-gray-700">{{ __('Camera is off') }}</p>
+                                <p class="text-xs text-gray-400 text-center max-w-xs">{{ __('Click the button below to turn on the camera and update this patient\'s facial biometric.') }}</p>
                                 <button type="button" id="btn-start-camera"
                                     class="mt-2 px-6 py-2.5 bg-teal-600 text-white font-bold rounded-full shadow hover:bg-teal-700 active:scale-95 transition-all flex items-center gap-2">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.069A1 1 0 0121 8.868v6.264a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
                                     </svg>
-                                    Start Camera
+                                    {{ __('Start Camera') }}
                                 </button>
-                                <p id="model-loading-hint" class="text-xs text-gray-400 italic">Loading AI models in background...</p>
+                                <p id="model-loading-hint" class="text-xs text-gray-400 italic">{{ __('Loading AI models in background...') }}</p>
                             </div>
 
                             <div id="camera-active" class="hidden w-full flex flex-col items-center gap-3">
-                                <p id="status" class="text-sm text-gray-500 font-bold">Initialising camera...</p>
+                                <p id="status" class="text-sm text-gray-500 font-bold">{{ __('Initialising camera...') }}</p>
 
                                 <div id="video-container" class="relative inline-block w-full max-w-sm overflow-hidden rounded-xl shadow-sm bg-black">
                                     <video id="video" width="320" height="240" autoplay muted playsinline class="w-full bg-black rounded-xl"></video>
@@ -346,23 +346,23 @@
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                         </svg>
-                                        Capture &amp; Save Face
+                                        {!! __('Capture &amp; Save Face') !!}
                                     </button>
                                     <button type="button" id="btn-stop-camera"
                                         class="px-5 py-2 bg-gray-100 text-gray-600 font-bold rounded-full hover:bg-gray-200 transition-colors">
-                                        Cancel
+                                        {{ __('Cancel') }}
                                     </button>
                                 </div>
 
                                 <p id="update-success-msg" class="text-green-600 font-bold hidden mt-1">
-                                    Face successfully saved. Reloading profile...
+                                    {{ __('Face successfully saved. Reloading profile...') }}
                                 </p>
                             </div>
                         </div>
                     </div>
                 @else
                     <div class="p-4 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-xl mb-4 font-bold text-sm">
-                        No facial biometric found for this patient. Please scan now to update their profile.
+                        {{ __('No facial biometric found for this patient. Please scan now to update their profile.') }}
                     </div>
 
                     <div class="flex flex-col items-center bg-gray-50 p-4 rounded-xl border border-dashed border-gray-300">
@@ -377,21 +377,21 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0"/>
                                 </svg>
                             </div>
-                            <p class="text-sm font-bold text-gray-700">Camera is off</p>
-                            <p class="text-xs text-gray-400 text-center max-w-xs">Click the button below to turn on the camera and register this patient's facial biometric.</p>
+                            <p class="text-sm font-bold text-gray-700">{{ __('Camera is off') }}</p>
+                            <p class="text-xs text-gray-400 text-center max-w-xs">{{ __('Click the button below to turn on the camera and register this patient\'s facial biometric.') }}</p>
                             <button type="button" id="btn-start-camera"
                                 class="mt-2 px-6 py-2.5 bg-teal-600 text-white font-bold rounded-full shadow hover:bg-teal-700 active:scale-95 transition-all flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.069A1 1 0 0121 8.868v6.264a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
                                 </svg>
-                                Start Camera
+                                {{ __('Start Camera') }}
                             </button>
-                            <p id="model-loading-hint" class="text-xs text-gray-400 italic">Loading AI models in background…</p>
+                            <p id="model-loading-hint" class="text-xs text-gray-400 italic">{{ __('Loading AI models in background…') }}</p>
                         </div>
 
                         {{-- Camera active panel (hidden until Start Camera clicked) --}}
                         <div id="camera-active" class="hidden w-full flex flex-col items-center gap-3">
-                            <p id="status" class="text-sm text-gray-500 font-bold">Initialising camera…</p>
+                            <p id="status" class="text-sm text-gray-500 font-bold">{{ __('Initialising camera…') }}</p>
 
                             <div id="video-container" class="relative inline-block w-full max-w-sm overflow-hidden rounded-xl shadow-sm bg-black">
                                 <video id="video" width="320" height="240" autoplay muted playsinline class="w-full bg-black rounded-xl"></video>
@@ -403,16 +403,16 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                     </svg>
-                                    Capture &amp; Save Face
+                                    {!! __('Capture &amp; Save Face') !!}
                                 </button>
                                 <button type="button" id="btn-stop-camera"
                                     class="px-5 py-2 bg-gray-100 text-gray-600 font-bold rounded-full hover:bg-gray-200 transition-colors">
-                                    Cancel
+                                    {{ __('Cancel') }}
                                 </button>
                             </div>
 
                             <p id="update-success-msg" class="text-green-600 font-bold hidden mt-1">
-                                ✓ Face successfully saved. Reloading profile…
+                                {{ __('✓ Face successfully saved. Reloading profile…') }}
                             </p>
                         </div>
 
@@ -422,9 +422,9 @@
 
             <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                 <div class="mb-4">
-                    <h3 class="font-extrabold text-lg text-gray-800">Key Health Trend</h3>
+                    <h3 class="font-extrabold text-lg text-gray-800">{{ __('Key Health Trend') }}</h3>
                     <p class="text-sm text-gray-500 mt-0.5">
-                        High-concern readings from recorded check-ups: blood sugar, cholesterol, HbA1c, and LDL when available.
+                        {{ __('High-concern readings from recorded check-ups: blood sugar, cholesterol, HbA1c, and LDL when available.') }}
                     </p>
                 </div>
                 @if($patient->healthCheckups->count() >= 2)
@@ -437,8 +437,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                   d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
                         </svg>
-                        <p class="text-sm font-semibold text-gray-400">No historical check-up data available.</p>
-                        <p class="text-xs text-gray-400">Complete at least 2 check-ups to view trends.</p>
+                        <p class="text-sm font-semibold text-gray-400">{{ __('No historical check-up data available.') }}</p>
+                        <p class="text-xs text-gray-400">{{ __('Complete at least 2 check-ups to view trends.') }}</p>
                     </div>
                 @endif
             </div>
@@ -447,53 +447,53 @@
             <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
                     <div>
-                        <h3 class="font-extrabold text-lg text-gray-800">Health Check-up History</h3>
-                        <p class="text-xs text-gray-400 mt-0.5">All recorded check-up results for this patient.</p>
+                        <h3 class="font-extrabold text-lg text-gray-800">{{ __('Health Check-up History') }}</h3>
+                        <p class="text-xs text-gray-400 mt-0.5">{{ __('All recorded check-up results for this patient.') }}</p>
                     </div>
                     <a href="{{ route('pharmacist.checkups.create', $patient->id) }}" class="inline-flex justify-center px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm rounded-full shadow-md transition-colors">
-                        + Add Check-up
+                        {{ __('+ Add Check-up') }}
                     </a>
                 </div>
 
                 @if($allCheckups->isEmpty())
-                    <div class="py-10 text-center text-gray-400 italic text-sm">No check-up records found for this patient.</div>
+                    <div class="py-10 text-center text-gray-400 italic text-sm">{{ __('No check-up records found for this patient.') }}</div>
                 @else
                     <div class="relative overflow-x-auto rounded-xl border border-gray-100">
                         <table class="w-full text-sm text-left" style="min-width:1400px">
                             <thead class="bg-gray-50 text-gray-600 font-bold text-xs uppercase tracking-wide">
                                 <tr>
-                                    <th class="py-3 px-4 rounded-tl-xl">Date</th>
-                                    <th class="py-3 px-4">BP <span class="font-normal normal-case text-gray-400">(mmHg)</span></th>
-                                    <th class="py-3 px-4">Heart Rate <span class="font-normal normal-case text-gray-400">(bpm)</span></th>
-                                    <th class="py-3 px-4">Haemoglobin <span class="font-normal normal-case text-gray-400">(g/dL)</span></th>
-                                    <th class="py-3 px-4">Blood Sugar <span class="font-normal normal-case text-gray-400">(mmol/L)</span></th>
+                                    <th class="py-3 px-4 rounded-tl-xl">{{ __('Date') }}</th>
+                                    <th class="py-3 px-4">BP <span class="font-normal normal-case text-gray-400">{{ __('(mmHg)') }}</span></th>
+                                    <th class="py-3 px-4">{{ __('Heart Rate') }} <span class="font-normal normal-case text-gray-400">{{ __('(bpm)') }}</span></th>
+                                    <th class="py-3 px-4">{{ __('Haemoglobin') }} <span class="font-normal normal-case text-gray-400">{{ __('(g/dL)') }}</span></th>
+                                    <th class="py-3 px-4">{{ __('Blood Sugar') }} <span class="font-normal normal-case text-gray-400">{{ __('(mmol/L)') }}</span></th>
                                     <th class="py-3 px-4">HbA1c <span class="font-normal normal-case text-gray-400">(%)</span></th>
-                                    <th class="py-3 px-4">A/G Ratio</th>
+                                    <th class="py-3 px-4">{{ __('A/G Ratio') }}</th>
                                     <th class="py-3 px-4">ALP</th>
                                     <th class="py-3 px-4">AST</th>
                                     <th class="py-3 px-4">ALT</th>
                                     <th class="py-3 px-4">GGT</th>
-                                    <th class="py-3 px-4">Sodium</th>
-                                    <th class="py-3 px-4">Renal Glucose</th>
-                                    <th class="py-3 px-4">Total Cholesterol <span class="font-normal normal-case text-gray-400">(mmol/L)</span></th>
+                                    <th class="py-3 px-4">{{ __('Sodium') }}</th>
+                                    <th class="py-3 px-4">{{ __('Renal Glucose') }}</th>
+                                    <th class="py-3 px-4">{{ __('Total Cholesterol') }} <span class="font-normal normal-case text-gray-400">{{ __('(mmol/L)') }}</span></th>
                                     <th class="py-3 px-4">LDL</th>
                                     <th class="py-3 px-4">HDL</th>
-                                    <th class="py-3 px-4">Notes</th>
-                                    <th class="py-3 px-4 rounded-tr-xl"><span class="sr-only">Actions</span></th>
+                                    <th class="py-3 px-4">{{ __('Notes') }}</th>
+                                    <th class="py-3 px-4 rounded-tr-xl"><span class="sr-only">{{ __('Actions') }}</span></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 @foreach($allCheckups as $checkup)
                                     <tr class="hover:bg-teal-50/30 transition-colors {{ $loop->first ? 'bg-teal-50/20' : '' }}">
                                         <td class="py-3 px-4 font-bold text-gray-800 whitespace-nowrap">
-                                            {{ \Carbon\Carbon::parse($checkup->checkup_date)->format('d M Y') }}
+                                            {{ \Carbon\Carbon::parse($checkup->checkup_date)->translatedFormat('d M Y') }}
                                             @if($loop->first)
-                                                <span class="ml-1 text-xs bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded font-bold">Latest</span>
+                                                <span class="ml-1 text-xs bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded font-bold">{{ __('Latest') }}</span>
                                             @endif
                                             @if($checkup->edited_at)
                                                 <span class="block mt-0.5 text-[11px] font-semibold text-amber-700"
-                                                      title="Corrected {{ $checkup->edited_at->format('d M Y, g:i a') }} by {{ $checkup->editor?->name ?? 'a removed user' }}">
-                                                    Edited {{ $checkup->edited_at->format('d M Y') }} by {{ $checkup->editor?->name ?? 'a removed user' }}
+                                                      title="{{ __('Corrected :date by :name', ['date' => $checkup->edited_at->translatedFormat('d M Y, g:i a'), 'name' => $checkup->editor?->name ?? __('a removed user')]) }}">
+                                                    {{ __('Edited :date by :name', ['date' => $checkup->edited_at->translatedFormat('d M Y'), 'name' => $checkup->editor?->name ?? __('a removed user')]) }}
                                                 </span>
                                             @endif
                                         </td>
@@ -529,8 +529,8 @@
                                         <td class="py-3 px-4 whitespace-nowrap">
                                             <a href="{{ route('pharmacist.checkups.edit', $checkup->id) }}"
                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-gray-200 bg-white text-xs font-bold text-teal-600 hover:bg-teal-50"
-                                               aria-label="Edit check-up of {{ \Carbon\Carbon::parse($checkup->checkup_date)->format('d M Y') }}">
-                                                Edit
+                                               aria-label="Edit check-up of {{ \Carbon\Carbon::parse($checkup->checkup_date)->translatedFormat('d M Y') }}">
+                                                {{ __('Edit') }}
                                             </a>
                                         </td>
                                     </tr>
@@ -539,10 +539,10 @@
                         </table>
                     </div>
                     <p class="text-xs text-gray-400 mt-2 flex items-center gap-3">
-                        {{ $allCheckups->count() }} record(s) total &nbsp;·&nbsp;
-                        <span class="text-red-500 font-bold">■</span> High &nbsp;
-                        <span class="text-amber-500 font-bold">■</span> Borderline &nbsp;
-                        <span class="text-gray-400 font-bold">■</span> Normal
+                        {{ trans_choice(':count record total|:count records total', $allCheckups->count(), ['count' => $allCheckups->count()]) }} &nbsp;·&nbsp;
+                        <span class="text-red-500 font-bold">■</span> {{ __('High') }}&nbsp;
+                        <span class="text-amber-500 font-bold">■</span> {{ __('Borderline') }}&nbsp;
+                        <span class="text-gray-400 font-bold">■</span> {{ __('Normal') }}
                     </p>
                 @endif
             </div>
@@ -550,35 +550,35 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="space-y-6">
                     <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-                        <h3 class="font-extrabold text-lg text-gray-800 mb-6 flex items-center gap-2">Timeline</h3>
+                        <h3 class="font-extrabold text-lg text-gray-800 mb-6 flex items-center gap-2">{{ __('Timeline') }}</h3>
                         <div class="relative border-l-2 border-gray-200 ml-3 space-y-6">
                             @forelse($patient->healthCheckups as $checkup)
                                 <div class="relative pl-6">
                                     <div class="absolute -left-[9px] top-1 w-4 h-4 bg-white border-2 border-teal-500 rounded-full"></div>
-                                    <div class="text-xs font-bold text-gray-400 mb-1">{{ \Carbon\Carbon::parse($checkup->checkup_date)->format('d M Y') }}</div>
+                                    <div class="text-xs font-bold text-gray-400 mb-1">{{ \Carbon\Carbon::parse($checkup->checkup_date)->translatedFormat('d M Y') }}</div>
                                     <div class="border border-gray-200 rounded-xl p-4 bg-gray-50/50">
-                                        <p class="font-bold text-sm text-gray-800">Health Check-up</p>
-                                        <p class="text-xs text-gray-500 mt-1">BP: {{ $checkup->blood_pressure ?? '—' }} | Sugar: {{ $checkup->blood_sugar ?? '—' }} | Cholesterol: {{ $checkup->cholesterol ?? '—' }}</p>
+                                        <p class="font-bold text-sm text-gray-800">{{ __('Health Check-up') }}</p>
+                                        <p class="text-xs text-gray-500 mt-1">{{ __('BP') }}: {{ $checkup->blood_pressure ?? '—' }} | {{ __('Sugar') }}: {{ $checkup->blood_sugar ?? '—' }} | {{ __('Cholesterol') }}: {{ $checkup->cholesterol ?? '—' }}</p>
                                         @if($checkup->notes)
                                             <p class="text-xs text-gray-400 mt-1 italic">{{ \Str::limit($checkup->notes, 80) }}</p>
                                         @endif
                                     </div>
                                 </div>
                             @empty
-                                <div class="pl-6 text-sm text-gray-500 italic">No timeline records found.</div>
+                                <div class="pl-6 text-sm text-gray-500 italic">{{ __('No timeline records found.') }}</div>
                             @endforelse
                         </div>
                     </div>
 
                     <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                         <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
-                            <h3 class="font-extrabold text-lg text-gray-800 flex items-center gap-2">Medication</h3>
+                            <h3 class="font-extrabold text-lg text-gray-800 flex items-center gap-2">{{ __('Medication') }}</h3>
                             <div class="flex flex-wrap gap-2">
                                 <a href="{{ route('pharmacist.medication.index', $patient->id) }}" class="inline-flex justify-center text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-bold">
-                                    View All
+                                    {{ __('View All') }}
                                 </a>
                                 <a href="{{ route('pharmacist.medication.index', $patient->id) }}" class="inline-flex justify-center text-xs bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-3 py-1.5 rounded-lg font-bold">
-                                    + Add Medication
+                                    {{ __('+ Add Medication') }}
                                 </a>
                             </div>
                         </div>
@@ -586,9 +586,9 @@
                             <table class="w-full text-sm text-left">
                                 <thead class="bg-gray-100 text-gray-700 font-bold">
                                     <tr>
-                                        <th class="py-3 px-4 rounded-tl-lg">Medication Name</th>
-                                        <th class="py-3 px-4">Dosage</th>
-                                        <th class="py-3 px-4 rounded-tr-lg">Frequency</th>
+                                        <th class="py-3 px-4 rounded-tl-lg">{{ __('Medication Name') }}</th>
+                                        <th class="py-3 px-4">{{ __('Dosage') }}</th>
+                                        <th class="py-3 px-4 rounded-tr-lg">{{ __('Frequency') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -600,7 +600,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="3" class="py-6 px-4 text-center text-gray-500 italic">No medications prescribed yet.</td>
+                                            <td colspan="3" class="py-6 px-4 text-center text-gray-500 italic">{{ __('No medications prescribed yet.') }}</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -611,17 +611,17 @@
 
                 <div class="space-y-6">
                     <div class="rounded-2xl p-6 shadow-lg text-white" style="background: linear-gradient(135deg, #0f766e 0%, #0891b2 100%)">
-                        <h3 class="font-extrabold text-lg mb-1">Full Clinical Summary</h3>
-                        <p class="text-teal-200 text-sm mb-4">View the complete pharmacist clinical summary with charts, alerts, and medication overview.</p>
+                        <h3 class="font-extrabold text-lg mb-1">{{ __('Full Clinical Summary') }}</h3>
+                        <p class="text-teal-200 text-sm mb-4">{{ __('View the complete pharmacist clinical summary with charts, alerts, and medication overview.') }}</p>
                         <a href="{{ route('pharmacist.patients.summary', $patient->id) }}"
                            class="inline-flex items-center gap-2 bg-white text-teal-700 font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-teal-50 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            View Full Summary
+                            {{ __('View Full Summary') }}
                         </a>
                         <a href="{{ route('pharmacist.patients.summary.download', $patient->id) }}"
                            class="ml-2 inline-flex items-center gap-2 bg-teal-700/60 border border-teal-400/40 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-teal-700 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                            Download
+                            {{ __('Download') }}
                         </a>
                         <form action="{{ route('pharmacist.patients.summary.email', $patient->id) }}" method="POST" class="mt-3">
                             @csrf
@@ -629,7 +629,7 @@
                                     class="inline-flex items-center gap-2 bg-cyan-500 text-cyan-950 font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-cyan-400 transition-colors"
                                     title="Send to {{ $patient->user->email }}">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 8V6a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-                                Send to Patient Email
+                                {{ __('Send to Patient Email') }}
                             </button>
                         </form>
                     </div>
@@ -640,23 +640,22 @@
             <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                 <details>
                     <summary class="list-none cursor-pointer inline-flex items-center gap-2 text-sm font-bold text-red-600 hover:text-red-700">
-                        Archive patient…
+                        {{ __('Archive patient…') }}
                     </summary>
                     <form method="POST" action="{{ route('pharmacist.patients.archive', $patient->id) }}"
                           class="mt-4 max-w-xl rounded-xl border border-red-200 bg-red-50 p-4 space-y-3">
                         @csrf
                         @method('PATCH')
                         <p class="text-sm text-red-800 font-semibold">
-                            Archiving {{ $patient->user->name }} hides them from your patient list, Quick Scan, the kiosk and reminders,
-                            and they can no longer log in. Nothing is deleted — you can restore them from "Archived patients" at any time.
+                            {{ __('Archiving :name hides them from your patient list, Quick Scan, the kiosk and reminders, and they can no longer log in. Nothing is deleted — you can restore them from "Archived patients" at any time.', ['name' => $patient->user->name]) }}
                         </p>
                         <div>
-                            <label for="archive_reason" class="block text-xs font-bold text-gray-700 mb-1">Reason (optional)</label>
+                            <label for="archive_reason" class="block text-xs font-bold text-gray-700 mb-1">{{ __('Reason (optional)') }}</label>
                             <input id="archive_reason" type="text" name="archive_reason" maxlength="255"
-                                   placeholder="e.g. moved away, transferred to another pharmacy"
+                                   placeholder="{{ __('e.g. moved away, transferred to another pharmacy') }}"
                                    class="w-full rounded-lg border-gray-300 text-sm">
                         </div>
-                        <button type="submit" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-bold">Confirm archive</button>
+                        <button type="submit" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-bold">{{ __('Confirm archive') }}</button>
                     </form>
                 </details>
             </div>
@@ -665,13 +664,14 @@
 
     @php
         $chartData = $patient->healthCheckups->sortBy([['checkup_date', 'asc'], ['id', 'asc']]);
-        $dates = $chartData->pluck('checkup_date')->map(fn($d) => \Carbon\Carbon::parse($d)->format('d M y'))->values();
+        $dates = $chartData->pluck('checkup_date')->map(fn($d) => \Carbon\Carbon::parse($d)->translatedFormat('d M y'))->values();
         $sugars = $chartData->pluck('blood_sugar')->values();
         $cholesterols = $chartData->pluck('cholesterol')->values();
         $hba1cSeries = $chartData->pluck('hba1c')->values();
         $ldlSeries = $chartData->pluck('ldl')->values();
     @endphp
 
+    @include('partials.js-i18n')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ asset('js/face-api.min.js') }}"></script>
     <script src="{{ asset('js/face-utils.js') }}?v={{ filemtime(public_path('js/face-utils.js')) }}"></script>
@@ -693,7 +693,7 @@
                         labels: chartLabels,
                         datasets: [
                             {
-                                label: 'Blood Sugar (mmol/L)',
+                                label: t('Blood Sugar (mmol/L)'),
                                 data: sugarData,
                                 borderColor: 'rgb(37, 99, 235)',
                                 backgroundColor: 'rgba(37, 99, 235, 0.10)',
@@ -703,7 +703,7 @@
                                 tension: 0.35
                             },
                             {
-                                label: 'Cholesterol (mmol/L)',
+                                label: t('Cholesterol (mmol/L)'),
                                 data: cholesterolData,
                                 borderColor: 'rgb(20, 184, 166)',
                                 backgroundColor: 'transparent',
@@ -713,7 +713,7 @@
                                 tension: 0.35
                             },
                             {
-                                label: 'HbA1c (%)',
+                                label: t('HbA1c (%)'),
                                 data: hba1cData,
                                 borderColor: 'rgb(147, 51, 234)',
                                 backgroundColor: 'transparent',
@@ -723,7 +723,7 @@
                                 tension: 0.35
                             },
                             {
-                                label: 'LDL (mmol/L)',
+                                label: t('LDL (mmol/L)'),
                                 data: ldlData,
                                 borderColor: 'rgb(245, 158, 11)',
                                 backgroundColor: 'transparent',
@@ -762,9 +762,9 @@
                 // ── Load AI models silently in the background ─────────────────
                 FaceUtils.loadModels('{{ asset("models") }}').then(() => {
                     modelsReady = true;
-                    if (modelHint) modelHint.textContent = 'AI models ready.';
+                    if (modelHint) modelHint.textContent = t('AI models ready.');
                 }).catch(err => {
-                    if (modelHint) modelHint.textContent = 'Failed to load AI models.';
+                    if (modelHint) modelHint.textContent = t('Failed to load AI models.');
                     console.error('Model Load Error:', err);
                 });
 
@@ -774,13 +774,13 @@
 
                 btnStart.addEventListener('click', async () => {
                     if (consentBox && !consentBox.checked) {
-                        modelHint.textContent = 'Tick "Patient consent" first: the patient must agree before their face is captured.';
+                        modelHint.textContent = t('Tick "Patient consent" first: the patient must agree before their face is captured.');
                         modelHint.classList.add('text-red-600', 'font-bold');
                         consentBox.focus();
                         return;
                     }
                     if (!modelsReady) {
-                        btnStart.textContent = 'Loading models… please wait';
+                        btnStart.textContent = t('Loading models… please wait');
                         btnStart.disabled = true;
                         await new Promise(resolve => {
                             const check = setInterval(() => {
@@ -792,14 +792,14 @@
 
                     cameraIdle.classList.add('hidden');
                     cameraActive.classList.remove('hidden');
-                    statusText.textContent = 'Starting camera…';
+                    statusText.textContent = t('Starting camera…');
 
                     try {
                         activeStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
                         video.srcObject = activeStream;
-                        statusText.textContent = 'Camera live — position patient\'s face in frame.';
+                        statusText.textContent = t("Camera live — position patient's face in frame.");
                     } catch (e) {
-                        statusText.textContent = 'Camera error. Please allow camera access.';
+                        statusText.textContent = t('Camera error. Please allow camera access.');
                     }
                 });
 
@@ -841,9 +841,9 @@
                         if (detections && detections.length > 0) {
                             const resized = faceapi.resizeResults(detections, size);
                             faceapi.draw.drawDetections(canvas, resized);
-                            statusText.textContent = `Face detected (${detections.length}). Click "Capture & Save Face" when ready.`;
+                            statusText.textContent = t('Face detected (:count). Click "Capture & Save Face" when ready.', { count: detections.length });
                         } else {
-                            statusText.textContent = 'No face detected — position patient in front of camera.';
+                            statusText.textContent = t('No face detected — position patient in front of camera.');
                         }
                     }, 400);
                 });
@@ -859,9 +859,9 @@
                         capture = await FaceUtils.captureAverageDescriptor(video, {
                             frames: 5,
                             onProgress: (count, total, hint) => {
-                                btnUpdateFace.textContent = `Capturing ${count}/${total}…`;
-                                FaceUtils.showProgress(count, total, hint);
-                                statusText.textContent = hint;
+                                btnUpdateFace.textContent = t('Capturing :count/:total…', { count, total });
+                                FaceUtils.showProgress(count, total, t(hint));
+                                statusText.textContent = t(hint);
                             },
                         });
                     } catch (err) {
@@ -871,7 +871,7 @@
                     }
 
                     if (capture) {
-                        btnUpdateFace.textContent = 'Saving…';
+                        btnUpdateFace.textContent = t('Saving…');
 
                         const descriptorArray = capture.descriptor;
 
@@ -888,7 +888,7 @@
                         .then(data => {
                             if (data.errors) {   // e.g. consent missing (422)
                                 statusText.textContent = Object.values(data.errors).flat()[0];
-                                btnUpdateFace.textContent = 'Capture & Save Face';
+                                btnUpdateFace.textContent = t('Capture & Save Face');
                                 btnUpdateFace.disabled = false;
                                 btnStop.disabled = false;
                                 return;
@@ -901,20 +901,20 @@
                                 btnStop.classList.add('hidden');
                                 setTimeout(() => window.location.reload(), 1500);
                             } else {
-                                statusText.textContent = 'Failed to save face data. Please try again.';
-                                btnUpdateFace.textContent = 'Capture & Save Face';
+                                statusText.textContent = t('Failed to save face data. Please try again.');
+                                btnUpdateFace.textContent = t('Capture & Save Face');
                                 btnUpdateFace.disabled = false;
                                 btnStop.disabled = false;
                             }
                         })
                         .catch(err => {
                             console.error('Save error:', err);
-                            btnUpdateFace.textContent = 'Capture & Save Face';
+                            btnUpdateFace.textContent = t('Capture & Save Face');
                             btnUpdateFace.disabled = false;
                             btnStop.disabled = false;
                         });
                     } else {
-                        btnUpdateFace.textContent = 'Capture & Save Face';
+                        btnUpdateFace.textContent = t('Capture & Save Face');
                         btnUpdateFace.disabled = false;
                         btnStop.disabled = false;
                     }

@@ -11,7 +11,7 @@
 
                 @if ($errors->any())
                     <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800" role="alert">
-                        <p class="font-bold">Patient could not be saved. Please correct the fields below.</p>
+                        <p class="font-bold">{{ __('Patient could not be saved. Please correct the fields below.') }}</p>
                         <ul class="mt-2 list-disc space-y-1 pl-5 text-sm">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
@@ -23,59 +23,59 @@
                 <form id="patient-form" action="{{ route('pharmacist.patients.store') }}" method="POST">
                     @csrf
                     
-                    <h3 class="text-lg font-bold mb-4 border-b pb-2">Patient Details</h3>
+                    <h3 class="text-lg font-bold mb-4 border-b pb-2">{{ __('Patient Details') }}</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Full Name</label>
+                            <label class="block text-sm font-medium text-gray-700">{{ __('Full Name') }}</label>
                             <input type="text" name="name" value="{{ old('name') }}" required class="mt-1 block w-full rounded-md shadow-sm {{ $errors->has('name') ? 'border-red-400' : 'border-gray-300' }}">
                             @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Email Address</label>
+                            <label class="block text-sm font-medium text-gray-700">{{ __('Email Address') }}</label>
                             <input type="email" name="email" value="{{ old('email') }}" required class="mt-1 block w-full rounded-md shadow-sm {{ $errors->has('email') ? 'border-red-400' : 'border-gray-300' }}">
                             @error('email') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Age</label>
+                            <label class="block text-sm font-medium text-gray-700">{{ __('Age') }}</label>
                             <input type="number" name="age" value="{{ old('age') }}" min="0" max="130" required class="mt-1 block w-full rounded-md shadow-sm {{ $errors->has('age') ? 'border-red-400' : 'border-gray-300' }}">
                             @error('age') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Gender</label>
+                            <label class="block text-sm font-medium text-gray-700">{{ __('Gender') }}</label>
                             <select name="gender" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                                <option value="Male" @selected(old('gender', 'Male') === 'Male')>Male</option>
-                                <option value="Female" @selected(old('gender') === 'Female')>Female</option>
+                                <option value="Male" @selected(old('gender', 'Male') === 'Male')>{{ __('Male') }}</option>
+                                <option value="Female" @selected(old('gender') === 'Female')>{{ __('Female') }}</option>
                             </select>
                             @error('gender') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                     </div>
 
-                    <h3 class="text-lg font-bold mb-4 border-b pb-2 text-gray-800">Initial Health Data</h3>
+                    <h3 class="text-lg font-bold mb-4 border-b pb-2 text-gray-800">{{ __('Initial Health Data') }}</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Height (cm)</label>
+                            <label class="block text-sm font-medium text-gray-700">{{ __('Height (cm)') }}</label>
                             <input type="number" step="0.01" min="1" max="999.99" name="height" id="height" value="{{ old('height') }}" required class="mt-1 block w-full rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 {{ $errors->has('height') ? 'border-red-400' : 'border-gray-300' }}">
                             @error('height') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Weight (kg)</label>
+                            <label class="block text-sm font-medium text-gray-700">{{ __('Weight (kg)') }}</label>
                             <input type="number" step="0.01" min="1" max="999.99" name="weight" id="weight" value="{{ old('weight') }}" required class="mt-1 block w-full rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 {{ $errors->has('weight') ? 'border-red-400' : 'border-gray-300' }}">
                             @error('weight') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Calculated BMI</label>
-                            <input type="text" id="bmi_display" readonly class="mt-1 block w-full bg-gray-100 border-gray-300 rounded-md shadow-sm cursor-not-allowed text-teal-700 font-bold" placeholder="Auto-calculated">
+                            <label class="block text-sm font-medium text-gray-700">{{ __('Calculated BMI') }}</label>
+                            <input type="text" id="bmi_display" readonly class="mt-1 block w-full bg-gray-100 border-gray-300 rounded-md shadow-sm cursor-not-allowed text-teal-700 font-bold" placeholder="{{ __('Auto-calculated') }}">
                         </div>
                     </div>
 
 
                     <div class="camera-section" style="margin-top: 20px; border: 1px solid #ccc; padding: 15px; border-radius: 8px;">
-                        <h4 class="font-bold mb-2">Facial Biometric Registration <span class="text-sm font-normal text-gray-500">(Optional)</span></h4>
+                        <h4 class="font-bold mb-2">{{ __('Facial Biometric Registration') }} <span class="text-sm font-normal text-gray-500">{{ __('(Optional)') }}</span></h4>
                         <div class="mb-3">
                             @include('pharmacist.patients.partials.face-capture-guide')
                             @include('pharmacist.patients.partials.face-consent-checkbox')
                         </div>
-                        <p id="status" class="text-sm font-semibold text-teal-700 mb-2">Loading AI models... You can save the patient without face data.</p>
+                        <p id="status" class="text-sm font-semibold text-teal-700 mb-2">{{ __('Loading AI models... You can save the patient without face data.') }}</p>
 
                         <div id="video-container" class="relative inline-block w-full max-w-sm overflow-hidden rounded-lg bg-black">
                             <video id="video" width="320" height="240" autoplay muted playsinline class="w-full rounded-lg"></video>
@@ -83,23 +83,23 @@
 
                         <div class="mt-3 flex flex-col gap-2 sm:flex-row">
                             <button type="button" id="btn-start-camera" class="px-4 py-2 bg-teal-600 text-white font-bold rounded shadow hover:bg-teal-700 transition-colors opacity-50 cursor-not-allowed" disabled>
-                                Loading Models...
+                                {{ __('Loading Models...') }}
                             </button>
                             <button type="button" id="btn-scan-face" class="px-4 py-2 bg-teal-600 text-white font-bold rounded shadow hover:bg-teal-700 transition-colors hidden" style="display: none;">
-                                Scan & Capture Face
+                                {!! __('Scan & Capture Face') !!}
                             </button>
                         </div>
 
                         <input type="hidden" name="face_descriptor" id="hidden_face_descriptor">
                         
                         <p id="scan-success-msg" style="color: green; font-weight: bold; display: none; margin-top: 10px;">
-                            Face successfully captured. You can now save the patient.
+                            {{ __('Face successfully captured. You can now save the patient.') }}
                         </p>
                     </div>
 
                     <div class="flex flex-col-reverse justify-end gap-3 mt-6 sm:flex-row sm:gap-4">
-                        <a href="{{ route('pharmacist.dashboard') }}" class="inline-flex justify-center px-6 py-2 bg-gray-300 text-gray-800 font-bold rounded-lg hover:bg-gray-400 transition-colors">Cancel</a>
-                        <button type="submit" class="inline-flex justify-center px-6 py-2 bg-teal-600 text-white font-bold rounded-lg hover:bg-teal-700 transition-colors shadow-md">Save Patient</button>
+                        <a href="{{ route('pharmacist.dashboard') }}" class="inline-flex justify-center px-6 py-2 bg-gray-300 text-gray-800 font-bold rounded-lg hover:bg-gray-400 transition-colors">{{ __('Cancel') }}</a>
+                        <button type="submit" class="inline-flex justify-center px-6 py-2 bg-teal-600 text-white font-bold rounded-lg hover:bg-teal-700 transition-colors shadow-md">{{ __('Save Patient') }}</button>
                     </div>
                 </form>
 
@@ -107,6 +107,7 @@
         </div>
     </div>
 
+    @include('partials.js-i18n')
     <script src="{{ asset('js/face-api.min.js') }}"></script>
     <script src="{{ asset('js/face-utils.js') }}?v={{ filemtime(public_path('js/face-utils.js')) }}"></script>
 
@@ -150,14 +151,14 @@
             let previewInterval = null;
 
             if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-                statusText.innerText = "Camera access is blocked because this page is not using HTTPS. Use https:// or localhost.";
+                statusText.innerText = t("Camera access is blocked because this page is not using HTTPS. Use https:// or localhost.");
                 btnScanFace.disabled = true;
                 btnScanFace.classList.add('opacity-50', 'cursor-not-allowed');
                 return;
             }
 
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                statusText.innerText = "This browser does not allow camera access on the current page. Try HTTPS, localhost, or a supported browser.";
+                statusText.innerText = t("This browser does not allow camera access on the current page. Try HTTPS, localhost, or a supported browser.");
                 btnScanFace.disabled = true;
                 btnScanFace.classList.add('opacity-50', 'cursor-not-allowed');
                 return;
@@ -167,12 +168,12 @@
 
             // Load AI Models from public/models folder
             FaceUtils.loadModels('{{ asset("models") }}').then(() => {
-                statusText.innerText = "AI Models ready. Face capture is optional. Click 'Start Camera' if you want to add face data.";
+                statusText.innerText = t("AI Models ready. Face capture is optional. Click 'Start Camera' if you want to add face data.");
                 btnStartCamera.disabled = false;
-                btnStartCamera.innerText = "Start Camera";
+                btnStartCamera.innerText = t("Start Camera");
                 btnStartCamera.classList.remove('opacity-50', 'cursor-not-allowed');
             }).catch(err => {
-                statusText.innerText = "Error loading AI models. Please check console.";
+                statusText.innerText = t("Error loading AI models. Please check console.");
                 console.error(err);
             });
 
@@ -180,7 +181,7 @@
                 // PDPA: no camera until the patient's consent is ticked (the server also checks).
                 const consent = document.querySelector('[data-face-consent]');
                 if (consent && !consent.checked) {
-                    statusText.innerText = "Tick 'Patient consent' first: the patient must agree before their face is captured.";
+                    statusText.innerText = t("Tick 'Patient consent' first: the patient must agree before their face is captured.");
                     consent.focus();
                     return;
                 }
@@ -192,10 +193,10 @@
 
             // Start Webcam
             function startVideo() {
-                statusText.innerText = "Camera ready. Please face the screen.";
+                statusText.innerText = t("Camera ready. Please face the screen.");
                 navigator.mediaDevices.getUserMedia({ video: {} })
                     .then(stream => video.srcObject = stream)
-                    .catch(err => statusText.innerText = "Camera Error. Please allow camera access.");
+                    .catch(err => statusText.innerText = t("Camera Error. Please allow camera access."));
             }
 
             video.addEventListener('play', () => {
@@ -241,9 +242,9 @@
                     capture = await FaceUtils.captureAverageDescriptor(video, {
                         frames: 5,
                         onProgress: (count, total, hint) => {
-                            btnScanFace.innerText = `Capturing ${count}/${total}…`;
-                            FaceUtils.showProgress(count, total, hint);
-                            statusText.innerText = hint;
+                            btnScanFace.innerText = t('Capturing :count/:total…', { count, total });
+                            FaceUtils.showProgress(count, total, t(hint));
+                            statusText.innerText = t(hint);
                         },
                     });
                 } catch (err) {
@@ -271,7 +272,7 @@
 
                     // Show success message
                     successMsg.style.display = "block";
-                    statusText.innerText = `Face captured successfully from ${capture.frames} frames. You can now save the patient.`;
+                    statusText.innerText = t('Face captured successfully from :frames frames. You can now save the patient.', { frames: capture.frames });
                 }
             });
         });

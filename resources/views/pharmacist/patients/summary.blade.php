@@ -5,14 +5,14 @@
         $medications     = $patient->currentMedications;
         $activeMedCount  = $medications->count();
         $bmi             = (float) $patient->bmi;
-        $patientName     = $patient->user->name ?: ('Patient #' . $patient->id);
-        $patientEmail    = $patient->user->email ?: 'No email recorded';
-        $assignedPharmacistName = $patient->pharmacist?->name ?? 'Unassigned';
+        $patientName     = $patient->user->name ?: __('Patient #:id', ['id' => $patient->id]);
+        $patientEmail    = $patient->user->email ?: __('No email recorded');
+        $assignedPharmacistName = $patient->pharmacist?->name ?? __('Unassigned');
 
         // ── Chart data ──────────────────────────────────────────────────────
         $chartData         = $patient->healthCheckups->sortBy([['checkup_date', 'asc'], ['id', 'asc']])->values();
         $chartLabels       = $chartData->pluck('checkup_date')
-                               ->map(fn ($d) => \Carbon\Carbon::parse($d)->format('d M y'))
+                               ->map(fn ($d) => \Carbon\Carbon::parse($d)->translatedFormat('d M y'))
                                ->values();
         $sugarSeries       = $chartData->pluck('blood_sugar')->values();
         $cholesterolSeries = $chartData->pluck('cholesterol')->values();
@@ -56,7 +56,7 @@
 
         $formatMetric = function ($value, $unit = null, $decimals = 1) {
             if ($value === null || $value === '') {
-                return 'N/A';
+                return __('N/A');
             }
 
             $display = is_numeric($value) ? number_format((float) $value, $decimals) : $value;
@@ -65,20 +65,20 @@
         };
 
         $comparisonMetrics = collect([
-            ['key' => 'blood_pressure', 'label' => 'Blood Pressure', 'unit' => 'mmHg systolic', 'previous' => $parseSystolic($previousCheckup?->blood_pressure), 'latest' => $parseSystolic($latestCheckup?->blood_pressure), 'care' => 'blood pressure control, salt intake, stress, and follow-up BP checks'],
-            ['key' => 'haemoglobin', 'label' => 'Haemoglobin', 'unit' => 'g/dL', 'previous' => $previousCheckup?->haemoglobin, 'latest' => $latestCheckup?->haemoglobin, 'care' => 'haemoglobin status and follow-up screening'],
-            ['key' => 'blood_sugar', 'label' => 'Blood Sugar', 'unit' => 'mmol/L', 'previous' => $previousCheckup?->blood_sugar, 'latest' => $latestCheckup?->blood_sugar, 'care' => 'sugar intake, meal timing, and diabetes monitoring'],
-            ['key' => 'cholesterol', 'label' => 'Cholesterol', 'unit' => 'mmol/L', 'previous' => $previousCheckup?->cholesterol, 'latest' => $latestCheckup?->cholesterol, 'care' => 'fat intake, exercise, and lipid monitoring'],
-            ['key' => 'hba1c', 'label' => 'HbA1c', 'unit' => '%', 'previous' => $previousCheckup?->hba1c, 'latest' => $latestCheckup?->hba1c, 'care' => 'long-term blood sugar control'],
-            ['key' => 'albumin_globulin_ratio', 'label' => 'A/G Ratio', 'unit' => null, 'previous' => $previousCheckup?->albumin_globulin_ratio, 'latest' => $latestCheckup?->albumin_globulin_ratio, 'care' => 'liver function profile follow-up'],
-            ['key' => 'alkaline_phosphatase', 'label' => 'ALP', 'unit' => 'U/L', 'previous' => $previousCheckup?->alkaline_phosphatase, 'latest' => $latestCheckup?->alkaline_phosphatase, 'care' => 'liver enzyme monitoring'],
-            ['key' => 'aspartate_transaminase', 'label' => 'AST', 'unit' => 'U/L', 'previous' => $previousCheckup?->aspartate_transaminase, 'latest' => $latestCheckup?->aspartate_transaminase, 'care' => 'liver enzyme monitoring'],
-            ['key' => 'alanine_transaminase', 'label' => 'ALT', 'unit' => 'U/L', 'previous' => $previousCheckup?->alanine_transaminase, 'latest' => $latestCheckup?->alanine_transaminase, 'care' => 'liver enzyme monitoring'],
-            ['key' => 'gamma_glutamyl_transferase', 'label' => 'GGT', 'unit' => 'U/L', 'previous' => $previousCheckup?->gamma_glutamyl_transferase, 'latest' => $latestCheckup?->gamma_glutamyl_transferase, 'care' => 'liver enzyme monitoring'],
-            ['key' => 'sodium', 'label' => 'Sodium', 'unit' => 'mmol/L', 'previous' => $previousCheckup?->sodium, 'latest' => $latestCheckup?->sodium, 'care' => 'renal function profile follow-up'],
-            ['key' => 'renal_glucose', 'label' => 'Renal Glucose', 'unit' => 'mmol/L', 'previous' => $previousCheckup?->renal_glucose, 'latest' => $latestCheckup?->renal_glucose, 'care' => 'renal glucose pattern monitoring'],
-            ['key' => 'ldl', 'label' => 'LDL', 'unit' => 'mmol/L', 'previous' => $previousCheckup?->ldl, 'latest' => $latestCheckup?->ldl, 'care' => 'heart health and high LDL cholesterol'],
-            ['key' => 'hdl', 'label' => 'HDL', 'unit' => 'mmol/L', 'previous' => $previousCheckup?->hdl, 'latest' => $latestCheckup?->hdl, 'care' => 'healthy cholesterol balance and physical activity'],
+            ['key' => 'blood_pressure', 'label' => __('Blood Pressure'), 'unit' => __('mmHg systolic'), 'previous' => $parseSystolic($previousCheckup?->blood_pressure), 'latest' => $parseSystolic($latestCheckup?->blood_pressure), 'care' => __('blood pressure control, salt intake, stress, and follow-up BP checks')],
+            ['key' => 'haemoglobin', 'label' => __('Haemoglobin'), 'unit' => 'g/dL', 'previous' => $previousCheckup?->haemoglobin, 'latest' => $latestCheckup?->haemoglobin, 'care' => __('haemoglobin status and follow-up screening')],
+            ['key' => 'blood_sugar', 'label' => __('Blood Sugar'), 'unit' => 'mmol/L', 'previous' => $previousCheckup?->blood_sugar, 'latest' => $latestCheckup?->blood_sugar, 'care' => __('sugar intake, meal timing, and diabetes monitoring')],
+            ['key' => 'cholesterol', 'label' => __('Cholesterol'), 'unit' => 'mmol/L', 'previous' => $previousCheckup?->cholesterol, 'latest' => $latestCheckup?->cholesterol, 'care' => __('fat intake, exercise, and lipid monitoring')],
+            ['key' => 'hba1c', 'label' => __('HbA1c'), 'unit' => '%', 'previous' => $previousCheckup?->hba1c, 'latest' => $latestCheckup?->hba1c, 'care' => __('long-term blood sugar control')],
+            ['key' => 'albumin_globulin_ratio', 'label' => __('A/G Ratio'), 'unit' => null, 'previous' => $previousCheckup?->albumin_globulin_ratio, 'latest' => $latestCheckup?->albumin_globulin_ratio, 'care' => __('liver function profile follow-up')],
+            ['key' => 'alkaline_phosphatase', 'label' => __('ALP'), 'unit' => 'U/L', 'previous' => $previousCheckup?->alkaline_phosphatase, 'latest' => $latestCheckup?->alkaline_phosphatase, 'care' => __('liver enzyme monitoring')],
+            ['key' => 'aspartate_transaminase', 'label' => __('AST'), 'unit' => 'U/L', 'previous' => $previousCheckup?->aspartate_transaminase, 'latest' => $latestCheckup?->aspartate_transaminase, 'care' => __('liver enzyme monitoring')],
+            ['key' => 'alanine_transaminase', 'label' => __('ALT'), 'unit' => 'U/L', 'previous' => $previousCheckup?->alanine_transaminase, 'latest' => $latestCheckup?->alanine_transaminase, 'care' => __('liver enzyme monitoring')],
+            ['key' => 'gamma_glutamyl_transferase', 'label' => __('GGT'), 'unit' => 'U/L', 'previous' => $previousCheckup?->gamma_glutamyl_transferase, 'latest' => $latestCheckup?->gamma_glutamyl_transferase, 'care' => __('liver enzyme monitoring')],
+            ['key' => 'sodium', 'label' => __('Sodium'), 'unit' => 'mmol/L', 'previous' => $previousCheckup?->sodium, 'latest' => $latestCheckup?->sodium, 'care' => __('renal function profile follow-up')],
+            ['key' => 'renal_glucose', 'label' => __('Renal Glucose'), 'unit' => 'mmol/L', 'previous' => $previousCheckup?->renal_glucose, 'latest' => $latestCheckup?->renal_glucose, 'care' => __('renal glucose pattern monitoring')],
+            ['key' => 'ldl', 'label' => __('LDL'), 'unit' => 'mmol/L', 'previous' => $previousCheckup?->ldl, 'latest' => $latestCheckup?->ldl, 'care' => __('heart health and high LDL cholesterol')],
+            ['key' => 'hdl', 'label' => __('HDL'), 'unit' => 'mmol/L', 'previous' => $previousCheckup?->hdl, 'latest' => $latestCheckup?->hdl, 'care' => __('healthy cholesterol balance and physical activity')],
         ])->filter(fn ($metric) => $metric['previous'] !== null && $metric['latest'] !== null)
           ->map(function ($metric) use ($riskScore, $formatMetric) {
               $previousScore = $riskScore($metric['key'], $metric['previous']);
@@ -90,7 +90,7 @@
               $metric['previous_display'] = $formatMetric($metric['previous'], $metric['unit']);
               $metric['latest_display'] = $formatMetric($metric['latest'], $metric['unit']);
               $metric['status'] = abs($scoreChange) <= 3 ? 'stable' : ($scoreChange < 0 ? 'improved' : 'worsened');
-              $metric['change_label'] = abs($scoreChange) <= 3 ? 'About the same' : ($scoreChange < 0 ? 'Improved' : 'Worsened');
+              $metric['change_label'] = abs($scoreChange) <= 3 ? __('About the same') : ($scoreChange < 0 ? __('Improved') : __('Worsened'));
 
               return $metric;
           })->values();
@@ -120,54 +120,54 @@
 
         // No recent check-up (> 90 days or none at all)
         if (!$latestCheckup) {
-            $alerts->push(['No check-up recorded for this patient.', 'critical']);
+            $alerts->push([__('No check-up recorded for this patient.'), 'critical']);
         } elseif (\Carbon\Carbon::parse($latestCheckup->checkup_date)->diffInDays(now()) > 90) {
-            $alerts->push(['No check-up in the last 90 days. Review recommended.', 'review']);
+            $alerts->push([__('No check-up in the last 90 days. Review recommended.'), 'review']);
         }
 
         // No active medications
         if ($activeMedCount === 0) {
-            $alerts->push(['No active medications recorded.', 'review']);
+            $alerts->push([__('No active medications recorded.'), 'review']);
         }
 
         // Polypharmacy (≥ 5 medications)
         if ($activeMedCount >= 5) {
-            $alerts->push(['Polypharmacy detected (' . $activeMedCount . ' medications). Medication review recommended.', 'review']);
+            $alerts->push([__('Polypharmacy detected (:count medications). Medication review recommended.', ['count' => $activeMedCount]), 'review']);
         }
 
         // Drug allergies
         if (filled(optional($medicalHistory)->drug_allergies)) {
-            $alerts->push(['Drug allergies recorded: ' . $medicalHistory->drug_allergies, 'critical']);
+            $alerts->push([__('Drug allergies recorded: :value', ['value' => $medicalHistory->drug_allergies]), 'critical']);
         }
 
         // General allergies
         if (filled(optional($medicalHistory)->allergies)) {
-            $alerts->push(['General allergies recorded: ' . $medicalHistory->allergies, 'review']);
+            $alerts->push([__('General allergies recorded: :value', ['value' => $medicalHistory->allergies]), 'review']);
         }
 
         // High hypertension risk
         if (optional($medicalHistory)->hypertension === 'High Risk') {
-            $alerts->push(['High blood pressure risk noted in medical history.', 'critical']);
+            $alerts->push([__('High blood pressure risk noted in medical history.'), 'critical']);
         }
 
         // Diabetes
         if (filled(optional($medicalHistory)->diabetes) && optional($medicalHistory)->diabetes !== 'None') {
-            $alerts->push(['Diabetes status: ' . $medicalHistory->diabetes, 'review']);
+            $alerts->push([__('Diabetes status: :value', ['value' => __($medicalHistory->diabetes)]), 'review']);
         }
 
         // Blood sugar outside latest normal range (3.9-6.0 mmol/L)
         if ($latestCheckup && is_numeric($latestCheckup->blood_sugar) && ((float)$latestCheckup->blood_sugar < 3.9 || (float)$latestCheckup->blood_sugar > 6.0)) {
-            $alerts->push(['Blood sugar outside normal range (' . $latestCheckup->blood_sugar . ' mmol/L) detected at last check-up.', 'critical']);
+            $alerts->push([__('Blood sugar outside normal range (:value mmol/L) detected at last check-up.', ['value' => $latestCheckup->blood_sugar]), 'critical']);
         }
 
         // Elevated cholesterol at latest check-up (> 5.2 mmol/L)
         if ($latestCheckup && (float)$latestCheckup->cholesterol > 5.2) {
-            $alerts->push(['High cholesterol (' . $latestCheckup->cholesterol . ' mmol/L) detected at last check-up.', 'review']);
+            $alerts->push([__('High cholesterol (:value mmol/L) detected at last check-up.', ['value' => $latestCheckup->cholesterol]), 'review']);
         }
 
         // If still empty, patient is stable
         if ($alerts->isEmpty()) {
-            $alerts->push(['No high-priority alerts. Patient status is stable.', 'stable']);
+            $alerts->push([__('No high-priority alerts. Patient status is stable.'), 'stable']);
         }
 
         // ── Radar normalisation (no ML, just scale to 0-100) ─────────────────
@@ -185,67 +185,67 @@
         $hasReviewAlert = $alerts->contains(fn ($alert) => $alert[1] === 'review');
 
         if ($hasCriticalAlert || $worsenedMetrics->count() >= 2) {
-            $healthStatus = 'Needs close monitoring';
+            $healthStatus = __('Needs close monitoring');
             $healthStatusClass = 'bg-red-100 text-red-700';
         } elseif ($hasReviewAlert || $worsenedMetrics->isNotEmpty()) {
-            $healthStatus = 'Needs monitoring';
+            $healthStatus = __('Needs monitoring');
             $healthStatusClass = 'bg-amber-100 text-amber-700';
         } else {
-            $healthStatus = 'Stable';
+            $healthStatus = __('Stable');
             $healthStatusClass = 'bg-emerald-100 text-emerald-700';
         }
 
         $healthSummaryText = match (true) {
-            $hasCriticalAlert => 'The patient has high-priority risk factors that should be monitored closely and reviewed with the pharmacist.',
-            $worsenedMetrics->count() >= 2 => 'Several readings are trending worse compared with the previous check-up, so follow-up monitoring is recommended.',
-            $worsenedMetrics->isNotEmpty() => 'Most readings are acceptable, but at least one area has worsened and should be watched.',
-            $improvedMetrics->isNotEmpty() => 'The latest check-up shows improvement in some readings. Continue monitoring to maintain the progress.',
-            default => 'The available readings look stable. Continue routine check-ups and medication review as planned.',
+            $hasCriticalAlert => __('The patient has high-priority risk factors that should be monitored closely and reviewed with the pharmacist.'),
+            $worsenedMetrics->count() >= 2 => __('Several readings are trending worse compared with the previous check-up, so follow-up monitoring is recommended.'),
+            $worsenedMetrics->isNotEmpty() => __('Most readings are acceptable, but at least one area has worsened and should be watched.'),
+            $improvedMetrics->isNotEmpty() => __('The latest check-up shows improvement in some readings. Continue monitoring to maintain the progress.'),
+            default => __('The available readings look stable. Continue routine check-ups and medication review as planned.'),
         };
 
         $carePoints = collect();
 
         if (! $latestCheckup) {
-            $carePoints->push('Complete a health check-up so current readings can be reviewed.');
+            $carePoints->push(__('Complete a health check-up so current readings can be reviewed.'));
         } elseif (\Carbon\Carbon::parse($latestCheckup->checkup_date)->diffInDays(now()) > 90) {
-            $carePoints->push('Schedule a follow-up check-up because the latest record is older than 90 days.');
+            $carePoints->push(__('Schedule a follow-up check-up because the latest record is older than 90 days.'));
         }
 
         foreach ($worsenedMetrics as $metric) {
-            $carePoints->push('Watch ' . strtolower($metric['care']) . '.');
+            $carePoints->push(__('Watch :area.', ['area' => mb_strtolower($metric['care'])]));
         }
 
         if ($latestCheckup && is_numeric($latestCheckup->blood_sugar) && ((float) $latestCheckup->blood_sugar < 3.9 || (float) $latestCheckup->blood_sugar > 6.0)) {
-            $carePoints->push('Review blood sugar pattern, food intake, and diabetes risk.');
+            $carePoints->push(__('Review blood sugar pattern, food intake, and diabetes risk.'));
         }
 
         if ($latestCheckup && (float) $latestCheckup->cholesterol >= 5.2) {
-            $carePoints->push('Review cholesterol control, diet, exercise, and lipid follow-up.');
+            $carePoints->push(__('Review cholesterol control, diet, exercise, and lipid follow-up.'));
         }
 
         if ($latestCheckup && $systolic >= 130) {
-            $carePoints->push('Monitor blood pressure and counsel on salt intake, stress, and follow-up readings.');
+            $carePoints->push(__('Monitor blood pressure and counsel on salt intake, stress, and follow-up readings.'));
         }
 
         if ($activeMedCount >= 5) {
-            $carePoints->push('Review medication list for polypharmacy and adherence issues.');
+            $carePoints->push(__('Review medication list for polypharmacy and adherence issues.'));
         } elseif ($activeMedCount === 0) {
-            $carePoints->push('Confirm whether the patient is taking any medication not yet recorded.');
+            $carePoints->push(__('Confirm whether the patient is taking any medication not yet recorded.'));
         }
 
         if (filled(optional($medicalHistory)->drug_allergies) || filled(optional($medicalHistory)->allergies)) {
-            $carePoints->push('Check allergy history before recommending or dispensing medication.');
+            $carePoints->push(__('Check allergy history before recommending or dispensing medication.'));
         }
 
         if ($carePoints->isEmpty()) {
-            $carePoints->push('Continue routine check-ups, medication adherence, balanced diet, and regular activity.');
+            $carePoints->push(__('Continue routine check-ups, medication adherence, balanced diet, and regular activity.'));
         }
 
         $carePoints = $carePoints->unique()->take(5)->values();
         // Real adherence from the dose log (last 30 days); 0 on the chart when not tracked yet.
         $adherence       = \App\Support\Adherence::forPatient($patient, $medications);
         $radarAdherence  = $adherence['percent'] ?? 0;
-        $radarAdherenceLabel = $adherence['percent'] !== null ? 'Med. Adherence' : 'Med. Adherence (not tracked)';
+        $radarAdherenceLabel = $adherence['percent'] !== null ? __('Med. Adherence') : __('Med. Adherence (not tracked)');
 
         $hasRadarData    = ($radarBmi + $radarSugar + $radarCholest + $radarBp) > 0;
 
@@ -268,7 +268,7 @@
                 ->map(function ($line) use ($aiSuggestionStyles) {
                     [$title, $body] = str_contains($line, ':')
                         ? array_map('trim', explode(':', $line, 2))
-                        : ['Recommendation', $line];
+                        : [__('Recommendation'), $line];
 
                     $key = strtolower($title);
 
@@ -308,7 +308,7 @@
             <div>
                 <a href="{{ route('pharmacist.patients.show', $patient->id) }}"
                    class="inline-flex items-center gap-1 text-slate-500 hover:text-teal-700 font-bold transition-colors text-sm">
-                    &larr; Back to patient profile
+                    {!! __('&larr; Back to patient profile') !!}
                 </a>
             </div>
 
@@ -323,34 +323,34 @@
                                  class="w-20 h-20 rounded-full border-4 border-white/60 shadow-sm">
                             <div>
                                 <p class="text-xs font-bold uppercase tracking-[0.2em]" style="color:#ccfbf1;">
-                                    Pharmacist Clinical View
+                                    {{ __('Pharmacist Clinical View') }}
                                 </p>
                                 <h1 class="text-3xl font-extrabold" style="color:#ffffff;">
                                     {{ $patientName }}
                                 </h1>
                                 <div class="flex flex-wrap gap-3 text-sm mt-2" style="color:#f0fdfa;">
-                                    <span>{{ $patient->gender }}</span>
-                                    <span>{{ $patient->age }} years</span>
+                                    <span>{{ __($patient->gender) }}</span>
+                                    <span>{{ __(':age years', ['age' => $patient->age]) }}</span>
                                     <span>&bull;</span>
-                                    <span>Assigned: {{ $assignedPharmacistName }}</span>
+                                    <span>{{ __('Assigned: :name', ['name' => $assignedPharmacistName]) }}</span>
                                 </div>
                             </div>
                         </div>
                         <div class="flex flex-wrap gap-3">
                             <a href="{{ route('pharmacist.patients.show', $patient->id) }}"
                                class="px-4 py-2 rounded-full bg-white text-teal-700 font-bold shadow-sm hover:bg-teal-50 transition-colors text-sm">
-                                Full Profile
+                                {{ __('Full Profile') }}
                             </a>
                             <a href="{{ route('pharmacist.patients.summary.download', $patient->id) }}"
                                class="px-4 py-2 rounded-full bg-white text-teal-700 font-bold shadow-sm hover:bg-teal-50 transition-colors text-sm">
-                                Download Summary
+                                {{ __('Download Summary') }}
                             </a>
                             <form action="{{ route('pharmacist.patients.summary.email', $patient->id) }}" method="POST">
                                 @csrf
                                 <button type="submit"
                                         class="px-4 py-2 rounded-full bg-cyan-950/40 border border-white/40 text-white font-bold shadow-sm hover:bg-cyan-950/60 transition-colors text-sm"
                                         title="Send to {{ $patientEmail }}">
-                                    Send to Patient Email
+                                    {{ __('Send to Patient Email') }}
                                 </button>
                             </form>
                         </div>
@@ -363,56 +363,56 @@
 
                         {{-- BMI --}}
                         <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                            <p class="text-xs font-bold uppercase tracking-wide text-slate-500">BMI Status</p>
+                            <p class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('BMI Status') }}</p>
                             <div class="mt-3 flex items-center justify-between">
                                 <span class="text-3xl font-extrabold text-slate-800">
                                     {{ number_format($patient->bmi, 1) }}
                                 </span>
                                 <span class="px-3 py-1 rounded-full text-xs font-bold {{ $bmiStatus[1] }}">
-                                    {{ $bmiStatus[0] }}
+                                    {{ __($bmiStatus[0]) }}
                                 </span>
                             </div>
                         </div>
 
                         {{-- Blood Pressure --}}
                         <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                            <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Latest Blood Pressure</p>
+                            <p class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('Latest Blood Pressure') }}</p>
                             <p class="mt-3 text-3xl font-extrabold text-slate-800">
-                                {{ $latestCheckup?->blood_pressure ?? 'N/A' }}
+                                {{ $latestCheckup?->blood_pressure ?? __('N/A') }}
                             </p>
                             <p class="mt-1 text-sm text-slate-500">
                                 {{ $latestCheckup
-                                    ? \Carbon\Carbon::parse($latestCheckup->checkup_date)->format('d M Y')
-                                    : 'No check-up recorded yet' }}
+                                    ? \Carbon\Carbon::parse($latestCheckup->checkup_date)->translatedFormat('d M Y')
+                                    : __('No check-up recorded yet') }}
                             </p>
                         </div>
 
                         {{-- Blood Sugar --}}
                         <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                            <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Blood Sugar</p>
+                            <p class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('Blood Sugar') }}</p>
                             <p class="mt-3 text-3xl font-extrabold text-slate-800">
-                                {{ $latestCheckup?->blood_sugar ?? 'N/A' }}
+                                {{ $latestCheckup?->blood_sugar ?? __('N/A') }}
                                 @if($latestCheckup?->blood_sugar)
                                     <span class="text-base font-medium text-slate-400">mmol/L</span>
                                 @endif
                             </p>
                             <p class="mt-1 text-sm text-slate-500">
-                                Cholesterol: {{ $latestCheckup?->cholesterol ?? 'N/A' }}
+                                {{ __('Cholesterol') }}: {{ $latestCheckup?->cholesterol ?? __('N/A') }}
                                 @if($latestCheckup?->cholesterol) mmol/L @endif
                             </p>
                         </div>
 
                         {{-- Active Medications --}}
                         <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                            <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Active Medications</p>
+                            <p class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('Active Medications') }}</p>
                             <p class="mt-3 text-3xl font-extrabold text-slate-800">{{ $activeMedCount }}</p>
                             <p class="mt-1 text-sm text-slate-500">
                                 @if($activeMedCount >= 5)
-                                    <span class="text-amber-600 font-semibold">Polypharmacy — review recommended</span>
+                                    <span class="text-amber-600 font-semibold">{{ __('Polypharmacy — review recommended') }}</span>
                                 @elseif($activeMedCount === 0)
-                                    No medications on record
+                                    {{ __('No medications on record') }}
                                 @else
-                                    {{ $activeMedCount }} active prescription(s)
+                                    {{ trans_choice(':count active prescription|:count active prescriptions', $activeMedCount, ['count' => $activeMedCount]) }}
                                 @endif
                             </p>
                         </div>
@@ -426,15 +426,14 @@
                         <div class="xl:col-span-2 rounded-3xl border border-slate-200 bg-white shadow-sm">
                             <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
                                 <div>
-                                    <h2 class="text-lg font-extrabold text-slate-800">Clinical Snapshot</h2>
+                                    <h2 class="text-lg font-extrabold text-slate-800">{{ __('Clinical Snapshot') }}</h2>
                                     <p class="text-sm text-slate-500 mt-0.5">
-                                        Fast view of key health information for this patient.
+                                        {{ __('Fast view of key health information for this patient.') }}
                                     </p>
                                 </div>
                                 @if($latestCheckup)
                                     <span class="text-xs text-slate-400 whitespace-nowrap">
-                                        Last updated
-                                        {{ \Carbon\Carbon::parse($latestCheckup->checkup_date)->format('d M Y') }}
+                                        {{ __('Last updated :date', ['date' => \Carbon\Carbon::parse($latestCheckup->checkup_date)->translatedFormat('d M Y')]) }}
                                     </span>
                                 @endif
                             </div>
@@ -444,22 +443,22 @@
                                 {{-- Body Metrics --}}
                                 <div class="rounded-2xl bg-teal-50 border border-teal-100 p-4">
                                     <p class="text-xs font-bold uppercase tracking-wide text-teal-600 mb-3">
-                                        Body Metrics
+                                        {{ __('Body Metrics') }}
                                     </p>
                                     <dl class="space-y-2 text-sm text-slate-700">
                                         <div class="flex justify-between">
-                                            <dt class="font-medium text-slate-500">Height</dt>
-                                            <dd class="font-bold">{{ $patient->height ?? 'N/A' }} cm</dd>
+                                            <dt class="font-medium text-slate-500">{{ __('Height') }}</dt>
+                                            <dd class="font-bold">{{ $patient->height ?? __('N/A') }} cm</dd>
                                         </div>
                                         <div class="flex justify-between">
-                                            <dt class="font-medium text-slate-500">Weight</dt>
-                                            <dd class="font-bold">{{ $patient->weight ?? 'N/A' }} kg</dd>
+                                            <dt class="font-medium text-slate-500">{{ __('Weight') }}</dt>
+                                            <dd class="font-bold">{{ $patient->weight ?? __('N/A') }} kg</dd>
                                         </div>
                                         <div class="flex justify-between">
                                             <dt class="font-medium text-slate-500">BMI</dt>
                                             <dd class="font-bold">{{ number_format($patient->bmi, 1) }}
                                                 <span class="ml-1 text-xs px-1.5 py-0.5 rounded-full {{ $bmiStatus[1] }}">
-                                                    {{ $bmiStatus[0] }}
+                                                    {{ __($bmiStatus[0]) }}
                                                 </span>
                                             </dd>
                                         </div>
@@ -469,64 +468,64 @@
                                 {{-- Latest Check-up --}}
                                 <div class="rounded-2xl bg-emerald-50 border border-emerald-100 p-4">
                                     <p class="text-xs font-bold uppercase tracking-wide text-emerald-600 mb-3">
-                                        Latest Check-up
+                                        {{ __('Latest Check-up') }}
                                     </p>
                                     @if($latestCheckup)
                                         <dl class="space-y-2 text-sm text-slate-700">
                                             <div class="flex justify-between">
-                                                <dt class="font-medium text-slate-500">Date</dt>
-                                                <dd class="font-bold">{{ \Carbon\Carbon::parse($latestCheckup->checkup_date)->format('d M Y') }}</dd>
+                                                <dt class="font-medium text-slate-500">{{ __('Date') }}</dt>
+                                                <dd class="font-bold">{{ \Carbon\Carbon::parse($latestCheckup->checkup_date)->translatedFormat('d M Y') }}</dd>
                                             </div>
                                             <div class="flex justify-between">
-                                                <dt class="font-medium text-slate-500">Blood Pressure</dt>
-                                                <dd class="font-bold">{{ $latestCheckup->blood_pressure ?? 'N/A' }}</dd>
+                                                <dt class="font-medium text-slate-500">{{ __('Blood Pressure') }}</dt>
+                                                <dd class="font-bold">{{ $latestCheckup->blood_pressure ?? __('N/A') }}</dd>
                                             </div>
                                             <div class="flex justify-between">
-                                                <dt class="font-medium text-slate-500">Haemoglobin</dt>
-                                                <dd class="font-bold">{{ $latestCheckup->haemoglobin ?? 'N/A' }}</dd>
+                                                <dt class="font-medium text-slate-500">{{ __('Haemoglobin') }}</dt>
+                                                <dd class="font-bold">{{ $latestCheckup->haemoglobin ?? __('N/A') }}</dd>
                                             </div>
                                             <div class="flex justify-between">
-                                                <dt class="font-medium text-slate-500">Blood Sugar</dt>
-                                                <dd class="font-bold">{{ $latestCheckup->blood_sugar ?? 'N/A' }}</dd>
+                                                <dt class="font-medium text-slate-500">{{ __('Blood Sugar') }}</dt>
+                                                <dd class="font-bold">{{ $latestCheckup->blood_sugar ?? __('N/A') }}</dd>
                                             </div>
                                             <div class="flex justify-between">
-                                                <dt class="font-medium text-slate-500">Sodium</dt>
-                                                <dd class="font-bold">{{ $latestCheckup->sodium ?? 'N/A' }}</dd>
+                                                <dt class="font-medium text-slate-500">{{ __('Sodium') }}</dt>
+                                                <dd class="font-bold">{{ $latestCheckup->sodium ?? __('N/A') }}</dd>
                                             </div>
                                             <div class="flex justify-between">
-                                                <dt class="font-medium text-slate-500">Cholesterol</dt>
-                                                <dd class="font-bold">{{ $latestCheckup->cholesterol ?? 'N/A' }}</dd>
+                                                <dt class="font-medium text-slate-500">{{ __('Cholesterol') }}</dt>
+                                                <dd class="font-bold">{{ $latestCheckup->cholesterol ?? __('N/A') }}</dd>
                                             </div>
                                         </dl>
                                     @else
-                                        <p class="text-sm text-slate-400 italic">No check-up data recorded yet.</p>
+                                        <p class="text-sm text-slate-400 italic">{{ __('No check-up data recorded yet.') }}</p>
                                     @endif
                                 </div>
 
                                 {{-- Medical History --}}
                                 <div class="rounded-2xl bg-amber-50 border border-amber-100 p-4">
                                     <p class="text-xs font-bold uppercase tracking-wide text-amber-700 mb-3">
-                                        Medical History
+                                        {{ __('Medical History') }}
                                     </p>
                                     <dl class="space-y-2 text-sm text-slate-700">
                                         <div class="flex justify-between gap-2">
-                                            <dt class="font-medium text-slate-500 shrink-0">Hypertension</dt>
-                                            <dd class="font-bold text-right">{{ optional($medicalHistory)->hypertension ?: 'None' }}</dd>
+                                            <dt class="font-medium text-slate-500 shrink-0">{{ __('Hypertension') }}</dt>
+                                            <dd class="font-bold text-right">{{ optional($medicalHistory)->hypertension ? __($medicalHistory->hypertension) : __('None') }}</dd>
                                         </div>
                                         <div class="flex justify-between gap-2">
-                                            <dt class="font-medium text-slate-500 shrink-0">Diabetes</dt>
-                                            <dd class="font-bold text-right">{{ optional($medicalHistory)->diabetes ?: 'None' }}</dd>
+                                            <dt class="font-medium text-slate-500 shrink-0">{{ __('Diabetes') }}</dt>
+                                            <dd class="font-bold text-right">{{ optional($medicalHistory)->diabetes ? __($medicalHistory->diabetes) : __('None') }}</dd>
                                         </div>
                                         <div class="flex justify-between gap-2">
-                                            <dt class="font-medium text-slate-500 shrink-0">Allergies</dt>
+                                            <dt class="font-medium text-slate-500 shrink-0">{{ __('Allergies') }}</dt>
                                             <dd class="font-bold text-right">
-                                                {{ filled(optional($medicalHistory)->allergies) ? $medicalHistory->allergies : 'None' }}
+                                                {{ filled(optional($medicalHistory)->allergies) ? $medicalHistory->allergies : __('None') }}
                                             </dd>
                                         </div>
                                         <div class="flex justify-between gap-2">
-                                            <dt class="font-medium text-slate-500 shrink-0">Drug Allergies</dt>
+                                            <dt class="font-medium text-slate-500 shrink-0">{{ __('Drug Allergies') }}</dt>
                                             <dd class="font-bold text-right">
-                                                {{ filled(optional($medicalHistory)->drug_allergies) ? $medicalHistory->drug_allergies : 'None' }}
+                                                {{ filled(optional($medicalHistory)->drug_allergies) ? $medicalHistory->drug_allergies : __('None') }}
                                             </dd>
                                         </div>
                                     </dl>
@@ -549,18 +548,18 @@
                             <div class="rounded-3xl border border-slate-200 bg-white shadow-sm" id="health-risk">
                                 <div class="px-6 py-5 border-b border-slate-100">
                                     <div class="flex items-center justify-between gap-3">
-                                        <h2 class="text-lg font-extrabold text-slate-800">Health Risk</h2>
+                                        <h2 class="text-lg font-extrabold text-slate-800">{{ __('Health Risk') }}</h2>
                                         <span class="text-xs font-bold px-2.5 py-1 rounded-full border {{ $riskStyle['chip'] }}">
                                             {{ $prediction['risk_label'] }}
                                         </span>
                                     </div>
-                                    <p class="text-xs text-slate-400 mt-0.5">ML estimate from BMI and the latest check-up</p>
+                                    <p class="text-xs text-slate-400 mt-0.5">{{ __('ML estimate from BMI and the latest check-up') }}</p>
                                 </div>
                                 <div class="p-5 space-y-3">
                                     @if($prediction['success'])
                                         <div>
                                             <div class="flex items-center justify-between text-xs font-bold text-slate-500 mb-1">
-                                                <span>Confidence</span>
+                                                <span>{{ __('Confidence') }}</span>
                                                 <span>{{ $prediction['confidence'] }}</span>
                                             </div>
                                             <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
@@ -577,9 +576,8 @@
                                         <p class="text-sm text-slate-600 leading-6">{{ $prediction['summary'] }}</p>
 
                                         <p class="text-[11px] text-slate-400 leading-5">
-                                            Inputs: BMI {{ $prediction['inputs']['bmi'] }} · BP {{ $prediction['inputs']['blood_pressure'] }} ·
-                                            Sugar {{ $prediction['inputs']['blood_sugar'] }} · Cholesterol {{ $prediction['inputs']['cholesterol'] }}.
-                                            Decision support only — confirm with clinical judgement.
+                                            {{ __('Inputs: BMI :bmi · BP :bp · Sugar :sugar · Cholesterol :chol.', ['bmi' => $prediction['inputs']['bmi'], 'bp' => $prediction['inputs']['blood_pressure'], 'sugar' => $prediction['inputs']['blood_sugar'], 'chol' => $prediction['inputs']['cholesterol']]) }}
+                                            {{ __('Decision support only — confirm with clinical judgement.') }}
                                         </p>
                                     @else
                                         <p class="text-sm text-slate-500">{{ $prediction['summary'] }}</p>
@@ -590,8 +588,8 @@
                             {{-- ALERTS --}}
                             <div class="rounded-3xl border border-slate-200 bg-white shadow-sm">
                                 <div class="px-6 py-5 border-b border-slate-100">
-                                    <h2 class="text-lg font-extrabold text-slate-800">Alerts</h2>
-                                    <p class="text-xs text-slate-400 mt-0.5">Rule-based clinical flags</p>
+                                    <h2 class="text-lg font-extrabold text-slate-800">{{ __('Alerts') }}</h2>
+                                    <p class="text-xs text-slate-400 mt-0.5">{{ __('Rule-based clinical flags') }}</p>
                                 </div>
                                 <div class="p-5 space-y-2">
                                     @foreach($alerts as [$message, $severity])
@@ -619,15 +617,15 @@
                             <div class="rounded-3xl border border-slate-200 bg-white shadow-sm">
                                 <div class="px-6 py-5 border-b border-slate-100">
                                     <div class="flex items-center justify-between">
-                                        <h2 class="text-lg font-extrabold text-slate-800">Medications</h2>
+                                        <h2 class="text-lg font-extrabold text-slate-800">{{ __('Medications') }}</h2>
                                         <span class="text-xs font-bold px-2.5 py-1 rounded-full
                                             {{ $activeMedCount > 0 ? 'bg-teal-100 text-teal-700' : 'bg-slate-100 text-slate-500' }}">
-                                            {{ $activeMedCount }} active
+                                            {{ __(':count active', ['count' => $activeMedCount]) }}
                                         </span>
                                     </div>
                                     @if($latestMedDate)
                                         <p class="text-xs text-slate-400 mt-0.5">
-                                            Last updated {{ \Carbon\Carbon::parse($latestMedDate)->format('d M Y') }}
+                                            {{ __('Last updated :date', ['date' => \Carbon\Carbon::parse($latestMedDate)->translatedFormat('d M Y')]) }}
                                         </p>
                                     @endif
                                 </div>
@@ -641,7 +639,7 @@
                                             </p>
                                         </div>
                                     @empty
-                                        <p class="text-sm text-slate-400 italic">No active medications recorded.</p>
+                                        <p class="text-sm text-slate-400 italic">{{ __('No active medications recorded.') }}</p>
                                     @endforelse
                                     @if($activeMedCount > 2)
                                         <a href="{{ route('pharmacist.patients.show', $patient->id) }}"
@@ -660,45 +658,45 @@
                             <div class="px-6 py-5 border-b border-slate-100">
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                     <div>
-                                        <h2 class="text-lg font-extrabold text-slate-800">Patient Health Summary</h2>
-                                        <p class="text-sm text-slate-500 mt-0.5">Current status, care priorities, and AI-generated health suggestions.</p>
+                                        <h2 class="text-lg font-extrabold text-slate-800">{{ __('Patient Health Summary') }}</h2>
+                                        <p class="text-sm text-slate-500 mt-0.5">{{ __('Current status, care priorities, and AI-generated health suggestions.') }}</p>
                                     </div>
                                     <div class="flex flex-wrap items-center gap-2">
                                         <span class="w-fit rounded-full px-3 py-1 text-xs font-bold {{ $healthStatusClass }}">
                                             {{ $healthStatus }}
                                         </span>
                                         <button type="button" id="generateOverallSummary" class="rounded-full bg-teal-600 px-4 py-2 text-xs font-bold text-white hover:bg-teal-700">
-                                            {{ $aiSuggestionCards->isNotEmpty() ? 'Regenerate AI Suggestion' : 'Generate AI Suggestion' }}
+                                            {{ $aiSuggestionCards->isNotEmpty() ? __('Regenerate AI Suggestion') : __('Generate AI Suggestion') }}
                                         </button>
                                     </div>
                                 </div>
                             </div>
                             <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 p-6">
                                 <div class="rounded-2xl bg-slate-50 border border-slate-100 p-4">
-                                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Summary</p>
+                                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('Summary') }}</p>
                                     <p class="mt-2 text-sm font-semibold leading-6 text-slate-800">{{ $healthSummaryText }}</p>
                                 </div>
 
                                 <div class="rounded-2xl bg-white border border-slate-100 p-4">
-                                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Reading Direction</p>
+                                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('Reading Direction') }}</p>
                                     <div class="mt-3 grid grid-cols-3 gap-2">
                                         <div class="rounded-2xl bg-emerald-50 border border-emerald-100 p-3 text-center">
                                             <p class="text-2xl font-extrabold text-emerald-700">{{ $improvedMetrics->count() }}</p>
-                                            <p class="text-[11px] font-bold uppercase text-emerald-700">Better</p>
+                                            <p class="text-[11px] font-bold uppercase text-emerald-700">{{ __('Better') }}</p>
                                         </div>
                                         <div class="rounded-2xl bg-red-50 border border-red-100 p-3 text-center">
                                             <p class="text-2xl font-extrabold text-red-700">{{ $worsenedMetrics->count() }}</p>
-                                            <p class="text-[11px] font-bold uppercase text-red-700">Worse</p>
+                                            <p class="text-[11px] font-bold uppercase text-red-700">{{ __('Worse') }}</p>
                                         </div>
                                         <div class="rounded-2xl bg-slate-50 border border-slate-100 p-3 text-center">
                                             <p class="text-2xl font-extrabold text-slate-700">{{ $stableMetrics->count() }}</p>
-                                            <p class="text-[11px] font-bold uppercase text-slate-500">Same</p>
+                                            <p class="text-[11px] font-bold uppercase text-slate-500">{{ __('Same') }}</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="rounded-2xl bg-white border border-slate-100 p-4">
-                                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Need to Take Care</p>
+                                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('Need to Take Care') }}</p>
                                     <ul class="mt-3 space-y-2">
                                         @foreach($carePoints as $point)
                                             <li class="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-100 px-3 py-2 text-sm font-semibold leading-5 text-amber-800">
@@ -710,7 +708,7 @@
                                 </div>
 
                                 <div id="apiOverallSummary" class="xl:col-span-3 {{ $aiSuggestionCards->isNotEmpty() ? '' : 'hidden' }} rounded-2xl border border-teal-100 bg-teal-50 p-4">
-                                    <p class="text-xs font-bold uppercase tracking-wide text-teal-700">AI Health Insights</p>
+                                    <p class="text-xs font-bold uppercase tracking-wide text-teal-700">{{ __('AI Health Insights') }}</p>
                                     <div id="apiOverallSummaryText" class="mt-3">
                                         @if($aiSuggestionCards->isNotEmpty())
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -724,7 +722,7 @@
                                         @endif
                                     </div>
                                     <p class="mt-3 text-xs font-semibold text-teal-700">
-                                        Medication notes are for pharmacist review only. The system does not automatically prescribe medication.
+                                        {{ __('Medication notes are for pharmacist review only. The system does not automatically prescribe medication.') }}
                                     </p>
                                 </div>
                             </div>
@@ -736,9 +734,9 @@
                         {{-- HEALTH RADAR --}}
                         <div class="xl:col-span-2 rounded-3xl border border-slate-200 bg-white shadow-sm">
                             <div class="px-6 py-5 border-b border-slate-100">
-                                <h2 class="text-lg font-extrabold text-slate-800">Health Radar</h2>
+                                <h2 class="text-lg font-extrabold text-slate-800">{{ __('Health Radar') }}</h2>
                                 <p class="text-sm text-slate-500 mt-0.5">
-                                    Quick overview of current patient status.
+                                    {{ __('Quick overview of current patient status.') }}
                                 </p>
                             </div>
                             <div class="p-6">
@@ -752,8 +750,8 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                   d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                                         </svg>
-                                        <p class="text-sm font-semibold text-slate-400">Insufficient data for radar.</p>
-                                        <p class="text-xs text-slate-400">Record a check-up to populate this chart.</p>
+                                        <p class="text-sm font-semibold text-slate-400">{{ __('Insufficient data for radar.') }}</p>
+                                        <p class="text-xs text-slate-400">{{ __('Record a check-up to populate this chart.') }}</p>
                                     </div>
                                 @endif
                             </div>
@@ -762,9 +760,9 @@
                         {{-- HEALTH TREND --}}
                         <div class="xl:col-span-3 rounded-3xl border border-slate-200 bg-white shadow-sm">
                             <div class="px-6 py-5 border-b border-slate-100">
-                                <h2 class="text-lg font-extrabold text-slate-800">Key Health Trend</h2>
+                                <h2 class="text-lg font-extrabold text-slate-800">{{ __('Key Health Trend') }}</h2>
                                 <p class="text-sm text-slate-500 mt-0.5">
-                                    High-concern readings from recorded check-ups: blood sugar, cholesterol, HbA1c, and LDL when available.
+                                    {{ __('High-concern readings from recorded check-ups: blood sugar, cholesterol, HbA1c, and LDL when available.') }}
                                 </p>
                             </div>
                             <div class="p-6">
@@ -778,8 +776,8 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                   d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
                                         </svg>
-                                        <p class="text-sm font-semibold text-slate-400">No historical check-up data available.</p>
-                                        <p class="text-xs text-slate-400">Complete at least 2 check-ups to view trends.</p>
+                                        <p class="text-sm font-semibold text-slate-400">{{ __('No historical check-up data available.') }}</p>
+                                        <p class="text-xs text-slate-400">{{ __('Complete at least 2 check-ups to view trends.') }}</p>
                                     </div>
                                 @endif
                             </div>
@@ -793,6 +791,7 @@
     </div>
 
     {{-- ── SCRIPTS ────────────────────────────────────────────────────────── --}}
+    @include('partials.js-i18n')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -840,9 +839,10 @@
 
                 generateSummaryButton.addEventListener('click', async function () {
                     generateSummaryButton.disabled = true;
-                    generateSummaryButton.textContent = 'Generating...';
+                    generateSummaryButton.textContent = t('Generating...');
                     apiSummaryBox.classList.remove('hidden');
-                    apiSummaryText.innerHTML = '<span class="animate-pulse text-teal-600 font-bold">Analyzing latest check-up metrics...</span>';
+                    apiSummaryText.innerHTML = '<span class="animate-pulse text-teal-600 font-bold"></span>';
+                    apiSummaryText.firstElementChild.textContent = t('Analyzing latest check-up metrics...');
 
                     try {
                         const response = await fetch('{{ route('pharmacist.patients.aiSummary', $patient->id) }}', {
@@ -858,15 +858,15 @@
                         const data = await response.json();
 
                         if (!response.ok || !data.success) {
-                            throw new Error(data.message || 'Unable to generate suggestion.');
+                            throw new Error(data.message || t('Unable to generate suggestion.'));
                         }
 
                         renderSuggestionCards(data.suggestion);
                     } catch (error) {
-                        apiSummaryText.textContent = error.message || 'Unable to generate API suggestion right now.';
+                        apiSummaryText.textContent = error.message || t('Unable to generate API suggestion right now.');
                     } finally {
                         generateSummaryButton.disabled = false;
-                        generateSummaryButton.textContent = 'Regenerate AI Suggestion';
+                        generateSummaryButton.textContent = t('Regenerate AI Suggestion');
                     }
                 });
             }
@@ -877,9 +877,9 @@
                 new Chart(radarCanvas.getContext('2d'), {
                     type: 'radar',
                     data: {
-                        labels: ['BMI', 'Blood Sugar', 'Blood Pressure', 'Cholesterol', @json($radarAdherenceLabel)],
+                        labels: [t('BMI'), t('Blood Sugar'), t('Blood Pressure'), t('Cholesterol'), @json($radarAdherenceLabel)],
                         datasets: [{
-                            label: 'Patient Health Profile',
+                            label: t('Patient Health Profile'),
                             data: [
                                 {{ $radarBmi }},
                                 {{ $radarSugar }},
@@ -919,7 +919,7 @@
                         labels: {!! json_encode($chartLabels) !!},
                         datasets: [
                             {
-                                label: 'Blood Sugar (mmol/L)',
+                                label: t('Blood Sugar (mmol/L)'),
                                 data:  {!! json_encode($sugarSeries) !!},
                                 borderColor:          'rgb(37, 99, 235)',
                                 backgroundColor:      'rgba(37, 99, 235, 0.10)',
@@ -929,7 +929,7 @@
                                 tension: 0.35
                             },
                             {
-                                label: 'Cholesterol (mmol/L)',
+                                label: t('Cholesterol (mmol/L)'),
                                 data:  {!! json_encode($cholesterolSeries) !!},
                                 borderColor:          'rgb(20, 184, 166)',
                                 backgroundColor:      'transparent',
@@ -939,7 +939,7 @@
                                 tension: 0.35
                             },
                             {
-                                label: 'HbA1c (%)',
+                                label: t('HbA1c (%)'),
                                 data:  {!! json_encode($hba1cSeries) !!},
                                 borderColor:          'rgb(147, 51, 234)',
                                 backgroundColor:      'transparent',
@@ -949,7 +949,7 @@
                                 tension: 0.35
                             },
                             {
-                                label: 'LDL (mmol/L)',
+                                label: t('LDL (mmol/L)'),
                                 data:  {!! json_encode($ldlSeries) !!},
                                 borderColor:          'rgb(245, 158, 11)',
                                 backgroundColor:      'transparent',

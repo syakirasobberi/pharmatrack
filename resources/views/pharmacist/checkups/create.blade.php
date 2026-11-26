@@ -7,7 +7,7 @@
         <div class="max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8">
 
             <a href="{{ route('pharmacist.patients.show', $patient->id) }}" class="inline-flex items-center text-gray-500 hover:text-teal-600 font-bold mb-6 transition-colors">
-                &larr; Back to Patient Profile
+                {!! __('&larr; Back to Patient Profile') !!}
             </a>
 
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -15,14 +15,14 @@
                 {{-- Header --}}
                 <div class="bg-teal-50/50 border-b border-gray-100 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <h2 class="text-2xl font-extrabold text-gray-800">Record Health Check-up</h2>
+                        <h2 class="text-2xl font-extrabold text-gray-800">{{ __('Record Health Check-up') }}</h2>
                         <p class="text-sm text-gray-500 mt-1">
-                            Patient: <strong class="text-teal-700">{{ $patient->user->name }}</strong>
-                            &nbsp;|&nbsp; BMI on file: <span id="patient-bmi" class="font-bold text-gray-700">{{ number_format($patient->bmi, 1) }}</span>
+                            {{ __('Patient:') }} <strong class="text-teal-700">{{ $patient->user->name }}</strong>
+                            &nbsp;|&nbsp; {{ __('BMI on file:') }} <span id="patient-bmi" class="font-bold text-gray-700">{{ number_format($patient->bmi, 1) }}</span>
                         </p>
                     </div>
                     <div class="text-xs text-gray-400 text-right">
-                        <p>Recorded by: <strong class="text-gray-600">{{ auth()->user()->name }}</strong></p>
+                        <p>{{ __('Recorded by:') }} <strong class="text-gray-600">{{ auth()->user()->name }}</strong></p>
                         <p id="current-datetime"></p>
                     </div>
                 </div>
@@ -39,7 +39,7 @@
 
                     @if($errors->any())
                         <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                            <p class="font-bold">Please check the health check-up form.</p>
+                            <p class="font-bold">{{ __('Please check the health check-up form.') }}</p>
                             <ul class="mt-2 list-disc pl-5 space-y-1">
                                 @foreach($errors->all() as $error)
                                     <li>{{ $error }}</li>
@@ -52,13 +52,13 @@
                     <div class="mb-8 rounded-2xl border border-teal-100 bg-teal-50/60 p-5">
                         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <h3 class="font-extrabold text-teal-950">Patient Measurements</h3>
+                                <h3 class="font-extrabold text-teal-950">{{ __('Patient Measurements') }}</h3>
                             </div>
                         </div>
 
                         <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                             <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-1">Weight (kg)</label>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">{{ __('Weight (kg)') }}</label>
                                 <input type="number" step="0.1" min="1" max="300" name="patient_weight" id="patient-weight"
                                     value="{{ old('patient_weight', $patient->weight) }}"
                                     oninput="updatePatientBmi(); generateAiAuto();"
@@ -66,7 +66,7 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-1">Height (cm)</label>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">{{ __('Height (cm)') }}</label>
                                 <input type="number" step="0.1" min="1" max="250" name="patient_height" id="patient-height"
                                     value="{{ old('patient_height', $patient->height) }}"
                                     oninput="updatePatientBmi(); generateAiAuto();"
@@ -76,7 +76,7 @@
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">BMI</label>
                                 <input type="text" id="patient-bmi-display"
-                                    value="{{ is_numeric(old('patient_weight', $patient->weight)) && is_numeric(old('patient_height', $patient->height)) && (float) old('patient_height', $patient->height) > 0 ? number_format((float) old('patient_weight', $patient->weight) / (((float) old('patient_height', $patient->height) / 100) ** 2), 1) : 'N/A' }}"
+                                    value="{{ is_numeric(old('patient_weight', $patient->weight)) && is_numeric(old('patient_height', $patient->height)) && (float) old('patient_height', $patient->height) > 0 ? number_format((float) old('patient_weight', $patient->weight) / (((float) old('patient_height', $patient->height) / 100) ** 2), 1) : __('N/A') }}"
                                     readonly
                                     class="w-full rounded-xl border-teal-100 bg-white/80 shadow-sm text-gray-700 font-bold cursor-not-allowed">
                             </div>
@@ -86,43 +86,43 @@
                     {{-- Steps --}}
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
                         <div class="rounded-2xl border border-teal-100 bg-teal-50 p-4">
-                            <p class="text-xs font-bold uppercase tracking-wide text-teal-700">Step 1</p>
-                            <p class="mt-1 font-extrabold text-gray-900 text-sm">Upload full report</p>
-                            <p class="mt-1 text-xs text-gray-500">Image or scanned PDF checkup result.</p>
+                            <p class="text-xs font-bold uppercase tracking-wide text-teal-700">{{ __('Step 1') }}</p>
+                            <p class="mt-1 font-extrabold text-gray-900 text-sm">{{ __('Upload full report') }}</p>
+                            <p class="mt-1 text-xs text-gray-500">{{ __('Image or scanned PDF checkup result.') }}</p>
                         </div>
                         <div class="rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
-                            <p class="text-xs font-bold uppercase tracking-wide text-cyan-700">Step 2</p>
-                            <p class="mt-1 font-extrabold text-gray-900 text-sm">Extract readings</p>
-                            <p class="mt-1 text-xs text-gray-500">OCR reads all vitals and lab values.</p>
+                            <p class="text-xs font-bold uppercase tracking-wide text-cyan-700">{{ __('Step 2') }}</p>
+                            <p class="mt-1 font-extrabold text-gray-900 text-sm">{{ __('Extract readings') }}</p>
+                            <p class="mt-1 text-xs text-gray-500">{{ __('OCR reads all vitals and lab values.') }}</p>
                         </div>
                         <div class="rounded-2xl border border-amber-100 bg-amber-50 p-4">
-                            <p class="text-xs font-bold uppercase tracking-wide text-amber-700">Step 3</p>
-                            <p class="mt-1 font-extrabold text-gray-900 text-sm">Review values</p>
-                            <p class="mt-1 text-xs text-gray-500">Pharmacist verifies before saving.</p>
+                            <p class="text-xs font-bold uppercase tracking-wide text-amber-700">{{ __('Step 3') }}</p>
+                            <p class="mt-1 font-extrabold text-gray-900 text-sm">{{ __('Review values') }}</p>
+                            <p class="mt-1 text-xs text-gray-500">{{ __('Pharmacist verifies before saving.') }}</p>
                         </div>
                         <div class="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
-                            <p class="text-xs font-bold uppercase tracking-wide text-emerald-700">Step 4</p>
-                            <p class="mt-1 font-extrabold text-gray-900 text-sm">Generate advice</p>
-                            <p class="mt-1 text-xs text-gray-500">Food, exercise, follow-up notes.</p>
+                            <p class="text-xs font-bold uppercase tracking-wide text-emerald-700">{{ __('Step 4') }}</p>
+                            <p class="mt-1 font-extrabold text-gray-900 text-sm">{{ __('Generate advice') }}</p>
+                            <p class="mt-1 text-xs text-gray-500">{{ __('Food, exercise, follow-up notes.') }}</p>
                         </div>
                     </div>
 
                     {{-- Check-up Date + Report Source --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 pb-6 border-b border-gray-100">
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-1">Check-up Date <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">{{ __('Check-up Date') }} <span class="text-red-500">*</span></label>
                             <input type="date" name="checkup_date" value="{{ date('Y-m-d') }}" required
                                 class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 bg-gray-50">
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-1">Report Source</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">{{ __('Report Source') }}</label>
                             <select name="report_source" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 bg-gray-50">
-                                <option value="">— Select source —</option>
-                                <option value="klinik_kesihatan">Klinik Kesihatan (KKM)</option>
-                                <option value="private_clinic">Private Clinic</option>
-                                <option value="hospital">Hospital</option>
-                                <option value="private_lab">Private Lab</option>
-                                <option value="home_device">Home Device / Self-measured</option>
+                                <option value="">{{ __('— Select source —') }}</option>
+                                <option value="klinik_kesihatan">{{ __('Klinik Kesihatan (KKM)') }}</option>
+                                <option value="private_clinic">{{ __('Private Clinic') }}</option>
+                                <option value="hospital">{{ __('Hospital') }}</option>
+                                <option value="private_lab">{{ __('Private Lab') }}</option>
+                                <option value="home_device">{{ __('Home Device / Self-measured') }}</option>
                             </select>
                         </div>
                     </div>
@@ -136,14 +136,14 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 7a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 2h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 5H19a2 2 0 012 2v11a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     </svg>
-                                    OCR Autofill From Checkup Report
+                                    {{ __('OCR Autofill From Checkup Report') }}
                                 </h3>
                                 @php($smartExtract = config('services.gemini.report_uploads'))
                                 @if ($smartExtract)
-                                <p class="text-sm text-cyan-800 mt-1">Upload a checkup report image or PDF. <strong>Extract Readings</strong> reads it on this computer (digital PDFs are read exactly). <strong>Smart Extract (AI)</strong> is better for phone photos and scans.</p>
-                                <p class="text-xs text-cyan-700 mt-1">Smart Extract sends the report to Google Gemini; the file is not stored. Cover the patient's name and IC first if possible.</p>
+                                <p class="text-sm text-cyan-800 mt-1">{!! __('Upload a checkup report image or PDF. <strong>Extract Readings</strong> reads it on this computer (digital PDFs are read exactly). <strong>Smart Extract (AI)</strong> is better for phone photos and scans.') !!}</p>
+                                <p class="text-xs text-cyan-700 mt-1">{{ __('Smart Extract sends the report to Google Gemini; the file is not stored. Cover the patient\'s name and IC first if possible.') }}</p>
                                 @else
-                                <p class="text-sm text-cyan-800 mt-1">Upload a checkup report image or PDF. <strong>Extract Readings</strong> reads it on this computer, so the report never leaves it (digital PDFs are read exactly).</p>
+                                <p class="text-sm text-cyan-800 mt-1">{!! __('Upload a checkup report image or PDF. <strong>Extract Readings</strong> reads it on this computer, so the report never leaves it (digital PDFs are read exactly).') !!}</p>
                                 @endif
                             </div>
                             <div class="flex flex-col sm:flex-row gap-3 shrink-0">
@@ -151,19 +151,19 @@
                                     class="block w-full text-sm text-cyan-900 file:mr-4 file:rounded-xl file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-bold file:text-cyan-800 hover:file:bg-cyan-100">
                                 <button type="button" id="extract-ocr-btn"
                                     class="rounded-xl bg-cyan-600 px-5 py-2.5 text-sm font-bold text-white shadow hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
-                                    Extract Readings
+                                    {{ __('Extract Readings') }}
                                 </button>
                                 @if ($smartExtract)
                                 <button type="button" id="ai-extract-btn"
                                     class="rounded-xl bg-teal-600 px-5 py-2.5 text-sm font-bold text-white shadow hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
-                                    Smart Extract (AI)
+                                    {{ __('Smart Extract (AI)') }}
                                 </button>
                                 @endif
                             </div>
                         </div>
 
                         <div id="ocr-status" class="mt-4 text-sm font-semibold text-cyan-800">
-                            Choose a report image or PDF, then click Extract Readings{{ $smartExtract ? ' or Smart Extract (AI)' : '' }}. Please review values before saving.
+                            {{ $smartExtract ? __('Choose a report image or PDF, then click Extract Readings or Smart Extract (AI). Please review values before saving.') : __('Choose a report image or PDF, then click Extract Readings. Please review values before saving.') }}
                         </div>
 
                         {{-- Detected values preview --}}
@@ -173,19 +173,19 @@
                                 <p id="detected-bp" class="mt-0.5 text-base font-extrabold text-slate-900">-</p>
                             </div>
                             <div class="rounded-xl bg-white border border-cyan-100 p-3">
-                                <p class="text-xs font-bold uppercase text-cyan-700">Sugar</p>
+                                <p class="text-xs font-bold uppercase text-cyan-700">{{ __('Sugar') }}</p>
                                 <p id="detected-sugar" class="mt-0.5 text-base font-extrabold text-slate-900">-</p>
                             </div>
                             <div class="rounded-xl bg-white border border-cyan-100 p-3">
-                                <p class="text-xs font-bold uppercase text-cyan-700">Cholesterol</p>
+                                <p class="text-xs font-bold uppercase text-cyan-700">{{ __('Cholesterol') }}</p>
                                 <p id="detected-cholesterol" class="mt-0.5 text-base font-extrabold text-slate-900">-</p>
                             </div>
                             <div class="rounded-xl bg-white border border-cyan-100 p-3">
-                                <p class="text-xs font-bold uppercase text-cyan-700">Heart Rate</p>
+                                <p class="text-xs font-bold uppercase text-cyan-700">{{ __('Heart Rate') }}</p>
                                 <p id="detected-heart-rate" class="mt-0.5 text-base font-extrabold text-slate-900">-</p>
                             </div>
                             <div class="rounded-xl bg-white border border-cyan-100 p-3">
-                                <p class="text-xs font-bold uppercase text-cyan-700">Haemoglobin</p>
+                                <p class="text-xs font-bold uppercase text-cyan-700">{{ __('Haemoglobin') }}</p>
                                 <p id="detected-haemoglobin" class="mt-0.5 text-base font-extrabold text-slate-900">-</p>
                             </div>
                             <div class="rounded-xl bg-white border border-cyan-100 p-3">
@@ -193,7 +193,7 @@
                                 <p id="detected-hba1c" class="mt-0.5 text-base font-extrabold text-slate-900">-</p>
                             </div>
                             <div class="rounded-xl bg-white border border-cyan-100 p-3">
-                                <p class="text-xs font-bold uppercase text-cyan-700">Sodium</p>
+                                <p class="text-xs font-bold uppercase text-cyan-700">{{ __('Sodium') }}</p>
                                 <p id="detected-sodium" class="mt-0.5 text-base font-extrabold text-slate-900">-</p>
                             </div>
                             <div class="rounded-xl bg-white border border-cyan-100 p-3">
@@ -205,7 +205,7 @@
                         <div id="ocr-timestamp" class="mt-2 text-xs text-cyan-600 italic hidden"></div>
 
                         <details class="mt-3">
-                            <summary class="cursor-pointer text-xs font-bold text-cyan-700">Show text read from the report</summary>
+                            <summary class="cursor-pointer text-xs font-bold text-cyan-700">{{ __('Show text read from the report') }}</summary>
                             <pre id="ocr-output" class="mt-2 max-h-40 overflow-auto rounded-xl bg-white p-3 text-xs text-slate-600 border border-cyan-100 whitespace-pre-wrap"></pre>
                         </details>
                     </div>
@@ -214,42 +214,42 @@
                     <div class="mb-8">
                         <div class="flex items-center gap-2 mb-4">
                             <div class="w-1 h-5 bg-teal-500 rounded-full"></div>
-                            <h3 class="font-extrabold text-gray-800 text-base">Core Readings</h3>
+                            <h3 class="font-extrabold text-gray-800 text-base">{{ __('Core Readings') }}</h3>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
-                                    Blood Pressure (mmHg)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: &lt;120/80</span>
+                                    {{ __('Blood Pressure (mmHg)') }}
+                                    <span class="ml-1 text-xs font-normal text-gray-400">{!! __('Normal: &lt;120/80') !!}</span>
                                 </label>
                                 <input type="text" name="blood_pressure" id="bp-input"
                                     oninput="updateBadge('bp-input','bp-badge')" onblur="generateAiAuto()"
-                                    placeholder="e.g. 120/80"
+                                    placeholder="{{ __('e.g. 120/80') }}"
                                     class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="bp-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
-                                    Heart Rate (bpm)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: 60–100</span>
+                                    {{ __('Heart Rate (bpm)') }}
+                                    <span class="ml-1 text-xs font-normal text-gray-400">{{ __('Normal: 60–100') }}</span>
                                 </label>
                                 <input type="number" name="heart_rate" id="heart-rate-input"
                                     oninput="updateBadge('heart-rate-input','hr-badge')" onblur="generateAiAuto()"
-                                    placeholder="e.g. 75"
+                                    placeholder="{{ __('e.g. 75') }}"
                                     class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="hr-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
-                                    Haemoglobin (g/dL)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: 12.0-16.0</span>
+                                    {{ __('Haemoglobin (g/dL)') }}
+                                    <span class="ml-1 text-xs font-normal text-gray-400">{{ __('Normal: 12.0-16.0') }}</span>
                                 </label>
                                 <input type="number" step="0.01" name="haemoglobin" id="haemoglobin-input"
                                     oninput="updateBadge('haemoglobin-input','haemoglobin-badge')" onblur="generateAiAuto()"
-                                    placeholder="e.g. 13.5"
+                                    placeholder="{{ __('e.g. 13.5') }}"
                                     class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="haemoglobin-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
@@ -262,30 +262,30 @@
                     <div class="mb-8">
                         <div class="flex items-center gap-2 mb-4">
                             <div class="w-1 h-5 bg-amber-500 rounded-full"></div>
-                            <h3 class="font-extrabold text-gray-800 text-base">Blood Glucose</h3>
+                            <h3 class="font-extrabold text-gray-800 text-base">{{ __('Blood Glucose') }}</h3>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
-                                    Fasting Blood Sugar (mmol/L)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: 3.9-6.0</span>
+                                    {{ __('Fasting Blood Sugar (mmol/L)') }}
+                                    <span class="ml-1 text-xs font-normal text-gray-400">{{ __('Normal: 3.9-6.0') }}</span>
                                 </label>
                                 <input type="number" step="0.01" name="blood_sugar" id="sugar-input"
                                     oninput="updateBadge('sugar-input','sugar-badge')" onblur="generateAiAuto()"
-                                    placeholder="e.g. 5.5"
+                                    placeholder="{{ __('e.g. 5.5') }}"
                                     class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="sugar-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
-                                    HbA1c (%)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: &lt;5.7%</span>
+                                    {{ __('HbA1c (%)') }}
+                                    <span class="ml-1 text-xs font-normal text-gray-400">{!! __('Normal: &lt;5.7%') !!}</span>
                                 </label>
                                 <input type="number" step="0.1" name="hba1c" id="hba1c-input"
                                     oninput="updateBadge('hba1c-input','hba1c-badge')" onblur="generateAiAuto()"
-                                    placeholder="e.g. 5.4"
+                                    placeholder="{{ __('e.g. 5.4') }}"
                                     class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="hba1c-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
@@ -297,65 +297,65 @@
                     <div class="mb-8">
                         <div class="flex items-center gap-2 mb-4">
                             <div class="w-1 h-5 bg-emerald-500 rounded-full"></div>
-                            <h3 class="font-extrabold text-gray-800 text-base">Liver Function Test</h3>
+                            <h3 class="font-extrabold text-gray-800 text-base">{{ __('Liver Function Test') }}</h3>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
-                                    Albumin-Globulin Ratio
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: 1.1-2.5</span>
+                                    {{ __('Albumin-Globulin Ratio') }}
+                                    <span class="ml-1 text-xs font-normal text-gray-400">{{ __('Normal: 1.1-2.5') }}</span>
                                 </label>
                                 <input type="number" step="0.01" name="albumin_globulin_ratio" id="ag-ratio-input"
                                     oninput="updateBadge('ag-ratio-input','ag-ratio-badge')" onblur="generateAiAuto()"
-                                    placeholder="e.g. 1.4"
+                                    placeholder="{{ __('e.g. 1.4') }}"
                                     class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="ag-ratio-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
-                                    Alkaline Phosphatase (U/L)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: 38-124</span>
+                                    {{ __('Alkaline Phosphatase (U/L)') }}
+                                    <span class="ml-1 text-xs font-normal text-gray-400">{{ __('Normal: 38-124') }}</span>
                                 </label>
                                 <input type="number" step="0.01" name="alkaline_phosphatase" id="alp-input"
                                     oninput="updateBadge('alp-input','alp-badge')" onblur="generateAiAuto()"
-                                    placeholder="e.g. 85"
+                                    placeholder="{{ __('e.g. 85') }}"
                                     class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="alp-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
-                                    Aspartate Transaminase (U/L)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: &lt;34</span>
+                                    {{ __('Aspartate Transaminase (U/L)') }}
+                                    <span class="ml-1 text-xs font-normal text-gray-400">{!! __('Normal: &lt;34') !!}</span>
                                 </label>
                                 <input type="number" step="0.01" name="aspartate_transaminase" id="ast-input"
                                     oninput="updateBadge('ast-input','ast-badge')" onblur="generateAiAuto()"
-                                    placeholder="e.g. 25"
+                                    placeholder="{{ __('e.g. 25') }}"
                                     class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="ast-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
-                                    Alanine Transaminase (U/L)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: 10-49</span>
+                                    {{ __('Alanine Transaminase (U/L)') }}
+                                    <span class="ml-1 text-xs font-normal text-gray-400">{{ __('Normal: 10-49') }}</span>
                                 </label>
                                 <input type="number" step="0.01" name="alanine_transaminase" id="alt-input"
                                     oninput="updateBadge('alt-input','alt-badge')" onblur="generateAiAuto()"
-                                    placeholder="e.g. 28"
+                                    placeholder="{{ __('e.g. 28') }}"
                                     class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="alt-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
-                                    Gamma Glutamyl Transferase (U/L)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: &lt;38</span>
+                                    {{ __('Gamma Glutamyl Transferase (U/L)') }}
+                                    <span class="ml-1 text-xs font-normal text-gray-400">{!! __('Normal: &lt;38') !!}</span>
                                 </label>
                                 <input type="number" step="0.01" name="gamma_glutamyl_transferase" id="ggt-input"
                                     oninput="updateBadge('ggt-input','ggt-badge')" onblur="generateAiAuto()"
-                                    placeholder="e.g. 35"
+                                    placeholder="{{ __('e.g. 35') }}"
                                     class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="ggt-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
@@ -366,29 +366,29 @@
                     <div class="mb-8">
                         <div class="flex items-center gap-2 mb-4">
                             <div class="w-1 h-5 bg-pink-500 rounded-full"></div>
-                            <h3 class="font-extrabold text-gray-800 text-base">Renal Function Profile</h3>
+                            <h3 class="font-extrabold text-gray-800 text-base">{{ __('Renal Function Profile') }}</h3>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
-                                    Sodium (mmol/L)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: 135-145</span>
+                                    {{ __('Sodium (mmol/L)') }}
+                                    <span class="ml-1 text-xs font-normal text-gray-400">{{ __('Normal: 135-145') }}</span>
                                 </label>
                                 <input type="number" step="0.01" name="sodium" id="sodium-input"
                                     oninput="updateBadge('sodium-input','sodium-badge')" onblur="generateAiAuto()"
-                                    placeholder="e.g. 140"
+                                    placeholder="{{ __('e.g. 140') }}"
                                     class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="sodium-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
-                                    Glucose (mmol/L)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: 3.9-6.0</span>
+                                    {{ __('Glucose (mmol/L)') }}
+                                    <span class="ml-1 text-xs font-normal text-gray-400">{{ __('Normal: 3.9-6.0') }}</span>
                                 </label>
                                 <input type="number" step="0.01" name="renal_glucose" id="renal-glucose-input"
                                     oninput="updateBadge('renal-glucose-input','renal-glucose-badge')" onblur="generateAiAuto()"
-                                    placeholder="e.g. 5.1"
+                                    placeholder="{{ __('e.g. 5.1') }}"
                                     class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="renal-glucose-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
@@ -399,42 +399,42 @@
                     <div class="mb-8">
                         <div class="flex items-center gap-2 mb-4">
                             <div class="w-1 h-5 bg-purple-500 rounded-full"></div>
-                            <h3 class="font-extrabold text-gray-800 text-base">Lipid Panel</h3>
+                            <h3 class="font-extrabold text-gray-800 text-base">{{ __('Lipid Panel') }}</h3>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
-                                    Total Cholesterol (mmol/L)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: &lt;5.2</span>
+                                    {{ __('Total Cholesterol (mmol/L)') }}
+                                    <span class="ml-1 text-xs font-normal text-gray-400">{!! __('Normal: &lt;5.2') !!}</span>
                                 </label>
                                 <input type="number" step="0.01" name="cholesterol" id="cholesterol-input"
                                     oninput="updateBadge('cholesterol-input','chol-badge')" onblur="generateAiAuto()"
-                                    placeholder="e.g. 4.8"
+                                    placeholder="{{ __('e.g. 4.8') }}"
                                     class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="chol-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
-                                    LDL (mmol/L)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: &lt;2.6</span>
+                                    {{ __('LDL (mmol/L)') }}
+                                    <span class="ml-1 text-xs font-normal text-gray-400">{!! __('Normal: &lt;2.6') !!}</span>
                                 </label>
                                 <input type="number" step="0.01" name="ldl" id="ldl-input"
                                     oninput="updateBadge('ldl-input','ldl-badge')" onblur="generateAiAuto()"
-                                    placeholder="e.g. 2.6"
+                                    placeholder="{{ __('e.g. 2.6') }}"
                                     class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="ldl-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">
-                                    HDL (mmol/L)
-                                    <span class="ml-1 text-xs font-normal text-gray-400">Normal: &gt;1.3</span>
+                                    {{ __('HDL (mmol/L)') }}
+                                    <span class="ml-1 text-xs font-normal text-gray-400">{!! __('Normal: &gt;1.3') !!}</span>
                                 </label>
                                 <input type="number" step="0.01" name="hdl" id="hdl-input"
                                     oninput="updateBadge('hdl-input','hdl-badge')" onblur="generateAiAuto()"
-                                    placeholder="e.g. 1.3"
+                                    placeholder="{{ __('e.g. 1.3') }}"
                                     class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <p id="hdl-badge" class="mt-1 text-xs font-bold"></p>
                             </div>
@@ -446,7 +446,7 @@
                     <div class="mb-8">
                         <div class="flex items-center gap-2 mb-4">
                             <div class="w-1 h-5 bg-gray-400 rounded-full"></div>
-                            <h3 class="font-extrabold text-gray-800 text-base">Pharmacist Notes</h3>
+                            <h3 class="font-extrabold text-gray-800 text-base">{{ __('Pharmacist Notes') }}</h3>
                         </div>
                         <textarea name="notes" rows="3" placeholder="Optional — add any clinical observations, patient complaints, or medication notes here..."
                             class="w-full rounded-xl border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"></textarea>
@@ -458,13 +458,13 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
                             </svg>
-                            AI Health Insights
+                            {{ __('AI Health Insights') }}
                         </h3>
                         <div id="aiResponseArea" class="text-sm text-teal-600 italic">
-                            Upload a report or enter readings manually. The system will generate food, exercise, follow-up, and pharmacist review suggestions.
+                            {{ __('Upload a report or enter readings manually. The system will generate food, exercise, follow-up, and pharmacist review suggestions.') }}
                         </div>
                         <p class="mt-3 text-xs font-semibold text-teal-700">
-                            Medication notes are for pharmacist review only. The system does not automatically prescribe medication.
+                            {{ __('Medication notes are for pharmacist review only. The system does not automatically prescribe medication.') }}
                         </p>
                     </div>
 
@@ -472,10 +472,10 @@
                     <div class="pt-6 border-t border-gray-100 flex justify-end gap-3">
                         <a href="{{ route('pharmacist.patients.show', $patient->id) }}"
                            class="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors">
-                            Cancel
+                            {{ __('Cancel') }}
                         </a>
                         <button type="submit" class="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-md transition-colors">
-                            Save Reviewed Checkup
+                            {{ __('Save Reviewed Checkup') }}
                         </button>
                     </div>
 
@@ -484,6 +484,7 @@
         </div>
     </div>
 
+    @include('partials.js-i18n')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="{{ asset('js/report-parser.js') }}?v={{ filemtime(public_path('js/report-parser.js')) }}"></script>
@@ -492,7 +493,6 @@
     const ocrImageInput   = document.getElementById('ocr-image');
     const extractOcrButton = document.getElementById('extract-ocr-btn');
     const aiExtractButton  = document.getElementById('ai-extract-btn');
-    const TRY_AI = aiExtractButton ? 'Try Smart Extract (AI), ' : 'Try ';
     const ocrStatus       = document.getElementById('ocr-status');
     const ocrOutput       = document.getElementById('ocr-output');
 
@@ -606,7 +606,7 @@
             if (bmiDisplay) bmiDisplay.value = display;
             if (bmiHeader) bmiHeader.textContent = display;
         } else if (bmiDisplay) {
-            bmiDisplay.value = 'N/A';
+            bmiDisplay.value = t('N/A');
         }
     }
 
@@ -657,7 +657,7 @@
                 input.value = val;
                 updateBadge(cfg.input, cfg.badge);
                 if (detectedEl) detectedEl.textContent = val;
-                found.push(cfg.label);
+                found.push(t(cfg.label));
             } else if (detectedEl) {
                 detectedEl.textContent = '-';
             }
@@ -665,15 +665,15 @@
 
         const ts = document.getElementById('ocr-timestamp');
         if (ts) {
-            ts.textContent = `Values extracted (${source}) on ${new Date().toLocaleString('en-MY', { dateStyle: 'medium', timeStyle: 'short' })} — please verify before saving.`;
+            ts.textContent = t('Values extracted (:source) on :date — please verify before saving.', { source: t(source), date: new Date().toLocaleString(document.documentElement.lang === 'ms' ? 'ms-MY' : 'en-MY', { dateStyle: 'medium', timeStyle: 'short' }) });
             ts.classList.remove('hidden');
         }
 
         if (found.length) {
-            setStatus('ok', `✓ ${source}: filled ${found.join(', ')}. Please review before saving.`, notes);
+            setStatus('ok', t('✓ :source: filled :fields. Please review before saving.', { source: t(source), fields: found.join(', ') }), notes);
             generateAiAuto();
         } else {
-            setStatus('warn', `${source} finished, but no clear readings were found. ${TRY_AI}a clearer image, or enter values manually.`, notes);
+            setStatus('warn', aiExtractButton ? t(':source finished, but no clear readings were found. Try Smart Extract (AI), a clearer image, or enter values manually.', { source: t(source) }) : t(':source finished, but no clear readings were found. Try a clearer image, or enter values manually.', { source: t(source) }), notes);
         }
     }
 
@@ -709,7 +709,7 @@
         const count = Math.min(pdf.numPages, maxPages);
         const pages = [];
         for (let n = 1; n <= count; n++) {
-            setStatus('info', `Preparing PDF page ${n} of ${count}...`);
+            setStatus('info', t('Preparing PDF page :n of :count...', { n, count }));
             const page     = await pdf.getPage(n);
             const viewport = page.getViewport({ scale: 2.5 });
             const canvas   = document.createElement('canvas');
@@ -798,7 +798,7 @@
 
     function chosenFile() {
         const file = ocrImageInput.files[0];
-        if (!file) setStatus('error', 'Please choose an image or PDF first.');
+        if (!file) setStatus('error', t('Please choose an image or PDF first.'));
         return file;
     }
 
@@ -809,7 +809,7 @@
             if (!file) return;
 
             setBusy(true);
-            setStatus('info', 'Reading report... this may take a few seconds.');
+            setStatus('info', t('Reading report... this may take a few seconds.'));
             ocrOutput.textContent = '';
 
             try {
@@ -822,21 +822,21 @@
                         rawText = layer;
                         source = 'PDF text';
                     } else {
-                        if (!window.Tesseract) throw new Error('OCR library is still loading.');
+                        if (!window.Tesseract) throw new Error(t('OCR library is still loading.'));
                         const pages = await renderPdfPages(pdf);
-                        rawText = await ocrCanvases(pages.map((p) => ({ canvas: p.canvas, label: `Page ${p.pageNumber} of ${p.pageCount}` })));
+                        rawText = await ocrCanvases(pages.map((p) => ({ canvas: p.canvas, label: t('Page :n of :count', { n: p.pageNumber, count: p.pageCount }) })));
                     }
                 } else {
-                    if (!window.Tesseract) throw new Error('OCR library is still loading.');
-                    setStatus('info', 'Preparing image...');
-                    rawText = await ocrCanvases([{ canvas: await imageForOcr(file), label: 'Image report' }]);
+                    if (!window.Tesseract) throw new Error(t('OCR library is still loading.'));
+                    setStatus('info', t('Preparing image...'));
+                    rawText = await ocrCanvases([{ canvas: await imageForOcr(file), label: t('Image report') }]);
                 }
-                ocrOutput.textContent = rawText.trim() || 'No text detected.';
+                ocrOutput.textContent = rawText.trim() || t('No text detected.');
                 const { values, notes } = window.ReportParser.parse(rawText);
                 applyReadings(values, notes, source);
             } catch (err) {
                 console.error('OCR Error:', err);
-                setStatus('error', `Could not read the report. ${TRY_AI}a clearer image, or enter values manually.`);
+                setStatus('error', aiExtractButton ? t('Could not read the report. Try Smart Extract (AI), a clearer image, or enter values manually.') : t('Could not read the report. Try a clearer image, or enter values manually.'));
             } finally {
                 setBusy(false);
             }
@@ -859,13 +859,13 @@
             if (!file) return;
 
             setBusy(true);
-            setStatus('info', 'Smart Extract: sending the report to the AI... this can take up to 30 seconds.');
+            setStatus('info', t('Smart Extract: sending the report to the AI... this can take up to 30 seconds.'));
             ocrOutput.textContent = '';
 
             try {
                 const upload = await fileForAi(file);
                 if (upload.size > 10 * 1024 * 1024) {
-                    setStatus('error', 'The file is larger than 10 MB. Please upload a smaller PDF or a photo.');
+                    setStatus('error', t('The file is larger than 10 MB. Please upload a smaller PDF or a photo.'));
                     return;
                 }
                 const form = new FormData();
@@ -878,11 +878,11 @@
                 const data = await response.json().catch(() => ({}));
 
                 if (response.status === 429) {
-                    setStatus('error', 'Too many Smart Extract requests. Please wait a minute and try again.');
+                    setStatus('error', t('Too many Smart Extract requests. Please wait a minute and try again.'));
                 } else if (response.status === 413) {
-                    setStatus('error', 'The file is too large for the server. Please upload a smaller file.');
+                    setStatus('error', t('The file is too large for the server. Please upload a smaller file.'));
                 } else if (!response.ok || !data.success) {
-                    const message = data.errors?.report?.[0] || data.message || 'Smart Extract failed. Please try again or use Extract Readings.';
+                    const message = data.errors?.report?.[0] || data.message || t('Smart Extract failed. Please try again or use Extract Readings.');
                     setStatus('error', message);
                 } else {
                     ocrOutput.textContent = JSON.stringify(data.values, null, 2);
@@ -890,7 +890,7 @@
                 }
             } catch (err) {
                 console.error('Smart Extract Error:', err);
-                setStatus('error', 'Smart Extract failed. Please check your connection, or use Extract Readings.');
+                setStatus('error', t('Smart Extract failed. Please check your connection, or use Extract Readings.'));
             } finally {
                 setBusy(false);
             }
@@ -990,7 +990,7 @@
 
                 const errorLine = document.createElement('span');
                 errorLine.className = 'text-red-500';
-                errorLine.textContent = 'Error: ' + (data.message || 'Unable to generate suggestion.');
+                errorLine.textContent = t('Error: :message', { message: data.message || t('Unable to generate suggestion.') });
                 responseArea.replaceChildren(errorLine);
             }
         })

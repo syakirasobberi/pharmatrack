@@ -61,7 +61,7 @@ class MedicationController extends Controller
     {
         $patient = Patient::assignedTo($request->user())->findOrFail($id);
 
-        $validated = $request->validate(self::rules($request, editing: false), self::MESSAGES);
+        $validated = $request->validate(self::rules($request, editing: false), array_map('__', self::MESSAGES));
 
         $patient->loadMissing('medicalHistory');
         $warnings = DrugSafety::checkNew($validated['name'], $patient->currentMedications()->get(), $patient->medicalHistory);
@@ -88,7 +88,7 @@ class MedicationController extends Controller
 
         return redirect()
             ->route('pharmacist.medication.index', $patient->id)
-            ->with('success', 'Medication saved successfully.');
+            ->with('success', __('Medication saved successfully.'));
     }
 
     public function edit($medicationId)
@@ -102,7 +102,7 @@ class MedicationController extends Controller
     public function update(Request $request, $medicationId)
     {
         $medication = $this->findOwnMedication($medicationId);
-        $validated = $request->validate(self::rules($request, editing: true), self::MESSAGES);
+        $validated = $request->validate(self::rules($request, editing: true), array_map('__', self::MESSAGES));
         // Keep the stored frequency if the field was left blank, so a no-change save writes nothing.
         $validated['frequency'] = ($validated['frequency'] ?? null) ?: ($medication->frequency ?: $validated['dosage']);
 
@@ -119,7 +119,7 @@ class MedicationController extends Controller
             }
 
             return redirect()->route('pharmacist.medication.index', $medication->patient_id)
-                ->with('success', 'No changes were made to ' . $medication->name . '.');
+                ->with('success', __('No changes were made to :name.', ['name' => $medication->name]));
         }
 
         // Only re-check when the medicine itself changed (not for dose/date corrections),
@@ -151,7 +151,7 @@ class MedicationController extends Controller
         ]);
 
         return redirect()->route('pharmacist.medication.index', $medication->patient_id)
-            ->with('success', $medication->name . ' updated.');
+            ->with('success', __(':name updated.', ['name' => $medication->name]));
     }
 
     // Stop = the patient should no longer take it. Kept as history (not deleted).
@@ -162,11 +162,11 @@ class MedicationController extends Controller
         $validated = $request->validate([
             'stopped_reason' => 'required|string|max:255',
         ], [
-            'stopped_reason.required' => 'Please give a reason for stopping ' . $medication->name . '.',
+            'stopped_reason.required' => __('Please give a reason for stopping :name.', ['name' => $medication->name]),
         ]);
 
         if ($medication->stopped_at) {
-            return back()->with('success', $medication->name . ' was already stopped.');
+            return back()->with('success', __(':name was already stopped.', ['name' => $medication->name]));
         }
 
         $medication->forceFill([
@@ -182,7 +182,7 @@ class MedicationController extends Controller
         ]);
 
         return redirect()->route('pharmacist.medication.index', $medication->patient_id)
-            ->with('success', $medication->name . ' stopped. It is kept under Past Medications.');
+            ->with('success', __(':name stopped. It is kept under Past Medications.', ['name' => $medication->name]));
     }
 
     // Undo a stop made by mistake.
@@ -198,10 +198,10 @@ class MedicationController extends Controller
             'resumed_by' => $request->user()->id,
         ]);
 
-        $note = $medication->isCurrent() ? '' : ' Its end date has passed, so it still shows as Completed — edit the end date if it should continue.';
+        $note = $medication->isCurrent() ? '' : ' ' . __('Its end date has passed, so it still shows as Completed — edit the end date if it should continue.');
 
         return redirect()->route('pharmacist.medication.index', $medication->patient_id)
-            ->with('success', $medication->name . ' resumed.' . $note);
+            ->with('success', __(':name resumed.', ['name' => $medication->name]) . $note);
     }
 
     /** Pharmacist has looked at a medicine the patient recorded (and its safety warnings). */
@@ -213,7 +213,7 @@ class MedicationController extends Controller
             $medication->markReviewed($request->user())->save();
         }
 
-        return back()->with('success', "{$medication->name} marked as reviewed.");
+        return back()->with('success', __(':name marked as reviewed.', ['name' => $medication->name]));
     }
 
     /** Refill dispensed today for N days (leftover supply carries forward). */
@@ -221,7 +221,7 @@ class MedicationController extends Controller
     {
         $medication = $this->findOwnMedication($medicationId);
         if (! $medication->isCurrent()) {
-            return back()->with('error', "{$medication->name} is no longer current, so it cannot be refilled.");
+            return back()->with('error', __(':name is no longer current, so it cannot be refilled.', ['name' => $medication->name]));
         }
 
         $validated = $request->validateWithBag('refill', [
@@ -241,7 +241,7 @@ class MedicationController extends Controller
         ]);
 
         return redirect()->route('pharmacist.medication.index', $medication->patient_id)
-            ->with('success', "{$medication->name} refilled for {$validated['days']} days — supply now lasts until {$medication->supply_until->format('d M Y')}.");
+            ->with('success', __(':name refilled for :days days — supply now lasts until :date.', ['name' => $medication->name, 'days' => $validated['days'], 'date' => $medication->supply_until->translatedFormat('d M Y')]));
     }
 
     /** Log a dose the patient reports (e.g. at the counter or by phone), up to 30 days back. */
@@ -249,14 +249,14 @@ class MedicationController extends Controller
     {
         $medication = $this->findOwnMedication($medicationId);
         if (! $medication->isCurrent()) {
-            return back()->with('error', "{$medication->name} is no longer current, so doses can't be logged for it.");
+            return back()->with('error', __(':name is no longer current, so doses can\'t be logged for it.', ['name' => $medication->name]));
         }
 
         $day = $this->validatedDoseDay($request, $medication);
         $medication->recordDose($day, 'pharmacist', $request->user());
 
         return redirect()->route('pharmacist.medication.index', $medication->patient_id)
-            ->with('success', "Dose of {$medication->name} logged for {$day->format('d M Y')}.");
+            ->with('success', __('Dose of :name logged for :date.', ['name' => $medication->name, 'date' => $day->translatedFormat('d M Y')]));
     }
 
     public function removeDose(Request $request, $medicationId)
@@ -266,7 +266,7 @@ class MedicationController extends Controller
         $medication->removeDose($day);
 
         return redirect()->route('pharmacist.medication.index', $medication->patient_id)
-            ->with('success', "Removed the {$medication->name} dose for {$day->format('d M Y')}.");
+            ->with('success', __('Removed the :name dose for :date.', ['name' => $medication->name, 'date' => $day->translatedFormat('d M Y')]));
     }
 
     /** The dose day from the request. When logging ($forLogging given), it may not be before the medicine started. */
@@ -275,8 +275,8 @@ class MedicationController extends Controller
         $validated = $request->validateWithBag('dose', [
             'taken_on' => ['required', 'date', 'before_or_equal:today', 'after_or_equal:' . Adherence::windowStart()->toDateString()],
         ], [
-            'taken_on.after_or_equal' => 'Doses can only be logged for the last ' . Adherence::WINDOW_DAYS . ' days.',
-            'taken_on.before_or_equal' => 'A dose cannot be logged in the future.',
+            'taken_on.after_or_equal' => __('Doses can only be logged for the last :days days.', ['days' => Adherence::WINDOW_DAYS]),
+            'taken_on.before_or_equal' => __('A dose cannot be logged in the future.'),
         ]);
 
         $day = \Carbon\Carbon::parse($validated['taken_on'])->startOfDay();
@@ -284,7 +284,7 @@ class MedicationController extends Controller
         $firstDay = $forLogging?->firstDoseDay();
         if ($firstDay && $day->lt($firstDay)) {
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'taken_on' => "{$forLogging->name} started on {$firstDay->format('d M Y')}, so a dose cannot be logged before that.",
+                'taken_on' => __(':name started on :date, so a dose cannot be logged before that.', ['name' => $forLogging->name, 'date' => $firstDay->translatedFormat('d M Y')]),
             ])->errorBag('dose');
         }
 

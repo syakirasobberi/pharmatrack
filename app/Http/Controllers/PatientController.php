@@ -73,7 +73,7 @@ class PatientController extends Controller
         ]);
 
         return redirect()->route('pharmacist.patients.index')
-            ->with('success', "{$patient->user->name} has been archived. Find them under \"Archived patients\" to restore.");
+            ->with('success', __(':name has been archived. Find them under "Archived patients" to restore.', ['name' => $patient->user->name]));
     }
 
     public function restore(Request $request, $id)
@@ -90,7 +90,7 @@ class PatientController extends Controller
         Log::info('Patient restored.', ['patient_id' => $patient->id, 'restored_by' => $request->user()->id]);
 
         return redirect()->route('pharmacist.patients.show', $patient->id)
-            ->with('success', "{$patient->user->name} has been restored and can log in again.");
+            ->with('success', __(':name has been restored and can log in again.', ['name' => $patient->user->name]));
     }
     
     // 2. Display the registration form (Includes Camera UI)
@@ -121,8 +121,8 @@ class PatientController extends Controller
                 'face_consent' => ['exclude_without:face_descriptor', 'accepted'],
             ],
             [
-                'face_consent.accepted' => 'Tick the consent box: the patient must agree before their face is registered.',
-                'email.unique' => 'This email address is already registered. Please use a different email for the new patient.',
+                'face_consent.accepted' => __('Tick the consent box: the patient must agree before their face is registered.'),
+                'email.unique' => __('This email address is already registered. Please use a different email for the new patient.'),
             ]
         );
 
@@ -169,10 +169,10 @@ class PatientController extends Controller
             ]);
 
             // Email failed: show the temporary password once so it can be handed to the patient in person.
-            return $redirect->with('error', "Patient registered, but the setup email could not be sent. Give the patient this temporary password in person: {$temporaryPassword} (they must change it on first login).");
+            return $redirect->with('error', __('Patient registered, but the setup email could not be sent. Give the patient this temporary password in person: :password (they must change it on first login).', ['password' => $temporaryPassword]));
         }
 
-        return $redirect->with('success', "Patient registered. An email has been sent to {$validated['email']} so they can set their own password.");
+        return $redirect->with('success', __('Patient registered. An email has been sent to :email so they can set their own password.', ['email' => $validated['email']]));
     }
 
     // 4. Display full patient profile
@@ -225,7 +225,7 @@ class PatientController extends Controller
         ]);
 
         return redirect()->route('pharmacist.patients.show', $patient->id)
-            ->with('success', 'Patient profile updated successfully!');
+            ->with('success', __('Patient profile updated successfully!'));
     }
 
     public function summary($id)
@@ -254,7 +254,7 @@ class PatientController extends Controller
         $recipient = $patient->user->email;
 
         if (! filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
-            return back()->with('error', 'This patient does not have a valid email address.');
+            return back()->with('error', __('This patient does not have a valid email address.'));
         }
 
         $filename = 'patient-health-summary-' . $patient->id . '-' . now()->format('Y-m-d') . '.pdf';
@@ -278,10 +278,10 @@ class PatientController extends Controller
                 'exception' => $exception,
             ]);
 
-            return back()->with('error', 'The PDF could not be sent right now. Please check the server email configuration and try again.');
+            return back()->with('error', __('The PDF could not be sent right now. Please check the server email configuration and try again.'));
         }
 
-        return back()->with('success', "The health summary PDF has been sent to {$recipient}.");
+        return back()->with('success', __('The health summary PDF has been sent to :email.', ['email' => $recipient]));
     }
 
     protected function buildSummaryPatient($id)
@@ -314,7 +314,7 @@ class PatientController extends Controller
             'others'         => ['nullable', 'string', 'max:255'],
             'others_custom'  => ['nullable', 'required_if:others,Other (specify)', 'string', 'max:255'],
         ], [
-            'others_custom.required_if' => 'Please describe the other condition.',
+            'others_custom.required_if' => __('Please describe the other condition.'),
         ]);
 
         // Medications are added on the Medications page, which records start/end dates.
@@ -332,7 +332,7 @@ class PatientController extends Controller
         );
 
         return redirect()->route('pharmacist.patients.show', $patient->id)
-                         ->with('success', 'Medical records updated successfully!');
+                         ->with('success', __('Medical records updated successfully!'));
     }
 
     // 7. Function to update face biometric for existing patients
@@ -344,13 +344,13 @@ class PatientController extends Controller
             'descriptor.*' => ['required', 'numeric'],
             'consent' => ['accepted'],   // PDPA: the patient agreed before this capture
         ], [
-            'consent.accepted' => 'The patient must agree to face recognition before their face is saved.',
+            'consent.accepted' => __('The patient must agree to face recognition before their face is saved.'),
         ]);
 
         $patient = Patient::assignedTo($request->user())->find($validated['patient_id']);
 
         if (!$patient) {
-            return response()->json(['status' => 'error', 'message' => 'Patient not found.'], 404);
+            return response()->json(['status' => 'error', 'message' => __('Patient not found.')], 404);
         }
 
         $patient->face_descriptor = json_encode(array_map('floatval', $validated['descriptor']));
@@ -358,7 +358,7 @@ class PatientController extends Controller
         $patient->recordFaceConsent($request->user());
         Audit::record('patient.face_consent_given', 'Face registered with the patient\'s consent', $patient->id, $patient);
 
-        return response()->json(['status' => 'success', 'message' => 'Face data successfully updated!']);
+        return response()->json(['status' => 'success', 'message' => __('Face data successfully updated!')]);
     }
 
     public function deleteExistingFace(Request $request, $id)
@@ -370,7 +370,7 @@ class PatientController extends Controller
 
         return redirect()
             ->route('pharmacist.patients.show', $patient->id)
-            ->with('success', 'Patient face data removed successfully.');
+            ->with('success', __('Patient face data removed successfully.'));
     }
 
     /** Record consent for a face that was registered before consent was recorded (PDPA). */
@@ -380,7 +380,7 @@ class PatientController extends Controller
         $profile = route('pharmacist.patients.show', $patient->id) . '#face-registration';   // land on the message, not the page top
 
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), ['consent' => ['accepted']], [
-            'consent.accepted' => 'Tick the box to confirm the patient agreed, or remove the face instead.',
+            'consent.accepted' => __('Tick the box to confirm the patient agreed, or remove the face instead.'),
         ]);
         if ($validator->fails()) {
             return redirect()->to($profile)->withErrors($validator);
@@ -392,7 +392,7 @@ class PatientController extends Controller
         Audit::record('patient.face_consent_given', 'Consent recorded for an already registered face', $patient->id, $patient);
 
         return redirect()->to(route('pharmacist.patients.show', $patient->id) . '#face-registration')
-            ->with('success', 'Face-recognition consent recorded.');
+            ->with('success', __('Face-recognition consent recorded.'));
     }
 
     public function quickScan()
@@ -440,7 +440,7 @@ class PatientController extends Controller
         $patient = Patient::assignedTo(request()->user())->with('user')->findOrFail($id);
 
         if (! $patient->user?->exists) {
-            return redirect()->back()->with('error', 'Patient user account not found.');
+            return redirect()->back()->with('error', __('Patient user account not found.'));
         }
 
         try {
@@ -451,9 +451,9 @@ class PatientController extends Controller
                 'exception' => $exception,
             ]);
 
-            return redirect()->back()->with('error', 'The reminder could not be sent right now. Please check the server email configuration and try again.');
+            return redirect()->back()->with('error', __('The reminder could not be sent right now. Please check the server email configuration and try again.'));
         }
 
-        return redirect()->back()->with('success', 'Routine check-up reminder sent to ' . $patient->user->name . ' via email and system notification.');
+        return redirect()->back()->with('success', __('Routine check-up reminder sent to :name via email and system notification.', ['name' => $patient->user->name]));
     }
 }

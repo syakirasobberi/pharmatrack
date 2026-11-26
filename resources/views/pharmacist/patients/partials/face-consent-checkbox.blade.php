@@ -5,8 +5,8 @@
            @checked(old($name ?? 'face_consent'))
            class="mt-0.5 h-4 w-4 rounded border-amber-400 text-teal-600 focus:ring-teal-500">
     <span>
-        <strong>Patient consent (required).</strong>
-        I have explained this to the patient and they agree: {{ \App\Support\FaceConsent::STATEMENT }}
+        <strong>{{ __('Patient consent (required).') }}</strong>
+        {{ __('I have explained this to the patient and they agree:') }} {{ __(\App\Support\FaceConsent::STATEMENT) }}
     </span>
 </label>
 @error($name ?? 'face_consent')

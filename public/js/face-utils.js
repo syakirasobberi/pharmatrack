@@ -27,6 +27,12 @@
 
     const DEBUG = new URLSearchParams(location.search).has('facedebug');
 
+    /** Page translation (EN / BM) when the page provides window.t; otherwise English with :placeholders filled. */
+    const tr = (msg, vars = {}) => {
+        if (typeof global.t === 'function') return global.t(msg, vars);
+        return Object.entries(vars).reduce((out, [k, v]) => out.split(':' + k).join(String(v)), msg);
+    };
+
     async function loadModels(uri = '/models') {
         await Promise.all([
             faceapi.nets.tinyFaceDetector.loadFromUri(uri),
@@ -106,7 +112,7 @@
 
         while (samples.length < total) {
             if (Date.now() - started > timeoutMs) {
-                throw new Error(`Only ${samples.length} of ${total} clear frames captured. Improve lighting, face the camera and try again.`);
+                throw new Error(tr('Only :count of :total clear frames captured. Improve lighting, face the camera and try again.', { count: samples.length, total }));
             }
 
             const result = await describe(video);
@@ -220,7 +226,7 @@
         document.getElementById('capture-progress-bar').style.width = `${Math.round((count / total) * 100)}%`;
         document.getElementById('capture-progress-count').textContent = `${count}/${total}`;
         document.getElementById('capture-progress-label').textContent =
-            count >= total ? 'Face captured ✓' : (hint || 'Hold still with eyes open…');
+            count >= total ? tr('Face captured ✓') : (hint || tr('Hold still with eyes open…'));
     }
 
     /** Short confirmation tone (no audio file needed). Used when the head turn is confirmed. */

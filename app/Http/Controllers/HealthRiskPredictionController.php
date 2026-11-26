@@ -24,7 +24,7 @@ class HealthRiskPredictionController extends Controller
         $latestCheckup = $patient->healthCheckups->first();
 
         if (!$latestCheckup) {
-            return $this->emptyPrediction('No health check-up data is available for ML prediction yet.');
+            return $this->emptyPrediction(__('No health check-up data is available for ML prediction yet.'));
         }
 
         $bmi = (float) $patient->bmi;
@@ -43,7 +43,7 @@ class HealthRiskPredictionController extends Controller
         } catch (Throwable $exception) {
             Log::error('Risk prediction failed.', ['patient_id' => $patient->id, 'exception' => $exception]);
 
-            return $this->emptyPrediction('Prediction could not be generated. Please check that health_data.csv is present and valid.');
+            return $this->emptyPrediction(__('Prediction could not be generated. Please check that health_data.csv is present and valid.'));
         }
 
         $risk = $prediction['risk'];
@@ -53,10 +53,10 @@ class HealthRiskPredictionController extends Controller
         return [
             'success' => true,
             'risk' => $risk,
-            'risk_label' => $risk . ' Risk',
+            'risk_label' => __(':level Risk', ['level' => __($risk)]),
             'confidence' => $confidence,
             'risk_score' => (int) str_replace('%', '', $confidence),
-            'factors' => $riskFactors,
+            'factors' => array_map(fn ($factor) => __($factor), $riskFactors),
             'summary' => $this->summaryText($risk, $riskFactors),
             'inputs' => [
                 'bmi' => round($bmi, 1),
@@ -73,7 +73,7 @@ class HealthRiskPredictionController extends Controller
         return [
             'success' => false,
             'risk' => 'Not Available',
-            'risk_label' => 'Not Available',
+            'risk_label' => __('Not Available'),
             'confidence' => '0%',
             'risk_score' => 0,
             'factors' => [],
@@ -132,17 +132,17 @@ class HealthRiskPredictionController extends Controller
 
     private function summaryText(string $risk, array $riskFactors): string
     {
-        $factorText = implode(', ', array_slice($riskFactors, 0, 3));
+        $factorText = mb_strtolower(implode(', ', array_map(fn ($factor) => __($factor), array_slice($riskFactors, 0, 3))));
 
         if ($risk === 'High') {
-            return "The patient shows high health risk due to {$factorText}. Prompt pharmacist review, lifestyle counselling, and medical follow-up are recommended.";
+            return __('The patient shows high health risk due to :factors. Prompt pharmacist review, lifestyle counselling, and medical follow-up are recommended.', ['factors' => $factorText]);
         }
 
         if ($risk === 'Moderate') {
-            return "The patient shows moderate health risk due to {$factorText}. Regular exercise, dietary monitoring, and follow-up check-ups are recommended.";
+            return __('The patient shows moderate health risk due to :factors. Regular exercise, dietary monitoring, and follow-up check-ups are recommended.', ['factors' => $factorText]);
         }
 
-        return "The patient shows low health risk based on the current readings. Continue healthy lifestyle habits and routine monitoring.";
+        return __('The patient shows low health risk based on the current readings. Continue healthy lifestyle habits and routine monitoring.');
     }
 
     private function lifestyleScore(string $risk): int

@@ -82,7 +82,7 @@ class HealthCheckupController extends Controller
             'patient_weight' => 'nullable|required_with:patient_height|numeric|min:1|max:300',
             'patient_height' => 'nullable|required_with:patient_weight|numeric|min:1|max:250',
             'ai_suggestion'  => 'nullable|string|max:5000',
-        ], self::READING_MESSAGES);
+        ], array_map('__', self::READING_MESSAGES));
 
         $patient = Patient::assignedTo($request->user())->findOrFail($id);
 
@@ -109,7 +109,7 @@ class HealthCheckupController extends Controller
 
             return redirect()
                 ->route('pharmacist.patients.show', $patient->id)
-                ->with('success', 'Health checkup record saved successfully!');
+                ->with('success', __('Health checkup record saved successfully!'));
 
         } catch (\Throwable $e) {
             // Details (SQL, table names) go to the log only, never to the page.
@@ -120,7 +120,7 @@ class HealthCheckupController extends Controller
             ]);
 
             return back()
-                ->with('error', 'The check-up could not be saved. Please try again, or contact the administrator if it keeps happening.')
+                ->with('error', __('The check-up could not be saved. Please try again, or contact the administrator if it keeps happening.'))
                 ->withInput();
         }
     }
@@ -142,7 +142,7 @@ class HealthCheckupController extends Controller
     public function update(Request $request, $checkupId)
     {
         $checkup = $this->findOwnCheckup($checkupId);
-        $validated = $request->validate(self::readingRules(), self::READING_MESSAGES);
+        $validated = $request->validate(self::readingRules(), array_map('__', self::READING_MESSAGES));
 
         // Normalise "120 / 80" to "120/80" like a fresh entry would read.
         if (! empty($validated['blood_pressure'])) {
@@ -157,7 +157,7 @@ class HealthCheckupController extends Controller
 
         if ($changes === []) {
             return redirect()->route('pharmacist.patients.show', $checkup->patient_id)
-                ->with('success', 'No changes were made to the check-up.');
+                ->with('success', __('No changes were made to the check-up.'));
         }
 
         // The saved AI suggestion was based on the old readings; clear it so it can't mislead.
@@ -182,13 +182,13 @@ class HealthCheckupController extends Controller
         ]);
 
         $fields = implode(', ', array_map(
-            fn ($f) => self::METRICS[$f][0] ?? str_replace('_', ' ', $f),
+            fn ($f) => __(self::METRICS[$f][0] ?? str_replace('_', ' ', $f)),
             array_keys($changes)
         ));
 
         return redirect()->route('pharmacist.patients.show', $checkup->patient_id)
-            ->with('success', "Check-up of {$checkup->checkup_date->format('d M Y')} updated ({$fields})."
-                . ($clearedAi ? ' Its AI suggestion was cleared because the readings changed.' : ''));
+            ->with('success', __('Check-up of :date updated (:fields).', ['date' => $checkup->checkup_date->translatedFormat('d M Y'), 'fields' => $fields])
+                . ($clearedAi ? ' ' . __('Its AI suggestion was cleared because the readings changed.') : ''));
     }
 
     /** A check-up belonging to one of the logged-in pharmacist's own patients, or 404. */
