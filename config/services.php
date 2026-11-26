@@ -36,6 +36,10 @@ return [
     // Public "Contact Us" WhatsApp button on the front page (international format, digits only).
     'pharmacy' => [
         'whatsapp' => env('PHARMACY_WHATSAPP', '60125764231'),
+        // Shown on the welcome page "Visit us" section; each line is hidden when empty.
+        'address'  => env('PHARMACY_ADDRESS'),
+        'hours'    => env('PHARMACY_HOURS'),   // e.g. "Mon–Fri 9am–9pm | Sat–Sun 10am–6pm" (| = new line)
+        'phone'    => env('PHARMACY_PHONE'),
     ],
 
     'ses' => [

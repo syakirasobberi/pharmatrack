@@ -212,7 +212,7 @@
         a:focus-visible, button:focus-visible {
             outline: 3px solid var(--primary-l); outline-offset: 3px;
         }
-        .btn-start:focus-visible, .btn-login-instead:focus-visible, .contact-float:focus-visible {
+        .btn-start:focus-visible, .btn-login-instead:focus-visible {
             outline-color: var(--text);
         }
 
@@ -317,6 +317,110 @@
         .privacy-content h3 { font-size: 1.05rem; font-weight: 700; color: #065f46; margin-bottom: 4px; }
         .privacy-content p { font-size: 0.9rem; color: #047857; line-height: 1.5; }
 
+        /* ── Top navigation ── */
+        html { scroll-behavior: smooth; }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .top-nav { display: flex; align-items: center; gap: 4px; }
+        .top-nav a {
+            padding: 10px 14px; border-radius: 10px; font-size: 0.88rem; font-weight: 600;
+            color: var(--muted); text-decoration: none; transition: color .2s, background .2s;
+        }
+        .top-nav a:hover { color: var(--primary); background: rgba(20, 184, 166, 0.08); }
+        .top-nav a.nav-login {
+            color: #fff; background: var(--primary); margin-left: 6px;
+        }
+        .top-nav a.nav-login:hover { background: #0f766e; color: #fff; }
+        [id] { scroll-margin-top: 24px; }
+
+        /* ── Hero extras ── */
+        .trust-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; list-style: none; }
+        .trust-chips li {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 600;
+            background: #f0fdfa; color: #0f766e; border: 1px solid #ccfbf1;
+        }
+        .trust-chips svg { flex-shrink: 0; color: var(--primary); }
+        .hero-links { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 12px; font-size: 0.85rem; }
+        .hero-links a { color: var(--primary); font-weight: 600; text-decoration: none; }
+        .hero-links a:hover { text-decoration: underline; }
+        .fact-list { list-style: none; display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
+        .fact-list li { display: flex; gap: 12px; align-items: flex-start; font-size: 0.92rem; color: var(--text); line-height: 1.5; }
+        .fact-list .fact-icon {
+            flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px;
+            background: rgba(20, 184, 166, 0.1); color: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .fact-list strong { display: block; font-size: 0.95rem; }
+        .fact-list span.fact-sub { color: var(--muted); font-size: 0.85rem; }
+
+        /* ── Patient portal list ── */
+        .portal-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+            gap: 16px; width: 100%;
+        }
+        .portal-item {
+            display: flex; gap: 14px; align-items: flex-start;
+            background: var(--surface-solid); border: 1px solid var(--border);
+            border-radius: 18px; padding: 20px; box-shadow: var(--shadow-sm);
+        }
+        .portal-item .fact-icon {
+            flex-shrink: 0; width: 40px; height: 40px; border-radius: 12px;
+            background: rgba(20, 184, 166, 0.1); color: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .portal-item h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+        .portal-item p { font-size: 0.86rem; color: var(--muted); line-height: 1.5; }
+        .section-cta { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+        .section-cta a {
+            padding: 12px 22px; border-radius: 12px; font-weight: 700; font-size: 0.92rem; text-decoration: none;
+            background: var(--primary); color: #fff; box-shadow: 0 6px 18px rgba(20, 184, 166, 0.25);
+        }
+        .section-cta a.secondary { background: var(--surface-solid); color: var(--text); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+
+        /* ── FAQ ── */
+        .faq-list { width: 100%; max-width: 820px; display: flex; flex-direction: column; gap: 12px; }
+        .faq-list details {
+            background: var(--surface-solid); border: 1px solid var(--border);
+            border-radius: 16px; box-shadow: var(--shadow-sm); overflow: hidden;
+        }
+        .faq-list summary {
+            cursor: pointer; list-style: none; padding: 18px 22px;
+            font-weight: 700; font-size: 0.98rem; display: flex; justify-content: space-between; align-items: center; gap: 12px;
+        }
+        .faq-list summary::-webkit-details-marker { display: none; }
+        .faq-list summary::after {
+            content: '+'; font-size: 1.4rem; font-weight: 600; color: var(--primary); line-height: 1; flex-shrink: 0;
+        }
+        .faq-list details[open] summary::after { content: '−'; }
+        .faq-list details[open] summary { color: var(--primary); }
+        .faq-list .faq-body { padding: 0 22px 18px; color: var(--muted); font-size: 0.92rem; line-height: 1.6; }
+        .faq-list .faq-body a { color: var(--primary); font-weight: 600; }
+
+        /* ── Visit / contact ── */
+        .visit-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+            gap: 16px; width: 100%;
+        }
+        .visit-card {
+            background: var(--surface-solid); border: 1px solid var(--border); border-radius: 20px;
+            padding: 24px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 8px;
+        }
+        .visit-card h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--primary); font-weight: 800; }
+        .visit-card p { font-size: 0.95rem; line-height: 1.6; color: var(--text); }
+        .visit-card a { color: var(--primary); font-weight: 700; text-decoration: none; }
+        .visit-card a:hover { text-decoration: underline; }
+        .disclaimer {
+            width: 100%; max-width: 1100px; display: flex; gap: 16px; align-items: flex-start;
+            background: #fffbeb; border: 1px solid #fde68a; border-radius: 20px; padding: 20px 24px;
+            color: #92400e; font-size: 0.88rem; line-height: 1.6;
+        }
+        .disclaimer strong { color: #78350f; }
+        .disclaimer svg { flex-shrink: 0; margin-top: 2px; }
+
+        @media (max-width: 1000px) {
+            .top-nav a:not(.nav-login) { display: none; }
+        }
+
         /* ── Kiosk Main Content ── */
         .kiosk { display: none; }
         .main { flex: 1; display: flex; align-items: center; justify-content: center; gap: 48px; padding: 24px 0; }
@@ -400,28 +504,6 @@
             background: #0d9488; border-color: #0d9488; transform: translateY(-1px);
         }
         
-        .contact-float {
-            position: fixed; right: 24px; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 30;
-            display: inline-flex; align-items: center; justify-content: center; gap: 12px;
-            min-height: 72px; padding: 8px 16px 8px 8px; border-radius: 999px;
-            background: var(--secondary); color: #fff; text-decoration: none;
-            font-size: 0.92rem; font-weight: 800; box-shadow: 0 12px 28px rgba(5, 150, 105, 0.28);
-            border: 1px solid rgba(255, 255, 255, 0.45);
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-        }
-        .contact-float:hover { transform: translateY(-2px); background: #047857; box-shadow: 0 16px 34px rgba(5, 150, 105, 0.34); }
-        .contact-float svg { flex-shrink: 0; }
-        .contact-float span { white-space: nowrap; }
-        .contact-pharmacist {
-            width: 58px; height: 58px; flex: 0 0 58px;
-            object-fit: cover; object-position: center top;
-            border-radius: 999px; background: #ecfeff;
-            border: 2px solid rgba(255, 255, 255, 0.78);
-            box-shadow: 0 8px 18px rgba(4, 120, 87, 0.24);
-        }
-        .contact-copy { display: flex; flex-direction: column; line-height: 1.1; }
-        .contact-title { font-size: 0.94rem; }
-        .contact-subtitle { margin-top: 4px; font-size: 0.68rem; font-weight: 700; opacity: 0.82; }
 
         .footer { text-align: center; font-size: 0.8rem; color: var(--muted); padding: 24px 0 16px 0; z-index: 10; font-weight: 500; }
 
@@ -457,7 +539,9 @@
         @media (max-width: 600px) {
             .kiosk, #welcome-screen { padding: 20px 16px; }
             .header { flex-direction: column; align-items: flex-start; gap: 12px; }
-            #clock { width: 100%; text-align: center; }
+            .header-right { width: 100%; }
+            #clock { flex: 1; text-align: center; }
+            .disclaimer { flex-direction: column; }
             .welcome-main { gap: 36px; }
             .welcome-hero { gap: 18px; padding: 16px; border-radius: 22px; background-position: center; }
             .content-section { gap: 24px; }
@@ -467,17 +551,6 @@
             .cam-frame { border-radius: 20px; }
             .cam-frame::after { inset: 10px; border-radius: 12px; }
             .privacy-banner { flex-direction: column; text-align: center; padding: 24px; }
-            .contact-float {
-                right: 14px; bottom: calc(14px + env(safe-area-inset-bottom, 0px));
-                width: 62px; height: 62px; min-height: 0;
-                gap: 0; padding: 4px;
-            }
-            .contact-pharmacist {
-                display: block;
-                width: 52px; height: 52px; flex-basis: 52px;
-                border-width: 2px;
-            }
-            .contact-float svg, .contact-copy { display: none; }
         }
 
         @media (max-width: 380px) {
@@ -485,11 +558,6 @@
             .welcome-hero { padding: 12px; border-radius: 18px; }
             .glass-card, .step-card, .registration-banner, .privacy-banner { padding: 18px; }
             .btn-start { padding: 14px 16px; font-size: 0.95rem; }
-            .contact-float {
-                right: 10px; bottom: calc(10px + env(safe-area-inset-bottom, 0px));
-                width: 56px; height: 56px; padding: 4px;
-            }
-            .contact-pharmacist { width: 46px; height: 46px; flex-basis: 46px; }
         }
     </style>
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
@@ -528,8 +596,24 @@
             <div class="logo">
                 <x-brand :size="48" tagline="Smart Pharmacy System" />
             </div>
-            <div id="clock">--:--:--</div>
+            <div class="header-right">
+                <nav class="top-nav" aria-label="Page sections">
+                    <a href="#how-it-works">How it works</a>
+                    <a href="#patient-portal">Patient portal</a>
+                    <a href="#faq">FAQ</a>
+                    <a href="#visit">Contact</a>
+                    <a href="{{ route('login') }}" class="nav-login">Log in</a>
+                </nav>
+                <div id="clock">--:--:--</div>
+            </div>
         </header>
+
+        @php
+            $pharmacy = config('services.pharmacy');
+            $waNumber = preg_replace('/\D+/', '', $pharmacy['whatsapp'] ?? '');
+            $waLink   = 'https://wa.me/' . $waNumber;
+            $waPretty = '+' . $waNumber;
+        @endphp
 
         <main class="welcome-main">
 
@@ -542,28 +626,61 @@
                         Look at the camera, turn your head when asked, and your pharmacist will have your records ready. No card or password needed.
                     </p>
 
+                    <ul class="trust-chips" aria-label="Check-in at a glance">
+                        <li>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9.5 2h5"/></svg>
+                            About 10 seconds
+                        </li>
+                        <li>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2"/><path d="M13 10h5M13 14h3"/><path d="M3 3l18 18"/></svg>
+                            No card or IC needed
+                        </li>
+                        <li>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+                            No photo saved
+                        </li>
+                    </ul>
+
                     <button type="button" class="btn-start" id="btn-start-verification">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                         Start Face Verification
                     </button>
 
                     <div class="login-grid">
-                        <a href="{{ route('login') }}" class="btn-staff">Log in with email (patients &amp; staff)</a>
+                        <a href="{{ route('login') }}" class="btn-staff">Log in with email &amp; password</a>
+                    </div>
+                    <div class="hero-links">
+                        <a href="{{ route('password.request') }}">Forgot your password?</a>
+                        <a href="#faq">Need help?</a>
                     </div>
                 </section>
 
-                <!-- About -->
+                <!-- About + who it is for -->
                 <section class="glass-card about-card" aria-labelledby="about-title">
                     <span class="badge">About PharmaTrack</span>
                     <h2 class="section-headline" id="about-title">Smarter care at your <span>community pharmacy</span></h2>
                     <p class="section-desc">
-                        PharmaTrack helps your pharmacist keep your medications and health check-ups in one place, and uses AI-assisted clinical decision support to spot possible health risks early.
+                        PharmaTrack keeps your medications and health check-ups in one place, and uses AI-assisted clinical decision support to help your pharmacist spot possible health risks early.
                     </p>
+                    <ul class="fact-list">
+                        <li>
+                            <span class="fact-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>
+                            <span><strong>Registered patients</strong><span class="fact-sub">Check in at the kiosk, or log in to see your medicines and results.</span></span>
+                        </li>
+                        <li>
+                            <span class="fact-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>
+                            <span><strong>New patients</strong><span class="fact-sub">Visit the counter. Our pharmacist registers you; it only takes a few minutes.</span></span>
+                        </li>
+                        <li>
+                            <span class="fact-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+                            <span><strong>Pharmacy staff</strong><span class="fact-sub">Use “Log in”. Staff sign-in is protected with an emailed code.</span></span>
+                        </li>
+                    </ul>
                 </section>
             </div>
 
             <!-- "How it Works" Steps Section -->
-            <div class="content-section">
+            <div class="content-section" id="how-it-works">
                 <div class="section-header">
                     <h2>How to use <span>PharmaTrack</span></h2>
                     <p style="color: var(--muted); font-size: 0.95rem; margin-top: 8px;">For registered patients using the kiosk counter.</p>
@@ -605,6 +722,46 @@
                         <h3>Not registered for face check-in yet?</h3>
                         <p>Please proceed to the pharmacy counter. Once our pharmacist registers your profile, you can use this check-in kiosk or log in to the portal instantly.</p>
                     </div>
+                </div>
+            </div>
+
+            <!-- Patient portal -->
+            <div class="content-section" id="patient-portal">
+                <div class="section-header">
+                    <h2>Your <span>patient portal</span></h2>
+                    <p style="color: var(--muted); font-size: 0.95rem; margin-top: 8px;">Log in from any phone or computer to manage your care between visits.</p>
+                </div>
+
+                <div class="portal-grid">
+                    <div class="portal-item">
+                        <span class="fact-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5 3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7z"/><path d="m8.5 8.5 7 7"/></svg></span>
+                        <div><h3>My medicines</h3><p>See every medicine, its dose and instructions, all in one list.</p></div>
+                    </div>
+                    <div class="portal-item">
+                        <span class="fact-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+                        <div><h3>Dose log</h3><p>Tick off each dose you take and track how well you are keeping up.</p></div>
+                    </div>
+                    <div class="portal-item">
+                        <span class="fact-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.5 15a9 9 0 1 1-2.1-9.4L23 10"/></svg></span>
+                        <div><h3>Refill requests &amp; reminders</h3><p>Ask for a refill online and get reminded before you run out or a check-up is due.</p></div>
+                    </div>
+                    <div class="portal-item">
+                        <span class="fact-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+                        <div><h3>Check-up results</h3><p>Blood pressure, sugar, cholesterol and BMI, with clear Normal / High / Low labels.</p></div>
+                    </div>
+                    <div class="portal-item">
+                        <span class="fact-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></span>
+                        <div><h3>Health summary</h3><p>Download or email yourself a summary to show your doctor or clinic.</p></div>
+                    </div>
+                    <div class="portal-item">
+                        <span class="fact-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+                        <div><h3>Control your face data</h3><p>Remove your face template at any time and use email login instead.</p></div>
+                    </div>
+                </div>
+
+                <div class="section-cta">
+                    <a href="{{ route('login') }}">Log in to the portal</a>
+                    <a href="{{ route('password.request') }}" class="secondary">Set or reset password</a>
                 </div>
             </div>
 
@@ -660,23 +817,89 @@
                 </div>
                 <div class="privacy-content">
                     <h3>Your Data is Secure</h3>
-                    <p>No photo of your face is saved. The camera image is turned into a numeric face template on this device, and only that template is sent to our server to match you against registered patients. It is used solely for identity verification.</p>
+                    <p>No photo of your face is saved. The camera image is turned into a numeric face template on this device, and only that template is sent to our server to match you against registered patients. It is used solely for identity verification. Your face is only enrolled with your consent (PDPA 2010), and you can remove it at any time from your patient portal or at the counter.</p>
+                </div>
+            </div>
+
+            <!-- FAQ -->
+            <div class="content-section" id="faq">
+                <div class="section-header">
+                    <h2>Frequently asked <span>questions</span></h2>
+                </div>
+
+                <div class="faq-list">
+                    <details>
+                        <summary>The kiosk does not recognise my face. What should I do?</summary>
+                        <div class="faq-body">Remove glasses, mask or hat, face the camera in good light and turn your head when asked. If it still fails, tap <strong>Login Instead</strong> to sign in with your email, or ask the pharmacist at the counter, who can also update your face profile.</div>
+                    </details>
+                    <details>
+                        <summary>How do I get an account?</summary>
+                        <div class="faq-body">Accounts are created by our pharmacist at the counter. You will receive an email with a link to set your own password. Didn't get it? Check your spam folder, or use <a href="{{ route('password.request') }}">Forgot password</a> with the same email.</div>
+                    </details>
+                    <details>
+                        <summary>Do I have to use face check-in?</summary>
+                        <div class="faq-body">No. Face check-in is optional and only set up with your consent. You can always log in with your email and password instead, and you can remove your face data at any time.</div>
+                    </details>
+                    <details>
+                        <summary>Is my face photo stored?</summary>
+                        <div class="faq-body">No. Only a numeric face template (a list of numbers that cannot be turned back into a photo) is kept, and it is used only to recognise you at this pharmacy.</div>
+                    </details>
+                    <details>
+                        <summary>Is the AI health risk result a diagnosis?</summary>
+                        <div class="faq-body">No. It is a decision-support tool that helps your pharmacist notice possible risks early. Any concern is discussed with you, and you may be referred to a doctor for proper diagnosis.</div>
+                    </details>
+                    <details>
+                        <summary>I forgot my password.</summary>
+                        <div class="faq-body">Use <a href="{{ route('password.request') }}">Forgot password</a> and we will email you a reset link. If you no longer have access to that email, ask the pharmacist to update it.</div>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Visit / contact -->
+            <div class="content-section" id="visit">
+                <div class="section-header">
+                    <h2>Visit or <span>contact us</span></h2>
+                </div>
+
+                <div class="visit-grid">
+                    @if (!empty($pharmacy['hours']))
+                        <div class="visit-card">
+                            <h3>Opening hours</h3>
+                            <p>{!! collect(explode('|', $pharmacy['hours']))->map(fn ($l) => e(trim($l)))->implode('<br>') !!}</p>
+                        </div>
+                    @endif
+                    @if (!empty($pharmacy['address']))
+                        <div class="visit-card">
+                            <h3>Address</h3>
+                            <p>{{ $pharmacy['address'] }}</p>
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($pharmacy['address']) }}" target="_blank" rel="noopener">Get directions →</a>
+                        </div>
+                    @endif
+                    <div class="visit-card">
+                        <h3>WhatsApp</h3>
+                        <p>Questions about your medicines, refills or account.</p>
+                        <a href="{{ $waLink }}" target="_blank" rel="noopener">Chat on {{ $waPretty }} →</a>
+                    </div>
+                    @if (!empty($pharmacy['phone']))
+                        <div class="visit-card">
+                            <h3>Phone</h3>
+                            <p>Call the pharmacy counter during opening hours.</p>
+                            <a href="tel:{{ preg_replace('/[^\d+]/', '', $pharmacy['phone']) }}">{{ $pharmacy['phone'] }}</a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Medical disclaimer -->
+            <div class="disclaimer" role="note">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                <div>
+                    <strong>Medical emergency? Call 999 or go to the nearest hospital.</strong>
+                    PharmaTrack supports your pharmacist's care and does not replace advice from a doctor. Do not stop or change any medicine without speaking to your pharmacist or doctor first.
                 </div>
             </div>
 
         </main>
-
-        <a class="contact-float" href="https://wa.me/{{ preg_replace('/\D+/', '', config('services.pharmacy.whatsapp')) }}" target="_blank" rel="noopener" aria-label="Contact pharmacist on WhatsApp">
-            <img class="contact-pharmacist" src="{{ asset('storage/pharmacist-helper.png') }}" alt="" aria-hidden="true">
-            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M21 11.5a8.4 8.4 0 0 1-8.7 8.4 9 9 0 0 1-3.8-.8L3 21l1.8-5.2a8.2 8.2 0 0 1-1-4A8.4 8.4 0 0 1 12.3 3 8.4 8.4 0 0 1 21 11.5z"></path>
-                <path d="M8.5 10.1c.5 2 2 3.6 4 4.4l1.2-1.2c.2-.2.5-.3.8-.2 1 .3 1.7.4 2.3.4"></path>
-            </svg>
-            <span class="contact-copy">
-                <span class="contact-title">Contact Us</span>
-                <span class="contact-subtitle">Pharmacist support</span>
-            </span>
-        </a>
 
         <x-footer />
     </div>
@@ -739,7 +962,8 @@
     const clockEl = document.getElementById('clock');
     const tick = () => {
         const now = new Date();
-        clockEl.textContent = now.toLocaleTimeString('en-MY', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+        clockEl.textContent = now.toLocaleDateString('en-MY', { weekday:'short', day:'numeric', month:'short' })
+            + ' · ' + now.toLocaleTimeString('en-MY', { hour:'2-digit', minute:'2-digit' });
     };
     tick(); setInterval(tick, 1000);
 
