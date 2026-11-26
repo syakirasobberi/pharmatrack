@@ -34,6 +34,23 @@ class PatientPortalController extends Controller
     /**
      * Email the patient's own health summary PDF to their account email.
      */
+    /** PDPA: the patient withdraws consent to face recognition; the face data is deleted at once. */
+    public function withdrawFaceConsent(Request $request)
+    {
+        $patient = Patient::where('user_id', $request->user()->id)->firstOrFail();
+
+        $back = redirect()->to(route('profile.edit') . '#face-recognition');
+
+        if (! $patient->hasFace()) {
+            return $back->with('face_status', 'There is no face data stored for you.');
+        }
+
+        $patient->removeFace();
+        \App\Support\Audit::record('patient.face_consent_withdrawn', 'Patient withdrew face-recognition consent; face data deleted', $patient->id, $patient);
+
+        return $back->with('face_status', 'Your face data has been deleted. The kiosk will no longer recognise you — you can still log in with your email, and you can ask your pharmacist to register your face again at any time.');
+    }
+
     public function emailSummary(Request $request)
     {
         $patient = $this->summaryPatient($request);

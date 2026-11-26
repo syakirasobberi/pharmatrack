@@ -25,7 +25,36 @@ class Patient extends Model
 
     protected $casts = [
         'archived_at' => 'datetime',
+        'face_consent_at' => 'datetime',
     ];
+
+    public function hasFace(): bool
+    {
+        return filled($this->face_descriptor);
+    }
+
+    /** A face registered before consent was recorded (PDPA): the pharmacist should record consent or remove it. */
+    public function faceConsentMissing(): bool
+    {
+        return $this->hasFace() && $this->face_consent_at === null;
+    }
+
+    public function faceConsentRecorder()
+    {
+        return $this->belongsTo(User::class, 'face_consent_by');
+    }
+
+    /** Store the patient's consent to face recognition (not mass-assignable on purpose). */
+    public function recordFaceConsent(User $recordedBy): void
+    {
+        $this->forceFill(['face_consent_at' => now(), 'face_consent_by' => $recordedBy->id])->save();
+    }
+
+    /** Delete the face data and the consent with it (consent withdrawn, or face removed). */
+    public function removeFace(): void
+    {
+        $this->forceFill(['face_descriptor' => null, 'face_consent_at' => null, 'face_consent_by' => null])->save();
+    }
 
     /**
      * Archived patients are hidden from EVERY query by default (lists, dashboard, kiosk and

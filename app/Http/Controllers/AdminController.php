@@ -138,12 +138,14 @@ class AdminController extends Controller
 
         $totalPatients = Patient::count();
         $patientsWithBiometrics = Patient::whereNotNull('face_descriptor')->where('face_descriptor', '!=', '')->count();
+        // PDPA: faces registered before consent was recorded.
+        $facesWithoutConsent = Patient::whereNotNull('face_descriptor')->where('face_descriptor', '!=', '')->whereNull('face_consent_at')->count();
         $unassignedPatients = Patient::whereNull('pharmacist_id')->count();
         // Only active pharmacists can receive patients.
         $activePharmacists = User::where('role', 'pharmacist')->active()->orderBy('name')->get(['id', 'name']);
 
         return view('admin.patients.index', compact(
-            'patients', 'search', 'onlyUnassigned', 'totalPatients', 'patientsWithBiometrics', 'unassignedPatients', 'activePharmacists'
+            'patients', 'search', 'onlyUnassigned', 'totalPatients', 'patientsWithBiometrics', 'facesWithoutConsent', 'unassignedPatients', 'activePharmacists'
         ));
     }
 

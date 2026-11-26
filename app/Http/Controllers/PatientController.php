@@ -6,6 +6,7 @@ use App\Models\MedicalHistory;
 use App\Models\Patient;
 use App\Models\User;
 use App\Notifications\PatientAccountSetupNotification;
+use App\Support\Audit;
 use App\Support\FaceMatch;
 use App\Support\HealthSummaryPdf;
 use Illuminate\Http\Request;
@@ -115,8 +116,12 @@ class PatientController extends Controller
                         $fail('The captured face data is invalid. Please scan the face again.');
                     }
                 }],
+                // PDPA: a face may only be saved with the patient's recorded consent.
+                // exclude_without: no face captured → consent not needed (accepted would otherwise always run).
+                'face_consent' => ['exclude_without:face_descriptor', 'accepted'],
             ],
             [
+                'face_consent.accepted' => 'Tick the consent box: the patient must agree before their face is registered.',
                 'email.unique' => 'This email address is already registered. Please use a different email for the new patient.',
             ]
         );
@@ -146,6 +151,11 @@ class PatientController extends Controller
                 'face_descriptor' => $validated['face_descriptor'] ?? null,
             ]);
         });
+
+        if ($patient->hasFace()) {
+            $patient->recordFaceConsent($request->user());
+            Audit::record('patient.face_consent_given', 'Face registered with the patient\'s consent', $patient->id, $patient);
+        }
 
         $redirect = redirect()->route('pharmacist.patients.show', $patient->id);
 
@@ -332,6 +342,9 @@ class PatientController extends Controller
             'patient_id' => ['required', 'integer'],
             'descriptor' => ['required', 'array', 'size:128'],
             'descriptor.*' => ['required', 'numeric'],
+            'consent' => ['accepted'],   // PDPA: the patient agreed before this capture
+        ], [
+            'consent.accepted' => 'The patient must agree to face recognition before their face is saved.',
         ]);
 
         $patient = Patient::assignedTo($request->user())->find($validated['patient_id']);
@@ -342,6 +355,8 @@ class PatientController extends Controller
 
         $patient->face_descriptor = json_encode(array_map('floatval', $validated['descriptor']));
         $patient->save();
+        $patient->recordFaceConsent($request->user());
+        Audit::record('patient.face_consent_given', 'Face registered with the patient\'s consent', $patient->id, $patient);
 
         return response()->json(['status' => 'success', 'message' => 'Face data successfully updated!']);
     }
@@ -350,12 +365,34 @@ class PatientController extends Controller
     {
         $patient = Patient::assignedTo($request->user())->findOrFail($id);
 
-        $patient->face_descriptor = null;
-        $patient->save();
+        $patient->removeFace();
+        Audit::record('patient.face_removed', 'Face data and face-recognition consent removed by the pharmacist', $patient->id, $patient);
 
         return redirect()
             ->route('pharmacist.patients.show', $patient->id)
             ->with('success', 'Patient face data removed successfully.');
+    }
+
+    /** Record consent for a face that was registered before consent was recorded (PDPA). */
+    public function recordFaceConsent(Request $request, $id)
+    {
+        $patient = Patient::assignedTo($request->user())->findOrFail($id);
+        $profile = route('pharmacist.patients.show', $patient->id) . '#face-registration';   // land on the message, not the page top
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), ['consent' => ['accepted']], [
+            'consent.accepted' => 'Tick the box to confirm the patient agreed, or remove the face instead.',
+        ]);
+        if ($validator->fails()) {
+            return redirect()->to($profile)->withErrors($validator);
+        }
+
+        abort_unless($patient->hasFace(), 404);
+
+        $patient->recordFaceConsent($request->user());
+        Audit::record('patient.face_consent_given', 'Consent recorded for an already registered face', $patient->id, $patient);
+
+        return redirect()->to(route('pharmacist.patients.show', $patient->id) . '#face-registration')
+            ->with('success', 'Face-recognition consent recorded.');
     }
 
     public function quickScan()

@@ -109,6 +109,7 @@ Route::middleware(['auth', 'force_password_change', 'role:pharmacist'])->group(f
         ->name('pharmacist.quickScan.identify');
     Route::post('/pharmacist/patients/update-face', [PatientController::class, 'updateExistingFace'])->name('pharmacist.patients.updateFace');
     Route::delete('/pharmacist/patients/{id}/face', [PatientController::class, 'deleteExistingFace'])->name('pharmacist.patients.deleteFace');
+    Route::post('/pharmacist/patients/{id}/face-consent', [PatientController::class, 'recordFaceConsent'])->name('pharmacist.patients.faceConsent');
     Route::get('/pharmacist/patients/{id}/medications', [MedicationController::class, 'index'])->name('pharmacist.medication.index');
     Route::post('/pharmacist/patients/{id}/medications', [MedicationController::class, 'store'])->name('pharmacist.medication.store');
     Route::get('/pharmacist/medications/{medication}/edit', [MedicationController::class, 'edit'])->whereNumber('medication')->name('pharmacist.medication.edit');
@@ -147,6 +148,7 @@ Route::middleware(['auth', 'force_password_change', 'role:patient'])->group(func
     Route::get('/patient/checkups', [PatientPortalController::class, 'checkups'])->name('patient.checkups');
     Route::get('/patient/download-summary', [PatientPortalController::class, 'downloadSummary'])->name('patient.summary.download');
     Route::post('/patient/email-summary', [PatientPortalController::class, 'emailSummary'])->name('patient.summary.email');
+    Route::delete('/patient/face', [PatientPortalController::class, 'withdrawFaceConsent'])->name('patient.face.withdraw');
     Route::get('/patient/notifications', [PatientPortalController::class, 'notifications'])->name('patient.notifications.index');
     Route::post('/patient/notifications/{id}/read', [PatientPortalController::class, 'markNotificationRead'])->name('patient.notifications.read');
 });

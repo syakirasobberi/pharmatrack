@@ -73,6 +73,7 @@
                         <h4 class="font-bold mb-2">Facial Biometric Registration <span class="text-sm font-normal text-gray-500">(Optional)</span></h4>
                         <div class="mb-3">
                             @include('pharmacist.patients.partials.face-capture-guide')
+                            @include('pharmacist.patients.partials.face-consent-checkbox')
                         </div>
                         <p id="status" class="text-sm font-semibold text-teal-700 mb-2">Loading AI models... You can save the patient without face data.</p>
 
@@ -176,6 +177,13 @@
             });
 
             btnStartCamera.addEventListener('click', () => {
+                // PDPA: no camera until the patient's consent is ticked (the server also checks).
+                const consent = document.querySelector('[data-face-consent]');
+                if (consent && !consent.checked) {
+                    statusText.innerText = "Tick 'Patient consent' first: the patient must agree before their face is captured.";
+                    consent.focus();
+                    return;
+                }
                 btnStartCamera.style.display = 'none';
                 btnScanFace.style.display = 'block';
                 btnScanFace.classList.remove('hidden');

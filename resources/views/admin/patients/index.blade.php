@@ -35,6 +35,9 @@
                 <div class="bg-white border border-emerald-200 rounded-2xl p-6 shadow-sm">
                     <p class="text-xs font-bold uppercase tracking-wide text-emerald-700">Biometrics Registered</p>
                     <p class="text-3xl font-extrabold text-emerald-700 mt-2">{{ $patientsWithBiometrics }}</p>
+                    @if($facesWithoutConsent)
+                        <p class="text-xs font-bold text-amber-700 mt-1">{{ $facesWithoutConsent }} without recorded consent</p>
+                    @endif
                 </div>
                 <a href="{{ route('admin.patients.index', $onlyUnassigned ? [] : ['unassigned' => 1]) }}"
                    class="block bg-white border rounded-2xl p-6 shadow-sm hover:bg-amber-50 {{ $onlyUnassigned ? 'border-amber-400 ring-2 ring-amber-200' : 'border-amber-200' }}">
@@ -111,7 +114,9 @@
                                         @endif
                                     </td>
                                     <td class="py-4 px-6">
-                                        @if($patient->face_descriptor)
+                                        @if($patient->faceConsentMissing())
+                                            <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold" title="Face registered before consent was recorded">No consent</span>
+                                        @elseif($patient->face_descriptor)
                                             <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">Ready</span>
                                         @else
                                             <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold">Missing</span>
