@@ -23,8 +23,12 @@
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
+        <!-- Separate MySQL test database (never the real "pharmatrack" DB). MySQL, not SQLite: CLI PHP has no pdo_sqlite, and ordering bugs only show on MySQL. -->
+        <env name="DB_CONNECTION" value="mysql"/>
+        <env name="DB_DATABASE" value="pharmatrack_test"/>
+        <env name="GEMINI_API_KEY" value=""/>
+        <env name="BREVO_API_KEY" value=""/>
+        <env name="DAILY_TASKS_ON_WEB" value="false"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
