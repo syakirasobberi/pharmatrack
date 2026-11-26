@@ -125,9 +125,6 @@ Route::middleware(['auth', 'force_password_change', 'role:pharmacist'])->group(f
     Route::post('/api/extract-report', [AiController::class, 'extractReport'])
         ->middleware('throttle:15,1')
         ->name('api.ai.extractReport');
-    Route::get('/kamera-test', function () {
-        return view('kamera-test');
-    })->name('pharmacist.kamera-test');
 });
 
 Route::middleware(['auth', 'force_password_change', 'role:patient'])->group(function () {

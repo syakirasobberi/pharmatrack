@@ -661,14 +661,14 @@
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                     <div>
                                         <h2 class="text-lg font-extrabold text-slate-800">Patient Health Summary</h2>
-                                        <p class="text-sm text-slate-500 mt-0.5">Current status, care priorities, and API-generated health suggestions.</p>
+                                        <p class="text-sm text-slate-500 mt-0.5">Current status, care priorities, and AI-generated health suggestions.</p>
                                     </div>
                                     <div class="flex flex-wrap items-center gap-2">
                                         <span class="w-fit rounded-full px-3 py-1 text-xs font-bold {{ $healthStatusClass }}">
                                             {{ $healthStatus }}
                                         </span>
                                         <button type="button" id="generateOverallSummary" class="rounded-full bg-teal-600 px-4 py-2 text-xs font-bold text-white hover:bg-teal-700">
-                                            {{ $aiSuggestionCards->isNotEmpty() ? 'Regenerate API Suggestion' : 'Generate API Suggestion' }}
+                                            {{ $aiSuggestionCards->isNotEmpty() ? 'Regenerate AI Suggestion' : 'Generate AI Suggestion' }}
                                         </button>
                                     </div>
                                 </div>
@@ -866,7 +866,7 @@
                         apiSummaryText.textContent = error.message || 'Unable to generate API suggestion right now.';
                     } finally {
                         generateSummaryButton.disabled = false;
-                        generateSummaryButton.textContent = 'Regenerate API Suggestion';
+                        generateSummaryButton.textContent = 'Regenerate AI Suggestion';
                     }
                 });
             }
