@@ -784,7 +784,7 @@
             <div class="content-section" id="patient-portal">
                 <div class="section-header">
                     <h2>{!! __('Your <span>patient portal</span>') !!}</h2>
-                    <p style="color: var(--muted); font-size: 0.95rem; margin-top: 8px;">{{ __('Log in from any phone or computer to manage your care between visits.') }}</p>
+                    <p style="color: var(--muted); font-size: 0.95rem; margin-top: 8px;">{{ __('Log in from any phone or computer to manage your care between visits. Available in English and Bahasa Melayu.') }}</p>
                 </div>
 
                 <div class="portal-grid">
